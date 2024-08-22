@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.geecee.escape.ui.theme.EscapeTheme
 
 
-class AppAppsScreen : ComponentActivity() {
+class AllAppsScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
