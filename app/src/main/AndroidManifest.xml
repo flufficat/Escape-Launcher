@@ -18,6 +18,13 @@
 
         <activity
             android:name=".AllAppsScreen"
+            android:exported="false"
+            android:theme="@style/Theme.Escape">
+
+        </activity>
+
+        <activity
+            android:name=".MainHomeScreen"
             android:exported="true"
             android:theme="@style/Theme.Escape">
             <intent-filter>
@@ -28,13 +35,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".MainHomeScreen"
-            android:exported="false"
-            android:theme="@style/Theme.Escape">
-
         </activity>
     </application>
 
