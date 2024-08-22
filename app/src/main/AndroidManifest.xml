@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +14,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Escape"
-        tools:targetApi="31" />
+        tools:targetApi="31">
+
+        <activity
+            android:name=".AppAppsScreen"
+            android:exported="true"
+            android:theme="@style/Theme.Escape">
+            <intent-filter>
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainHomeScreen"
+            android:exported="false"
+            android:theme="@style/Theme.Escape">
+
+        </activity>
+    </application>
 
 </manifest>
