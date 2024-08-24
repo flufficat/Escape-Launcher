@@ -34,6 +34,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -81,9 +85,7 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(140.dp))
 
-            Text(
-                text = "TIME", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
-            )
+            Clock()
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -161,12 +163,6 @@ fun HomeScreen(
                             }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
                     )
                     Text(
-                        "Hide",
-                        Modifier.padding(0.dp, 10.dp),
-                        MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
-                    )
-                    Text(
                         text = if (isFavorite) "Remove from favourites" else "Add to favourites",
                         modifier = Modifier
                             .padding(0.dp, 10.dp)
@@ -183,7 +179,7 @@ fun HomeScreen(
                         fontSize = 25.sp
                     )
                     Text(
-                        "Add Open Challenge",
+                        "Re-order home screen",
                         Modifier.padding(0.dp, 10.dp),
                         MaterialTheme.colorScheme.primary,
                         fontSize = 25.sp
@@ -193,11 +189,11 @@ fun HomeScreen(
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
-                                val Intent =
+                                val intent =
                                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                         data = Uri.parse("package:$currentPackageName")
                                     }
-                                context.startActivity(Intent)
+                                context.startActivity(intent)
                                 showBottomSheet = false
                             }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
                     )
@@ -205,4 +201,28 @@ fun HomeScreen(
             }
         }
     }
+}
+
+
+fun getCurrentTime(): String {
+    val now = LocalTime.now()
+    val formatter = DateTimeFormatter.ofPattern("HH:mm") // Format as hours:minutes:seconds
+    return now.format(formatter)
+}
+
+
+@Composable
+fun Clock() {
+    var time by remember { mutableStateOf(getCurrentTime()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            time = getCurrentTime()
+            delay(1000) // Update every second
+        }
+    }
+
+    Text(
+        text = time, color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+    )
 }
