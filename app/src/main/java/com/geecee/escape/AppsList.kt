@@ -129,7 +129,7 @@ fun AppDrawer(
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             onCloseAppDrawer()
         }) {
-            Icon(Icons.Rounded.KeyboardArrowUp, "Open app drawer", tint = Color.Black)
+            Icon(Icons.Rounded.KeyboardArrowUp, "Open app drawer", tint = MaterialTheme.colorScheme.background)
         }
     }
 

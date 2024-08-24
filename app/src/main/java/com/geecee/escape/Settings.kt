@@ -62,7 +62,7 @@ fun SettingsScreen() {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Edit Home Screen", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Select Home Screen Widget", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
                 )
             }
 

@@ -60,12 +60,12 @@ fun HomeScreen(
     favoriteAppsManager: FavoriteAppsManager
 ) {
     val haptics = LocalHapticFeedback.current
-    val favouriteApps = favoriteAppsManager.getFavoriteApps()
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var currentSelectedApp by remember { mutableStateOf("") }
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
+    val favoriteApps = remember { mutableStateOf(favoriteAppsManager.getFavoriteApps()) }
 
     Box(
         modifier = Modifier
@@ -89,7 +89,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            for (app in favouriteApps) {
+            for (app in favoriteApps.value) {
                 Text(
                     getAppNameFromPackageName(context, app),
                     modifier = Modifier
@@ -115,13 +115,14 @@ fun HomeScreen(
                 )
             }
 
+
             Spacer(modifier = Modifier.height(140.dp))
 
             Button(onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onOpenAppDrawer()
             }) {
-                Icon(Icons.Rounded.KeyboardArrowDown, "Open app drawer", tint = Color.Black)
+                Icon(Icons.Rounded.KeyboardArrowDown, "Open app drawer", tint = MaterialTheme.colorScheme.background)
             }
         }
     }
@@ -179,12 +180,6 @@ fun HomeScreen(
                         fontSize = 25.sp
                     )
                     Text(
-                        "Re-order home screen",
-                        Modifier.padding(0.dp, 10.dp),
-                        MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
-                    )
-                    Text(
                         "App Info",
                         Modifier
                             .padding(0.dp, 10.dp)
@@ -226,3 +221,4 @@ fun Clock() {
         text = time, color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
     )
 }
+
