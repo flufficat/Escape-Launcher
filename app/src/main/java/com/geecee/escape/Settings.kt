@@ -57,6 +57,18 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
         homeVAlignText = "Top"
     }
 
+    var appsAlignText by remember {
+        mutableStateOf("Center")
+    }
+
+    if(sharedPreferences.getString("AppsAlignment", "Center") == "Right") {
+        appsAlignText = "Left"
+    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center"){
+        appsAlignText = "Right"
+    } else{
+        appsAlignText = "Center"
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,12 +125,12 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
             }
 
             Button(
-                onClick = {},  // Trigger opening drawer on button click
+                onClick = { changeAppsAlignment(context); goHome() },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Apps Alignment", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Align Apps List " + appsAlignText, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
                 )
             }
 
@@ -212,6 +224,24 @@ fun changeHomeVAlignment(context: Context) {
         editor.putString("HomeVAlignment", "Bottom")
     } else {
         editor.putString("HomeVAlignment", "Top")
+    }
+
+    editor.apply()
+}
+
+fun changeAppsAlignment(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
+        editor.putString("AppsAlignment", "Center")
+    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
+        editor.putString("AppsAlignment", "Right")
+    } else {
+        editor.putString("AppsAlignment", "Left")
     }
 
     editor.apply()

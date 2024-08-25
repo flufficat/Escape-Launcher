@@ -3,6 +3,7 @@ package com.geecee.escape
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
@@ -64,20 +65,22 @@ fun AppDrawer(
     var currentSelectedApp by remember { mutableStateOf("") }
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
+    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE)
+
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(10.dp, 50.dp, 10.dp, 0.dp)
+            .padding(0.dp, 50.dp, 0.dp, 0.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Center" ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Left" ) Alignment.Start else Alignment.End,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(0.dp, 0.dp, 0.dp, 140.dp)
+                .padding(30.dp, 0.dp, 30.dp, 140.dp)
         ) {
             Spacer(modifier = Modifier.height(140.dp))
 
@@ -121,8 +124,8 @@ fun AppDrawer(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(0.dp, 50.dp),
-        horizontalArrangement = Arrangement.Center,
+            .padding(30.dp, 50.dp),
+        horizontalArrangement = if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Center" ) Arrangement.Center else if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Left" ) Arrangement.Start else Arrangement.End,
         verticalAlignment = Alignment.Bottom
     ) {
         Button(onClick = {
