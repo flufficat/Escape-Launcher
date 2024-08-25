@@ -72,7 +72,7 @@ class MainHomeScreen : ComponentActivity() {
                             )
                         }
                         composable("settings") {
-                            SettingsScreen()
+                            SettingsScreen(context) { navController.popBackStack() }
                         }
                     }
                 }

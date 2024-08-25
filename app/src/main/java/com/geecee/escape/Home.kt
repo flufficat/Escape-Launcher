@@ -3,6 +3,7 @@ package com.geecee.escape
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
@@ -66,6 +67,7 @@ fun HomeScreen(
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
     val favoriteApps = remember { mutableStateOf(favoriteAppsManager.getFavoriteApps()) }
+    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE)
 
     Box(
         modifier = Modifier
@@ -77,13 +79,13 @@ fun HomeScreen(
             })
     ) {
         Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = if (sharedPreferencesSettings.getString("HomeVAlignment", "Center") == "Center" ) Arrangement.Center else if (sharedPreferencesSettings.getString("HomeVAlignment", "Center") == "Top" ) Arrangement.Top else Arrangement.Bottom,
+            horizontalAlignment = if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Center" ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left" ) Alignment.Start else Alignment.End,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(30.dp, 90.dp,30.dp,30.dp)
         ) {
-            Spacer(modifier = Modifier.height(140.dp))
 
             Clock()
 

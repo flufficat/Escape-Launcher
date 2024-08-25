@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Escape</string>
+    <string name="settings_pref_file_name">SettingsPref</string>
 </resources>

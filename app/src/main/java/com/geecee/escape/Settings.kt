@@ -1,5 +1,7 @@
 package com.geecee.escape
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +17,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,7 +28,35 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(context: Context,goHome: () -> Unit) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    var homeAlignText by remember {
+        mutableStateOf("Center")
+    }
+
+    if(sharedPreferences.getString("HomeAlignment", "Center") == "Right") {
+        homeAlignText = "Left"
+    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center"){
+        homeAlignText = "Right"
+    } else{
+        homeAlignText = "Center"
+    }
+
+    var homeVAlignText by remember {
+        mutableStateOf("Center")
+    }
+
+    if(sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+        homeVAlignText = "Center"
+    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center"){
+        homeVAlignText = "Bottom"
+    } else{
+        homeVAlignText = "Top"
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -62,17 +96,19 @@ fun SettingsScreen() {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Select Home Screen Widget", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Select Home Screen Widget",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp
                 )
             }
 
             Button(
-                onClick = {},  // Trigger opening drawer on button click
+                onClick = { changeHomeAlignment(context); goHome() },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Home Alignment", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Align Home " + homeAlignText, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
                 )
             }
 
@@ -87,12 +123,12 @@ fun SettingsScreen() {
             }
 
             Button(
-                onClick = {},  // Trigger opening drawer on button click
+                onClick = {changeHomeVAlignment(context); goHome()},
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Home Vertical Alignment",
+                    "Vertically Align Home " + homeVAlignText,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 24.sp
                 )
@@ -143,4 +179,40 @@ fun SettingsScreen() {
             Spacer(modifier = Modifier.height(140.dp))
         }
     }
+}
+
+fun changeHomeAlignment(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
+        editor.putString("HomeAlignment", "Center")
+    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
+        editor.putString("HomeAlignment", "Right")
+    } else {
+        editor.putString("HomeAlignment", "Left")
+    }
+
+    editor.apply()
+}
+
+fun changeHomeVAlignment(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+        editor.putString("HomeVAlignment", "Center")
+    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
+        editor.putString("HomeVAlignment", "Bottom")
+    } else {
+        editor.putString("HomeVAlignment", "Top")
+    }
+
+    editor.apply()
 }
