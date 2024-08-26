@@ -1,7 +1,9 @@
 package com.geecee.escape
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,7 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun SettingsScreen(context: Context,goHome: () -> Unit) {
+fun SettingsScreen(context: Context, goHome: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
@@ -37,36 +39,36 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
         mutableStateOf("Center")
     }
 
-    if(sharedPreferences.getString("HomeAlignment", "Center") == "Right") {
-        homeAlignText = "Left"
-    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center"){
-        homeAlignText = "Right"
-    } else{
-        homeAlignText = "Center"
+    homeAlignText = if (sharedPreferences.getString("HomeAlignment", "Center") == "Right") {
+        "Left"
+    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
+        "Right"
+    } else {
+        "Center"
     }
 
     var homeVAlignText by remember {
         mutableStateOf("Center")
     }
 
-    if(sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-        homeVAlignText = "Center"
-    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center"){
-        homeVAlignText = "Bottom"
-    } else{
-        homeVAlignText = "Top"
+    homeVAlignText = if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+        "Center"
+    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
+        "Bottom"
+    } else {
+        "Top"
     }
 
     var appsAlignText by remember {
         mutableStateOf("Center")
     }
 
-    if(sharedPreferences.getString("AppsAlignment", "Center") == "Right") {
-        appsAlignText = "Left"
-    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center"){
-        appsAlignText = "Right"
-    } else{
-        appsAlignText = "Center"
+    appsAlignText = if (sharedPreferences.getString("AppsAlignment", "Center") == "Right") {
+        "Left"
+    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
+        "Right"
+    } else {
+        "Center"
     }
 
     Box(
@@ -115,12 +117,26 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
             }
 
             Button(
+                onClick = { toggleWidgets(context); goHome()},
+                modifier = Modifier.height(60.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+            ) {
+                Text(
+                    "Toggle Widgets",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp
+                )
+            }
+
+            Button(
                 onClick = { changeHomeAlignment(context); goHome() },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Align Home " + homeAlignText, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Align Home $homeAlignText",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp
                 )
             }
 
@@ -130,17 +146,19 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Align Apps List " + appsAlignText, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
+                    "Align Apps List $appsAlignText",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp
                 )
             }
 
             Button(
-                onClick = {changeHomeVAlignment(context); goHome()},
+                onClick = { changeHomeVAlignment(context); goHome() },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
                 Text(
-                    "Vertically Align Home " + homeVAlignText,
+                    "Vertically Align Home $homeVAlignText",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 24.sp
                 )
@@ -177,7 +195,10 @@ fun SettingsScreen(context: Context,goHome: () -> Unit) {
             }
 
             Button(
-                onClick = {},  // Trigger opening drawer on button click
+                onClick = {
+                    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+                    context.startActivity(intent)
+                },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
@@ -242,6 +263,22 @@ fun changeAppsAlignment(context: Context) {
         editor.putString("AppsAlignment", "Right")
     } else {
         editor.putString("AppsAlignment", "Left")
+    }
+
+    editor.apply()
+}
+
+fun toggleWidgets(context: Context){
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("WidgetsToggle", "True") == "False") {
+        editor.putString("WidgetsToggle", "True")
+    } else {
+        editor.putString("WidgetsToggle", "False")
     }
 
     editor.apply()

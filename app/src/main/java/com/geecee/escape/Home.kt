@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -67,7 +68,9 @@ fun HomeScreen(
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
     val favoriteApps = remember { mutableStateOf(favoriteAppsManager.getFavoriteApps()) }
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE)
+    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
 
     Box(
         modifier = Modifier
@@ -79,17 +82,46 @@ fun HomeScreen(
             })
     ) {
         Column(
-            verticalArrangement = if (sharedPreferencesSettings.getString("HomeVAlignment", "Center") == "Center" ) Arrangement.Center else if (sharedPreferencesSettings.getString("HomeVAlignment", "Center") == "Top" ) Arrangement.Top else Arrangement.Bottom,
-            horizontalAlignment = if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Center" ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left" ) Alignment.Start else Alignment.End,
+            verticalArrangement = if (sharedPreferencesSettings.getString(
+                    "HomeVAlignment", "Center"
+                ) == "Center"
+            ) Arrangement.Center else if (sharedPreferencesSettings.getString(
+                    "HomeVAlignment", "Center"
+                ) == "Top"
+            ) Arrangement.Top else Arrangement.Bottom,
+            horizontalAlignment = if (sharedPreferencesSettings.getString(
+                    "HomeAlignment", "Center"
+                ) == "Center"
+            ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString(
+                    "HomeAlignment", "Center"
+                ) == "Left"
+            ) Alignment.Start else Alignment.End,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(30.dp, 90.dp,30.dp,30.dp)
+                .padding(30.dp, 90.dp, 30.dp, 30.dp)
         ) {
 
-            Clock()
+            Clock(sharedPreferencesSettings)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            var widgetOffset by remember { mutableStateOf(0) };
+            if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
+                widgetOffset = -10;
+            } else if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Right") {
+                widgetOffset = 8;
+            } else {
+                widgetOffset = 0;
+            }
+
+            Log.d("WidgetsToggle", sharedPreferencesSettings.getString("ToggleWidgets", "No value set").toString())
+            if (sharedPreferencesSettings.getString("ToggleWidgets", "True") == "True") {
+                WidgetsScreen(
+                    context = context,
+                    modifier = Modifier
+                        .offset((widgetOffset).dp, 0.dp)
+                        .size(150.dp, 100.dp)
+                )
+            }
 
             for (app in favoriteApps.value) {
                 Text(
@@ -117,14 +149,17 @@ fun HomeScreen(
                 )
             }
 
-
-            Spacer(modifier = Modifier.height(140.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onOpenAppDrawer()
             }) {
-                Icon(Icons.Rounded.KeyboardArrowDown, "Open app drawer", tint = MaterialTheme.colorScheme.background)
+                Icon(
+                    Icons.Rounded.KeyboardArrowDown,
+                    "Open app drawer",
+                    tint = MaterialTheme.colorScheme.background
+                )
             }
         }
     }
@@ -200,16 +235,14 @@ fun HomeScreen(
     }
 }
 
-
 fun getCurrentTime(): String {
     val now = LocalTime.now()
     val formatter = DateTimeFormatter.ofPattern("HH:mm") // Format as hours:minutes:seconds
     return now.format(formatter)
 }
 
-
 @Composable
-fun Clock() {
+fun Clock(sharedPreferencesSettings: SharedPreferences) {
     var time by remember { mutableStateOf(getCurrentTime()) }
 
     LaunchedEffect(Unit) {
@@ -220,7 +253,18 @@ fun Clock() {
     }
 
     Text(
-        text = time, color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+        text = time,
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 48.sp,
+        modifier = if (sharedPreferencesSettings.getString(
+                "HomeAlignment",
+                "Center"
+            ) == "Left"
+        ) Modifier.offset((-4).dp) else if (sharedPreferencesSettings.getString(
+                "HomeAlignment",
+                "Center"
+            ) == "Right"
+        ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
     )
 }
 

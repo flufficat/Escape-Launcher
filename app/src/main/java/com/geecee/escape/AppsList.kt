@@ -105,6 +105,7 @@ fun AppDrawer(
                                 )
                                 context.startActivity(launchIntent, options.toBundle())
                             }
+                            onCloseAppDrawer()
                         }, onLongClick = {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             showBottomSheet = true
