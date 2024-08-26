@@ -105,7 +105,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit) {
             }
 
             Button(
-                onClick = {},  // Trigger opening drawer on button click
+                onClick = { changeWidget(context,goHome) },
                 modifier = Modifier.height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
             ) {
@@ -275,11 +275,30 @@ fun toggleWidgets(context: Context){
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (sharedPreferences.getString("WidgetsToggle", "True") == "False") {
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False"){
         editor.putString("WidgetsToggle", "True")
-    } else {
+    }
+    else{
         editor.putString("WidgetsToggle", "False")
     }
 
     editor.apply()
+}
+
+fun changeWidget(context: Context, goHome: () -> Unit){
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    removeWidget(context)
+
+
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False"){
+        editor.putString("WidgetsToggle", "True")
+    }
+    editor.apply()
+
+    goHome()
 }

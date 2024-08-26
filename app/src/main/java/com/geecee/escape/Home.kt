@@ -113,8 +113,7 @@ fun HomeScreen(
                 widgetOffset = 0;
             }
 
-            Log.d("WidgetsToggle", sharedPreferencesSettings.getString("WidgetsToggle", "No value set").toString())
-            if (sharedPreferencesSettings.getString("WidgetsToggle", "True") == "True") {
+            if (sharedPreferencesSettings.getString("WidgetsToggle", "False") == "True") {
                 WidgetsScreen(
                     context = context,
                     modifier = Modifier

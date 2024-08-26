@@ -108,3 +108,8 @@ fun getSavedWidgetId(context: Context): Int {
     val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
     return prefs.getInt("widget_id", -1)
 }
+
+fun removeWidget(context: Context) {
+    // Save the updated widget ID to shared preferences
+    saveWidgetId(context, -1)
+}
