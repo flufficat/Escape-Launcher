@@ -92,122 +92,29 @@ fun SettingsScreen(context: Context, goHome: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { },  // Trigger opening drawer on button click
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Change Background Colour",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { }, "Change Background Colour")
 
-            Button(
-                onClick = { changeWidget(context,goHome) },
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Select Home Screen Widget",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { changeWidget(context,goHome) },"Select Home Screen Widget")
 
-            Button(
-                onClick = { toggleWidgets(context); goHome()},
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Toggle Widgets",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { toggleWidgets(context); goHome()},"Toggle Widgets")
 
-            Button(
-                onClick = { changeHomeAlignment(context); goHome() },
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Align Home $homeAlignText",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { changeHomeAlignment(context); goHome() },"Align Home $homeAlignText")
 
-            Button(
-                onClick = { changeAppsAlignment(context); goHome() },
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Align Apps List $appsAlignText",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { changeAppsAlignment(context); goHome() },"Align Apps List $appsAlignText")
 
-            Button(
+            SettingsButton(
                 onClick = { changeHomeVAlignment(context); goHome() },
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Vertically Align Home $homeVAlignText",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+                "Vertically Align Home $homeVAlignText",
+            )
 
-            Button(
-                onClick = {},  // Trigger opening drawer on button click
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Hidden Apps", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { }, "Manage Hidden Apps")
 
-            Button(
-                onClick = {},  // Trigger opening drawer on button click
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Open Challenges", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { }, "Manage Open Challenges")
 
-            Button(
-                onClick = {},  // Trigger opening drawer on button click
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Font", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = {  }, "Change Font")
 
-            Button(
-                onClick = {
-                    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
-            ) {
-                Text(
-                    "Make Default Launcher",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
-            }
+            SettingsButton(onClick = { changeLauncher(context) }, "Make Default Launcher")
+
 
             Spacer(modifier = Modifier.height(140.dp))
         }
@@ -301,4 +208,25 @@ fun changeWidget(context: Context, goHome: () -> Unit){
     editor.apply()
 
     goHome()
+}
+
+fun changeLauncher(context: Context){
+    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+    context.startActivity(intent)
+}
+
+@Composable
+fun SettingsButton(onClick:() -> Unit, text: String){
+    Button(
+        onClick = {onClick()},
+        modifier = Modifier.height(60.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+    ) {
+        Text(
+            text,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 24.sp
+        )
+    }
+
 }

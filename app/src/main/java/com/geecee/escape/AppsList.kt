@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -170,7 +169,6 @@ fun AppDrawer(
                                         Intent.ACTION_DELETE,
                                         Uri.parse("package:$currentPackageName")
                                     )
-                                Log.d("PACKAGE NAME", "package:$currentPackageName")
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
                             }),
@@ -210,11 +208,11 @@ fun AppDrawer(
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
-                                val Intent =
+                                val intent =
                                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                         data = Uri.parse("package:$currentPackageName")
                                     }
-                                context.startActivity(Intent)
+                                context.startActivity(intent)
                                 showBottomSheet = false
                             }),
                         MaterialTheme.colorScheme.primary,

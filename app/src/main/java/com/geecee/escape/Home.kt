@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -104,13 +105,13 @@ fun HomeScreen(
 
             Clock(sharedPreferencesSettings)
 
-            var widgetOffset by remember { mutableStateOf(0) };
-            if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
-                widgetOffset = -10;
+            var widgetOffset by remember { mutableIntStateOf(0) }
+            widgetOffset = if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
+                -10
             } else if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Right") {
-                widgetOffset = 8;
+                8
             } else {
-                widgetOffset = 0;
+                0
             }
 
             if (sharedPreferencesSettings.getString("WidgetsToggle", "False") == "True") {
@@ -267,3 +268,12 @@ fun Clock(sharedPreferencesSettings: SharedPreferences) {
     )
 }
 
+fun getAppNameFromPackageName(context: Context, packageName: String): String {
+    return try {
+        val packageManager = context.packageManager
+        val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
+        packageManager.getApplicationLabel(applicationInfo).toString()
+    } catch (e: PackageManager.NameNotFoundException) {
+        "Unknown App"
+    }
+}
