@@ -1,0 +1,29 @@
+<resources>
+
+    <!-- All Apps strings -->
+    <string name="all_apps">Toutes les applications</string>
+    <string name="uninstall">Désinstaller</string>
+    <string name="hide">Cacher</string>
+    <string name="add_to_fav">Ajouter aux favoris</string>
+    <string name="rem_from_fav">Supprimer des favoris</string>
+    <string name="add_open_challenge">Ajouter un défi ouvert</string>
+    <string name="app_info">Informations sur l\'application</string>
+
+    <!-- Hidden Apps strings-->
+    <string name="hidden_apps">Applications cachées</string>
+    <string name="long_press_to_unhide">Appuyez longuement pour afficher</string>
+
+    <!-- Settings strings-->
+    <string name="settings">Paramètres</string>
+    <string name="toggle_light_mode">Basculer le mode lumière</string>
+    <string name="select_home_screen_widget">Sélectionnez le widget de l\'écran d\'accueil</string>
+    <string name="toggle_widgets">Basculer les widgets</string>
+    <string name="align_home">Aligner la maison</string>
+    <string name="align_apps_list">Aligner la liste des applications</string>
+    <string name="vertically_align_home">Aligner verticalement la maison</string>
+    <string name="manage_hidden_apps">Gérer les applications cachées</string>
+    <string name="manage_open_challenges">Gérer les défis ouverts</string>
+    <string name="change_font">Changer la police</string>
+    <string name="make_default_launcher">Créer un lanceur par défaut</string>
+
+</resources>

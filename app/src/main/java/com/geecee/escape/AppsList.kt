@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -92,7 +93,9 @@ fun AppDrawer(
             Spacer(modifier = Modifier.height(140.dp))
 
             Text(
-                text = "All Apps", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
+                text = stringResource(id = R.string.all_apps),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -179,7 +182,7 @@ fun AppDrawer(
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
                 Column(Modifier.padding(47.dp, 0.dp, 0.dp, 0.dp)) {
                     Text(
-                        "Uninstall",
+                        stringResource(id = R.string.uninstall),
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -189,19 +192,25 @@ fun AppDrawer(
                                 )
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
+                            }),
+                        MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        "Hide",
+                        stringResource(id = R.string.hide),
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
                                 hiddenAppsManager.addHiddenApp(currentPackageName)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
+                            }),
+                        MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = if (isFavorite) "Remove from favourites" else "Add to favourites",
+                        text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(
+                            id = R.string.add_to_fav
+                        ),
                         modifier = Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -217,13 +226,13 @@ fun AppDrawer(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        "Add Open Challenge",
+                        stringResource(id = R.string.add_open_challenge),
                         Modifier.padding(0.dp, 10.dp),
                         MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        "App Info",
+                        stringResource(id = R.string.app_info),
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -233,7 +242,9 @@ fun AppDrawer(
                                     }
                                 context.startActivity(intent)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
+                            }),
+                        MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }

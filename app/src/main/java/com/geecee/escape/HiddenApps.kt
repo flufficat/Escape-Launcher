@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -118,15 +119,17 @@ fun HiddenAppsScreen(
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Go Back",tint = MaterialTheme.colorScheme.primary, modifier = Modifier
-                        .size(48.dp).fillMaxSize().align(Alignment.CenterVertically))
+                        .size(48.dp)
+                        .fillMaxSize()
+                        .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "Hidden Apps", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
+                    text = stringResource(id = R.string.hidden_apps), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
                 )
             }
 
             Text(
-                text = "Long press to un-hide",
+                text = stringResource(id = R.string.long_press_to_unhide),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyLarge
             )

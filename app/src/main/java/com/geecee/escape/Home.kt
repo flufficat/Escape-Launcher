@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -187,7 +188,7 @@ fun HomeScreen(
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
                 Column(Modifier.padding(47.dp, 0.dp, 0.dp, 0.dp)) {
                     Text(
-                        "Uninstall",
+                        stringResource(id = R.string.uninstall),
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -201,7 +202,7 @@ fun HomeScreen(
                             }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = if (isFavorite) "Remove from favourites" else "Add to favourites",
+                        text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(id = R.string.add_to_fav),
                         modifier = Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -218,7 +219,7 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        "App Info",
+                        stringResource(id = R.string.app_info),
                         Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- All Apps strings -->
+    <string name="all_apps">すべてのアプリ</string>
+    <string name="uninstall">アンインストール</string>
+    <string name="hide">隠す</string>
+    <string name="add_to_fav">お気に入りに追加</string>
+    <string name="rem_from_fav">お気に入りから削除する</string>
+    <string name="add_open_challenge">オープン・チャレンジを追加</string>
+    <string name="app_info">アプリ情報</string>
+
+    <!-- Hidden Apps strings-->
+    <string name="hidden_apps">隠しアプリ</string>
+    <string name="long_press_to_unhide">長押しで解除</string>
+
+    <!-- Settings strings-->
+    <string name="settings">設定</string>
+    <string name="toggle_light_mode">ライトモードの切り替え</string>
+    <string name="select_home_screen_widget">ホーム画面ウィジェットを選択</string>
+    <string name="toggle_widgets">トグルウィジェット</string>
+    <string name="align_home">ホーム</string>
+    <string name="align_apps_list">アプリ一覧</string>
+    <string name="vertically_align_home">ホームを縦に並べる</string>
+    <string name="manage_hidden_apps">隠しアプリの管理</string>
+    <string name="manage_open_challenges">オープンな課題を管理する</string>
+    <string name="change_font">フォントの変更</string>
+    <string name="make_default_launcher">デフォルトのランチャーを作る</string>
+</resources>

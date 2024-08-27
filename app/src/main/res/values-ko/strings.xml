@@ -1,0 +1,29 @@
+<resources>
+
+    <!-- All Apps strings -->
+    <string name="all_apps">모든 앱</string>
+    <string name="uninstall">제거</string>
+    <string name="hide">숨다</string>
+    <string name="add_to_fav">즐겨찾기에 추가</string>
+    <string name="rem_from_fav">즐겨찾기에서 제거</string>
+    <string name="add_open_challenge">오픈 챌린지 추가</string>
+    <string name="app_info">앱 정보</string>
+
+    <!-- Hidden Apps strings-->
+    <string name="hidden_apps">숨겨진 앱</string>
+    <string name="long_press_to_unhide">숨기기를 해제하려면 길게 누르세요.</string>
+
+    <!-- Settings strings-->
+    <string name="settings">설정</string>
+    <string name="toggle_light_mode">조명 모드 전환</string>
+    <string name="select_home_screen_widget">홈 화면 위젯 선택</string>
+    <string name="toggle_widgets">위젯 전환</string>
+    <string name="align_home">홈 정렬</string>
+    <string name="align_apps_list">앱 목록 정렬</string>
+    <string name="vertically_align_home">홈을 수직으로 정렬</string>
+    <string name="manage_hidden_apps">숨겨진 앱 관리</string>
+    <string name="manage_open_challenges">공개 챌린지 관리</string>
+    <string name="change_font">글꼴 변경</string>
+    <string name="make_default_launcher">기본 실행기로 만들기</string>
+
+</resources>

@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 
@@ -104,37 +105,66 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Go Back",tint = MaterialTheme.colorScheme.primary, modifier = Modifier
-                    .size(48.dp).fillMaxSize().align(Alignment.CenterVertically))
+                        .size(48.dp)
+                        .fillMaxSize()
+                        .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "Settings", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
+                    text = stringResource(id = R.string.settings), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SettingsButton(onClick = { toggleLightTheme(context,activity) }, "Toggle Light Mode")
+            SettingsButton(
+                onClick = { toggleLightTheme(context, activity) },
+                text = stringResource(R.string.toggle_light_mode)
+            )
 
-            SettingsButton(onClick = { changeWidget(context, goHome) }, "Select Home Screen Widget")
+            SettingsButton(
+                onClick = { changeWidget(context, goHome) },
+                text = stringResource(R.string.select_home_screen_widget)
+            )
 
-            SettingsButton(onClick = { toggleWidgets(context); goHome() }, "Toggle Widgets")
+            SettingsButton(
+                onClick = { toggleWidgets(context); goHome() },
+                text = stringResource(R.string.toggle_widgets)
+            )
 
-            SettingsButton(onClick = { changeHomeAlignment(context); goHome() },"Align Home $homeAlignText")
+            SettingsButton(
+                onClick = { changeHomeAlignment(context); goHome() },
+                text = stringResource(R.string.align_home)
+            )
 
-            SettingsButton(onClick = { changeAppsAlignment(context); goHome() },"Align Apps List $appsAlignText")
+            SettingsButton(
+                onClick = { changeAppsAlignment(context); goHome() },
+                text = stringResource(R.string.align_apps_list)
+            )
 
             SettingsButton(
                 onClick = { changeHomeVAlignment(context); goHome() },
-                "Vertically Align Home $homeVAlignText",
+                text = stringResource(R.string.vertically_align_home)
             )
 
-            SettingsButton(onClick = { onOpenHiddenApps() }, "Manage Hidden Apps")
+            SettingsButton(
+                onClick = { onOpenHiddenApps() },
+                text = stringResource(R.string.manage_hidden_apps)
+            )
 
-            SettingsButton(onClick = { manageOpenChallenges() }, "Manage Open Challenges")
+            SettingsButton(
+                onClick = { manageOpenChallenges() },
+                text = stringResource(R.string.manage_open_challenges)
+            )
 
-            SettingsButton(onClick = { changeFont(context,activity)}, "Change Font")
+            SettingsButton(
+                onClick = { changeFont(context,activity)},
+                text = stringResource(R.string.change_font)
+            )
 
-            SettingsButton(onClick = { changeLauncher(context) }, "Make Default Launcher")
+            SettingsButton(
+                onClick = { changeLauncher(context) },
+                text = stringResource(R.string.make_default_launcher)
+            )
 
 
             Spacer(modifier = Modifier.height(140.dp))
