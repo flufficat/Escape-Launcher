@@ -25,5 +25,7 @@
     <string name="manage_open_challenges">Gérer les défis ouverts</string>
     <string name="change_font">Changer la police</string>
     <string name="make_default_launcher">Créer un lanceur par défaut</string>
+    <string name="open_challenges">Défis ouverts</string>
+    <string name="long_press_to_remove_challenge">Appui long pour supprimer le défi</string>
 
 </resources>

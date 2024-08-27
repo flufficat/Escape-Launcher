@@ -25,5 +25,7 @@
     <string name="manage_open_challenges">공개 챌린지 관리</string>
     <string name="change_font">글꼴 변경</string>
     <string name="make_default_launcher">기본 실행기로 만들기</string>
+    <string name="open_challenges">열린 도전</string>
+    <string name="long_press_to_remove_challenge">길게 눌러 도전 과제 제거</string>
 
 </resources>

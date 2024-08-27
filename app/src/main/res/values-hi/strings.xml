@@ -25,5 +25,7 @@
     <string name="manage_open_challenges">खुली चुनौतियाँ प्रबंधित करें</string>
     <string name="change_font">फ़ॉन्ट बदलें</string>
     <string name="make_default_launcher">डिफ़ॉल्ट लॉन्चर बनाएं</string>
+    <string name="open_challenges">खुली चुनौतियाँ</string>
+    <string name="long_press_to_remove_challenge">चुनौती हटाने के लिए देर तक दबाएँ</string>
 
 </resources>

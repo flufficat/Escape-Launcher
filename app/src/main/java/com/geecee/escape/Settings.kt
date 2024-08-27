@@ -42,7 +42,7 @@ import androidx.core.content.ContextCompat.startActivity
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit, activity: Activity) {
+fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit, activity: Activity, onOpenChallenges: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
@@ -152,7 +152,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             )
 
             SettingsButton(
-                onClick = { manageOpenChallenges() },
+                onClick = { onOpenChallenges() },
                 text = stringResource(R.string.manage_open_challenges)
             )
 
@@ -281,8 +281,6 @@ fun changeHomeVAlignment(context: Context) {
 
     editor.apply()
 }
-
-fun manageOpenChallenges(){}
 
 fun changeFont(context: Context, activity: Activity){
     val sharedPreferences = context.getSharedPreferences(

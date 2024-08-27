@@ -25,4 +25,6 @@
     <string name="manage_open_challenges">オープンな課題を管理する</string>
     <string name="change_font">フォントの変更</string>
     <string name="make_default_launcher">デフォルトのランチャーを作る</string>
+    <string name="open_challenges">オープン・チャレンジ</string>
+    <string name="long_press_to_remove_challenge">長押しでチャレンジ解除</string>
 </resources>

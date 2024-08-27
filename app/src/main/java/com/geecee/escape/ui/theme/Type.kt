@@ -45,7 +45,7 @@ val JostTypography = Typography(
         fontFamily = Jost,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
-        lineHeight = 24.sp,
+        lineHeight = 48.sp,
         letterSpacing = 0.5.sp
     )
 )

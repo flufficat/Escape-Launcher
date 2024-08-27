@@ -29,6 +29,7 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var context: Context
     private lateinit var favoriteAppsManager: FavoriteAppsManager
     private lateinit var hiddenAppsManager: HiddenAppsManager
+    private lateinit var challengesManager: ChallengesManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,8 @@ class MainHomeScreen : ComponentActivity() {
                 packageManager = context.packageManager
                 favoriteAppsManager = FavoriteAppsManager(context)
                 hiddenAppsManager = HiddenAppsManager(context)
+                challengesManager = ChallengesManager(context)
+
 
                 val navController = rememberNavController()
 
@@ -71,39 +74,47 @@ class MainHomeScreen : ComponentActivity() {
                             "app_drawer",
                             enterTransition = {
                                 slideIntoContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Up,
-                                    tween(300)
+                                    AnimatedContentTransitionScope.SlideDirection.Up, tween(300)
                                 )
                             },
                             exitTransition = {
                                 slideOutOfContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Down,
-                                    tween(300)
+                                    AnimatedContentTransitionScope.SlideDirection.Down, tween(300)
                                 )
                             },
                         ) {
                             AppDrawer(
-                                packageManager, context, onCloseAppDrawer = {
+                                packageManager,
+                                context,
+                                onCloseAppDrawer = {
                                     navController.popBackStack()
-                                }, favoriteAppsManager = favoriteAppsManager, hiddenAppsManager
+                                },
+                                favoriteAppsManager = favoriteAppsManager,
+                                hiddenAppsManager,
+                                challengesManager
                             )
                         }
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
-                            SettingsScreen(
-                                context,
+                            SettingsScreen(context,
                                 { navController.popBackStack() },
-                                { navController.navigate("hidden_apps") },this@MainHomeScreen)
+                                { navController.navigate("hidden_apps") },
+                                this@MainHomeScreen,
+                                { navController.navigate("open_challenges") })
                         }
                         composable("hidden_apps",
                             enterTransition = { fadeIn(tween(300)) },
-                            exitTransition = { fadeOut(tween(300)) }
-                        ) {
+                            exitTransition = { fadeOut(tween(300)) }) {
                             HiddenAppsScreen(
-                                context,
-                                hiddenAppsManager = hiddenAppsManager,
-                                packageManager
+                                context, hiddenAppsManager = hiddenAppsManager, packageManager
+                            ) { navController.popBackStack() }
+                        }
+                        composable("open_challenges",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
+                            challengeAppsScreen(
+                                context, challengesManager, packageManager
                             ) { navController.popBackStack() }
                         }
                     }

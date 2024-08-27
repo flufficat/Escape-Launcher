@@ -28,4 +28,10 @@
     <string name="change_font">Change Font</string>
     <string name="make_default_launcher">Make Default Launcher</string>
 
+    <!-- Challenge apps strings -->
+    <string name="open_challenges">Open Challenges</string>
+    <string name="long_press_to_remove_challenge">Long Press To Remove Challenge</string>
+    <string name="youve_set_a_challenge">You set an open challenge for this app</string>
+    <string name="are_you_sure">Do you really need to go on this app? Copy the text below to continue.</string>
+    <string name="try_again">Try Again</string>
 </resources>

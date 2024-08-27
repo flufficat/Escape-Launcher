@@ -25,5 +25,7 @@
     <string name="manage_open_challenges">Управление открытыми задачами</string>
     <string name="change_font">Изменить шрифт</string>
     <string name="make_default_launcher">Сделать лаунчер по умолчанию</string>
+    <string name="open_challenges">Открытые вызовы</string>
+    <string name="long_press_to_remove_challenge">Длительное нажатие для снятия вызова</string>
 
 </resources>
