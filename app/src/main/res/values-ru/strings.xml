@@ -27,5 +27,8 @@
     <string name="make_default_launcher">Сделать лаунчер по умолчанию</string>
     <string name="open_challenges">Открытые вызовы</string>
     <string name="long_press_to_remove_challenge">Длительное нажатие для снятия вызова</string>
+    <string name="youve_set_a_challenge">Вы установили открытый вызов для этого приложения.</string>
+    <string name="are_you_sure">Вам действительно нужно использовать это приложение? Скопируйте текст ниже, чтобы продолжить.</string>
+    <string name="try_again">попробуйте снова</string>
 
 </resources>

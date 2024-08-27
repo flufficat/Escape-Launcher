@@ -27,5 +27,8 @@
     <string name="make_default_launcher">Créer un lanceur par défaut</string>
     <string name="open_challenges">Défis ouverts</string>
     <string name="long_press_to_remove_challenge">Appui long pour supprimer le défi</string>
+    <string name="youve_set_a_challenge">Vous avez lancé un défi ouvert pour cette application.</string>
+    <string name="are_you_sure">Avez-vous vraiment besoin d\'utiliser cette application ? Copiez le texte ci-dessous pour continuer.</string>
+    <string name="try_again">" réessayez"</string>
 
 </resources>

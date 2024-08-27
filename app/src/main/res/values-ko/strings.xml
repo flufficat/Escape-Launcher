@@ -27,5 +27,8 @@
     <string name="make_default_launcher">기본 실행기로 만들기</string>
     <string name="open_challenges">열린 도전</string>
     <string name="long_press_to_remove_challenge">길게 눌러 도전 과제 제거</string>
+    <string name="youve_set_a_challenge">이 앱에 대한 공개 도전을 설정했습니다.</string>
+    <string name="are_you_sure">정말 이 앱을 사용해야 하나요? 계속하려면 아래 텍스트를 복사하세요.</string>
+    <string name="try_again">다시 시도해보세요</string>
 
 </resources>

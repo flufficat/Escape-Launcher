@@ -27,4 +27,7 @@
     <string name="make_default_launcher">デフォルトのランチャーを作る</string>
     <string name="open_challenges">オープン・チャレンジ</string>
     <string name="long_press_to_remove_challenge">長押しでチャレンジ解除</string>
+    <string name="youve_set_a_challenge">あなたはこのアプリに対してオープンなチャレンジを設定しました</string>
+    <string name="are_you_sure">" 本当にこのアプリを使う必要がありますか？ 続けるには下のテキストをコピーしてください。"</string>
+    <string name="try_again">もう一度試してみてください</string>
 </resources>

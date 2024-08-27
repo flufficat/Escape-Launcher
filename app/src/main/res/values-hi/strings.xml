@@ -27,5 +27,8 @@
     <string name="make_default_launcher">डिफ़ॉल्ट लॉन्चर बनाएं</string>
     <string name="open_challenges">खुली चुनौतियाँ</string>
     <string name="long_press_to_remove_challenge">चुनौती हटाने के लिए देर तक दबाएँ</string>
+    <string name="youve_set_a_challenge">आपने इस ऐप के लिए एक खुली चुनौती निर्धारित की है।</string>
+    <string name="are_you_sure">क्या आपको वास्तव में इस ऐप का उपयोग करने की आवश्यकता है? जारी रखने के लिए नीचे दिए गए पाठ को कॉपी करें।</string>
+    <string name="try_again">"फिर से प्रयास करें "</string>
 
 </resources>
