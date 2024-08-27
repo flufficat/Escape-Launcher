@@ -25,13 +25,9 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun EscapeTheme(
-    darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    var colorScheme = DarkColorScheme
     val type: Typography
     val locale = Locale.current
     val context = LocalContext.current
@@ -56,6 +52,10 @@ fun EscapeTheme(
         else{
             JostTypography
         }
+    }
+
+    if(sharedPreferencesSettings.getString("LightMode", "False") == "True"){
+        colorScheme = LightColorScheme
     }
 
     MaterialTheme(

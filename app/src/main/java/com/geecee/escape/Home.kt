@@ -44,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -171,7 +170,7 @@ fun HomeScreen(
                     Icon(
                         Icons.Rounded.Settings,
                         contentDescription = "App Options",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(45.dp)
                             .padding(0.dp, 0.dp, 10.dp, 0.dp)

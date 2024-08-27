@@ -113,7 +113,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SettingsButton(onClick = { }, "Change Background Colour")
+            SettingsButton(onClick = { toggleLightTheme(context,activity) }, "Toggle Light Mode")
 
             SettingsButton(onClick = { changeWidget(context, goHome) }, "Select Home Screen Widget")
 
@@ -140,6 +140,28 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             Spacer(modifier = Modifier.height(140.dp))
         }
     }
+}
+
+fun toggleLightTheme(context: Context,activity: Activity){
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("LightMode", "False") == "False") {
+        editor.putString("LightMode", "True")
+    }
+    else{
+        editor.putString("LightMode", "False")
+    }
+
+    editor.apply()
+
+    val intent = Intent(context, MainHomeScreen::class.java)
+    val options = ActivityOptions.makeBasic()
+    startActivity(context,intent, options.toBundle())
+    activity.finish()
 }
 
 fun changeWidget(context: Context, goHome: () -> Unit) {
