@@ -4,18 +4,26 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
@@ -86,21 +95,37 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
         ) {
             Spacer(modifier = Modifier.height(140.dp))
 
-            Text(
-                text = "Settings", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
-            )
+            Row(
+                modifier = Modifier.combinedClickable(onClick = {
+                    goHome()
+                })
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Go Back",tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                    .size(48.dp).fillMaxSize().align(Alignment.CenterVertically))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = "Settings", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsButton(onClick = { }, "Change Background Colour")
 
-            SettingsButton(onClick = { changeWidget(context,goHome) },"Select Home Screen Widget")
+            SettingsButton(onClick = { changeWidget(context, goHome) }, "Select Home Screen Widget")
 
-            SettingsButton(onClick = { toggleWidgets(context); goHome()},"Toggle Widgets")
+            SettingsButton(onClick = { toggleWidgets(context); goHome() }, "Toggle Widgets")
 
-            SettingsButton(onClick = { changeHomeAlignment(context); goHome() },"Align Home $homeAlignText")
+            SettingsButton(
+                onClick = { changeHomeAlignment(context); goHome() },
+                "Align Home $homeAlignText"
+            )
 
-            SettingsButton(onClick = { changeAppsAlignment(context); goHome() },"Align Apps List $appsAlignText")
+            SettingsButton(
+                onClick = { changeAppsAlignment(context); goHome() },
+                "Align Apps List $appsAlignText"
+            )
 
             SettingsButton(
                 onClick = { changeHomeVAlignment(context); goHome() },
@@ -111,7 +136,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
 
             SettingsButton(onClick = { }, "Manage Open Challenges")
 
-            SettingsButton(onClick = {  }, "Change Font")
+            SettingsButton(onClick = { }, "Change Font")
 
             SettingsButton(onClick = { changeLauncher(context) }, "Make Default Launcher")
 
@@ -175,24 +200,23 @@ fun changeAppsAlignment(context: Context) {
     editor.apply()
 }
 
-fun toggleWidgets(context: Context){
+fun toggleWidgets(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False"){
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
         editor.putString("WidgetsToggle", "True")
-    }
-    else{
+    } else {
         editor.putString("WidgetsToggle", "False")
     }
 
     editor.apply()
 }
 
-fun changeWidget(context: Context, goHome: () -> Unit){
+fun changeWidget(context: Context, goHome: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
@@ -202,7 +226,7 @@ fun changeWidget(context: Context, goHome: () -> Unit){
     removeWidget(context)
 
 
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False"){
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
         editor.putString("WidgetsToggle", "True")
     }
     editor.apply()
@@ -210,15 +234,15 @@ fun changeWidget(context: Context, goHome: () -> Unit){
     goHome()
 }
 
-fun changeLauncher(context: Context){
+fun changeLauncher(context: Context) {
     val intent = Intent(Settings.ACTION_HOME_SETTINGS)
     context.startActivity(intent)
 }
 
 @Composable
-fun SettingsButton(onClick:() -> Unit, text: String){
+fun SettingsButton(onClick: () -> Unit, text: String) {
     Button(
-        onClick = {onClick()},
+        onClick = { onClick() },
         modifier = Modifier.height(60.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
     ) {

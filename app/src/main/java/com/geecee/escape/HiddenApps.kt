@@ -10,12 +10,18 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,7 +90,8 @@ class HiddenAppsManager(context: Context) {
 fun HiddenAppsScreen(
     context: Context,
     hiddenAppsManager: HiddenAppsManager,
-    packageManager: PackageManager
+    packageManager: PackageManager,
+    goBack: () -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
     val hiddenApps = remember { mutableStateOf(hiddenAppsManager.getHiddenApps()) }
@@ -105,9 +112,20 @@ fun HiddenAppsScreen(
         ) {
             Spacer(modifier = Modifier.height(140.dp))
 
-            Text(
-                text = "Hidden Apps", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
-            )
+            Row(
+                modifier = Modifier.combinedClickable(onClick = {
+                    goBack()
+                })
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Go Back",tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                        .size(48.dp).fillMaxSize().align(Alignment.CenterVertically))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = "Hidden Apps", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+                )
+            }
+
             Text(
                 text = "Long press to un-hide",
                 color = MaterialTheme.colorScheme.primary,

@@ -11,6 +11,11 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -51,12 +56,14 @@ class MainHomeScreen : ComponentActivity() {
                 context = LocalContext.current
                 packageManager = context.packageManager
                 favoriteAppsManager = FavoriteAppsManager(context)
-                hiddenAppsManager  = HiddenAppsManager(context)
+                hiddenAppsManager = HiddenAppsManager(context)
 
                 val navController = rememberNavController()
 
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
                 ) {
                     NavHost(navController, startDestination = "home") {
                         composable("home") {
@@ -68,18 +75,44 @@ class MainHomeScreen : ComponentActivity() {
                                 favoriteAppsManager = favoriteAppsManager
                             )
                         }
-                        composable("app_drawer") {
+                        composable(
+                            "app_drawer",
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Up,
+                                    tween(300)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Down,
+                                    tween(300)
+                                )
+                            },
+                        ) {
                             AppDrawer(
                                 packageManager, context, onCloseAppDrawer = {
                                     navController.popBackStack()
                                 }, favoriteAppsManager = favoriteAppsManager, hiddenAppsManager
                             )
                         }
-                        composable("settings") {
-                            SettingsScreen(context, { navController.popBackStack() }, { navController.navigate("hidden_apps") })
+                        composable("settings",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
+                            SettingsScreen(
+                                context,
+                                { navController.popBackStack() },
+                                { navController.navigate("hidden_apps") })
                         }
-                        composable("hidden_apps"){
-                            HiddenAppsScreen(context, hiddenAppsManager = hiddenAppsManager,packageManager)
+                        composable("hidden_apps",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }
+                        ) {
+                            HiddenAppsScreen(
+                                context,
+                                hiddenAppsManager = hiddenAppsManager,
+                                packageManager
+                            ) { navController.popBackStack() }
                         }
                     }
                 }

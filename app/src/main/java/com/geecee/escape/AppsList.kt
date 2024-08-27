@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,7 +99,7 @@ fun AppDrawer(
             Spacer(modifier = Modifier.height(16.dp))
 
             installedApps.sortedBy { it.loadLabel(packageManager).toString() }.forEach { appInfo ->
-                if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName)) {
+                if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape") {
                     Text(
                         appInfo.loadLabel(packageManager).toString(),
                         modifier = Modifier
@@ -150,7 +150,7 @@ fun AppDrawer(
             onCloseAppDrawer()
         }) {
             Icon(
-                Icons.Rounded.KeyboardArrowUp,
+                Icons.Rounded.KeyboardArrowDown,
                 "Open app drawer",
                 tint = MaterialTheme.colorScheme.background
             )

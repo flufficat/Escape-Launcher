@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -156,7 +156,7 @@ fun HomeScreen(
                 onOpenAppDrawer()
             }) {
                 Icon(
-                    Icons.Rounded.KeyboardArrowDown,
+                    Icons.Rounded.KeyboardArrowUp,
                     "Open app drawer",
                     tint = MaterialTheme.colorScheme.background
                 )
