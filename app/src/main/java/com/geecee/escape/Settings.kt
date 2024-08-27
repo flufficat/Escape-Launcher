@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun SettingsScreen(context: Context, goHome: () -> Unit) {
+fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
@@ -107,7 +107,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit) {
                 "Vertically Align Home $homeVAlignText",
             )
 
-            SettingsButton(onClick = { }, "Manage Hidden Apps")
+            SettingsButton(onClick = { onOpenHiddenApps() }, "Manage Hidden Apps")
 
             SettingsButton(onClick = { }, "Manage Open Challenges")
 

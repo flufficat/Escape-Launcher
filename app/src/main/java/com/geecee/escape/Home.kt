@@ -212,6 +212,7 @@ fun HomeScreen(
                                 }
                                 // Update the state after the operation
                                 isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
+                                favoriteApps.value = favoriteAppsManager.getFavoriteApps()
                             }),
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 25.sp

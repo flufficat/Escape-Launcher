@@ -52,7 +52,8 @@ fun AppDrawer(
     packageManager: PackageManager,
     context: Context,
     onCloseAppDrawer: () -> Unit,
-    favoriteAppsManager: FavoriteAppsManager
+    favoriteAppsManager: FavoriteAppsManager,
+    hiddenAppsManager: HiddenAppsManager
 ) {
     val haptics = LocalHapticFeedback.current
     val installedApps = packageManager.queryIntentActivities(
@@ -64,7 +65,9 @@ fun AppDrawer(
     var currentSelectedApp by remember { mutableStateOf("") }
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE)
+    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
 
 
     Box(
@@ -75,7 +78,13 @@ fun AppDrawer(
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Center" ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Left" ) Alignment.Start else Alignment.End,
+            horizontalAlignment = if (sharedPreferencesSettings.getString(
+                    "AppsAlignment", "Center"
+                ) == "Center"
+            ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString(
+                    "AppsAlignment", "Center"
+                ) == "Left"
+            ) Alignment.Start else Alignment.End,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
@@ -90,33 +99,35 @@ fun AppDrawer(
             Spacer(modifier = Modifier.height(16.dp))
 
             installedApps.sortedBy { it.loadLabel(packageManager).toString() }.forEach { appInfo ->
-                Text(
-                    appInfo.loadLabel(packageManager).toString(),
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp)
-                        .combinedClickable(onClick = {
-                            val launchIntent =
-                                packageManager.getLaunchIntentForPackage(appInfo.activityInfo.packageName)
-                            if (launchIntent != null) {
-                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
-                                )
-                                context.startActivity(launchIntent, options.toBundle())
-                            }
-                            onCloseAppDrawer()
-                        }, onLongClick = {
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showBottomSheet = true
-                            currentSelectedApp = appInfo
-                                .loadLabel(packageManager)
-                                .toString()
-                            currentPackageName = appInfo.activityInfo.packageName
-                            isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
-                        }),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
-                )
+                if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName)) {
+                    Text(
+                        appInfo.loadLabel(packageManager).toString(),
+                        modifier = Modifier
+                            .padding(0.dp, 15.dp)
+                            .combinedClickable(onClick = {
+                                val launchIntent =
+                                    packageManager.getLaunchIntentForPackage(appInfo.activityInfo.packageName)
+                                if (launchIntent != null) {
+                                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    val options = ActivityOptions.makeCustomAnimation(
+                                        context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    )
+                                    context.startActivity(launchIntent, options.toBundle())
+                                }
+                                onCloseAppDrawer()
+                            }, onLongClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showBottomSheet = true
+                                currentSelectedApp = appInfo
+                                    .loadLabel(packageManager)
+                                    .toString()
+                                currentPackageName = appInfo.activityInfo.packageName
+                                isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
+                            }),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 24.sp
+                    )
+                }
             }
         }
     }
@@ -125,14 +136,24 @@ fun AppDrawer(
         modifier = Modifier
             .fillMaxSize()
             .padding(30.dp, 50.dp),
-        horizontalArrangement = if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Center" ) Arrangement.Center else if (sharedPreferencesSettings.getString("AppsAlignment", "Center") == "Left" ) Arrangement.Start else Arrangement.End,
+        horizontalArrangement = if (sharedPreferencesSettings.getString(
+                "AppsAlignment", "Center"
+            ) == "Center"
+        ) Arrangement.Center else if (sharedPreferencesSettings.getString(
+                "AppsAlignment", "Center"
+            ) == "Left"
+        ) Arrangement.Start else Arrangement.End,
         verticalAlignment = Alignment.Bottom
     ) {
         Button(onClick = {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             onCloseAppDrawer()
         }) {
-            Icon(Icons.Rounded.KeyboardArrowUp, "Open app drawer", tint = MaterialTheme.colorScheme.background)
+            Icon(
+                Icons.Rounded.KeyboardArrowUp,
+                "Open app drawer",
+                tint = MaterialTheme.colorScheme.background
+            )
         }
     }
 
@@ -164,22 +185,21 @@ fun AppDrawer(
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
                                 // Uninstall logic here
-                                val intent =
-                                    Intent(
-                                        Intent.ACTION_DELETE,
-                                        Uri.parse("package:$currentPackageName")
-                                    )
+                                val intent = Intent(
+                                    Intent.ACTION_DELETE, Uri.parse("package:$currentPackageName")
+                                )
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            }),
-                        MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
                     )
                     Text(
                         "Hide",
-                        Modifier.padding(0.dp, 10.dp),
-                        MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                        Modifier
+                            .padding(0.dp, 10.dp)
+                            .combinedClickable(onClick = {
+                                hiddenAppsManager.addHiddenApp(currentPackageName)
+                                showBottomSheet = false
+                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
                     )
                     Text(
                         text = if (isFavorite) "Remove from favourites" else "Add to favourites",
@@ -214,9 +234,7 @@ fun AppDrawer(
                                     }
                                 context.startActivity(intent)
                                 showBottomSheet = false
-                            }),
-                        MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
                     )
                 }
             }

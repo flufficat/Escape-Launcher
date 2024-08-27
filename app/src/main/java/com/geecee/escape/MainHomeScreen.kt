@@ -25,6 +25,7 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var packageManager: PackageManager
     private lateinit var context: Context
     private lateinit var favoriteAppsManager: FavoriteAppsManager
+    private lateinit var hiddenAppsManager: HiddenAppsManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +51,7 @@ class MainHomeScreen : ComponentActivity() {
                 context = LocalContext.current
                 packageManager = context.packageManager
                 favoriteAppsManager = FavoriteAppsManager(context)
+                hiddenAppsManager  = HiddenAppsManager(context)
 
                 val navController = rememberNavController()
 
@@ -70,11 +72,14 @@ class MainHomeScreen : ComponentActivity() {
                             AppDrawer(
                                 packageManager, context, onCloseAppDrawer = {
                                     navController.popBackStack()
-                                }, favoriteAppsManager = favoriteAppsManager
+                                }, favoriteAppsManager = favoriteAppsManager, hiddenAppsManager
                             )
                         }
                         composable("settings") {
-                            SettingsScreen(context) { navController.popBackStack() }
+                            SettingsScreen(context, { navController.popBackStack() }, { navController.navigate("hidden_apps") })
+                        }
+                        composable("hidden_apps"){
+                            HiddenAppsScreen(context, hiddenAppsManager = hiddenAppsManager,packageManager)
                         }
                     }
                 }
