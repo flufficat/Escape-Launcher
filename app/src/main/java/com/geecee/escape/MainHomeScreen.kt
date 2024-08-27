@@ -102,7 +102,7 @@ class MainHomeScreen : ComponentActivity() {
                             SettingsScreen(
                                 context,
                                 { navController.popBackStack() },
-                                { navController.navigate("hidden_apps") })
+                                { navController.navigate("hidden_apps") },this@MainHomeScreen)
                         }
                         composable("hidden_apps",
                             enterTransition = { fadeIn(tween(300)) },

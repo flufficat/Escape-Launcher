@@ -145,7 +145,7 @@ fun HomeScreen(
                             isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    fontSize = 24.sp
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
 
@@ -181,7 +181,8 @@ fun HomeScreen(
                         currentSelectedApp,
                         Modifier,
                         MaterialTheme.colorScheme.primary,
-                        fontSize = 32.sp
+                        fontSize = 32.sp,
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
@@ -198,7 +199,7 @@ fun HomeScreen(
                                 Log.d("PACKAGE NAME", "package:$currentPackageName")
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = if (isFavorite) "Remove from favourites" else "Add to favourites",
@@ -215,7 +216,7 @@ fun HomeScreen(
                                 favoriteApps.value = favoriteAppsManager.getFavoriteApps()
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         "App Info",
@@ -228,7 +229,7 @@ fun HomeScreen(
                                     }
                                 context.startActivity(intent)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
@@ -256,7 +257,7 @@ fun Clock(sharedPreferencesSettings: SharedPreferences) {
     Text(
         text = time,
         color = MaterialTheme.colorScheme.primary,
-        fontSize = 48.sp,
+        style = MaterialTheme.typography.titleMedium,
         modifier = if (sharedPreferencesSettings.getString(
                 "HomeAlignment",
                 "Center"

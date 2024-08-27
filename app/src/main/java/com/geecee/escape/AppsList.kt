@@ -93,10 +93,11 @@ fun AppDrawer(
             Spacer(modifier = Modifier.height(140.dp))
 
             Text(
-                text = "All Apps", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+                text = "All Apps", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
 
             installedApps.sortedBy { it.loadLabel(packageManager).toString() }.forEach { appInfo ->
                 if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape") {
@@ -109,9 +110,7 @@ fun AppDrawer(
                                     packageManager.getLaunchIntentForPackage(appInfo.activityInfo.packageName)
                                 if (launchIntent != null) {
                                     launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    val options = ActivityOptions.makeCustomAnimation(
-                                        context, R.anim.slide_in_bottom, R.anim.slide_out_top
-                                    )
+                                    val options = ActivityOptions.makeBasic()
                                     context.startActivity(launchIntent, options.toBundle())
                                 }
                                 onCloseAppDrawer()
@@ -125,7 +124,7 @@ fun AppDrawer(
                                 isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 24.sp
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
@@ -174,7 +173,8 @@ fun AppDrawer(
                         currentSelectedApp,
                         Modifier,
                         MaterialTheme.colorScheme.primary,
-                        fontSize = 32.sp
+                        fontSize = 32.sp,
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
@@ -190,7 +190,7 @@ fun AppDrawer(
                                 )
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         "Hide",
@@ -199,7 +199,7 @@ fun AppDrawer(
                             .combinedClickable(onClick = {
                                 hiddenAppsManager.addHiddenApp(currentPackageName)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = if (isFavorite) "Remove from favourites" else "Add to favourites",
@@ -215,13 +215,13 @@ fun AppDrawer(
                                 isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         "Add Open Challenge",
                         Modifier.padding(0.dp, 10.dp),
                         MaterialTheme.colorScheme.primary,
-                        fontSize = 25.sp
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         "App Info",
@@ -234,7 +234,7 @@ fun AppDrawer(
                                     }
                                 context.startActivity(intent)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, fontSize = 25.sp
+                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }

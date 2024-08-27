@@ -1,5 +1,7 @@
 package com.geecee.escape
 
+import android.app.Activity
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -34,12 +36,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit) {
+fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
@@ -105,7 +107,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
                     .size(48.dp).fillMaxSize().align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "Settings", color = MaterialTheme.colorScheme.primary, fontSize = 48.sp
+                    text = "Settings", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
                 )
             }
 
@@ -117,15 +119,9 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
 
             SettingsButton(onClick = { toggleWidgets(context); goHome() }, "Toggle Widgets")
 
-            SettingsButton(
-                onClick = { changeHomeAlignment(context); goHome() },
-                "Align Home $homeAlignText"
-            )
+            SettingsButton(onClick = { changeHomeAlignment(context); goHome() },"Align Home $homeAlignText")
 
-            SettingsButton(
-                onClick = { changeAppsAlignment(context); goHome() },
-                "Align Apps List $appsAlignText"
-            )
+            SettingsButton(onClick = { changeAppsAlignment(context); goHome() },"Align Apps List $appsAlignText")
 
             SettingsButton(
                 onClick = { changeHomeVAlignment(context); goHome() },
@@ -134,9 +130,9 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
 
             SettingsButton(onClick = { onOpenHiddenApps() }, "Manage Hidden Apps")
 
-            SettingsButton(onClick = { }, "Manage Open Challenges")
+            SettingsButton(onClick = { manageOpenChallenges() }, "Manage Open Challenges")
 
-            SettingsButton(onClick = { }, "Change Font")
+            SettingsButton(onClick = { changeFont(context,activity)}, "Change Font")
 
             SettingsButton(onClick = { changeLauncher(context) }, "Make Default Launcher")
 
@@ -144,6 +140,40 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             Spacer(modifier = Modifier.height(140.dp))
         }
     }
+}
+
+fun changeWidget(context: Context, goHome: () -> Unit) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    removeWidget(context)
+
+
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
+        editor.putString("WidgetsToggle", "True")
+    }
+    editor.apply()
+
+    goHome()
+}
+
+fun toggleWidgets(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
+        editor.putString("WidgetsToggle", "True")
+    } else {
+        editor.putString("WidgetsToggle", "False")
+    }
+
+    editor.apply()
 }
 
 fun changeHomeAlignment(context: Context) {
@@ -159,24 +189,6 @@ fun changeHomeAlignment(context: Context) {
         editor.putString("HomeAlignment", "Right")
     } else {
         editor.putString("HomeAlignment", "Left")
-    }
-
-    editor.apply()
-}
-
-fun changeHomeVAlignment(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-        editor.putString("HomeVAlignment", "Center")
-    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
-        editor.putString("HomeVAlignment", "Bottom")
-    } else {
-        editor.putString("HomeVAlignment", "Top")
     }
 
     editor.apply()
@@ -200,38 +212,52 @@ fun changeAppsAlignment(context: Context) {
     editor.apply()
 }
 
-fun toggleWidgets(context: Context) {
+fun changeHomeVAlignment(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
-        editor.putString("WidgetsToggle", "True")
+    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+        editor.putString("HomeVAlignment", "Center")
+    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
+        editor.putString("HomeVAlignment", "Bottom")
     } else {
-        editor.putString("WidgetsToggle", "False")
+        editor.putString("HomeVAlignment", "Top")
     }
 
     editor.apply()
 }
 
-fun changeWidget(context: Context, goHome: () -> Unit) {
+fun manageOpenChallenges(){}
+
+fun changeFont(context: Context, activity: Activity){
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    removeWidget(context)
-
-
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
-        editor.putString("WidgetsToggle", "True")
+    if (sharedPreferences.getString("font", "jost") == "jost") {
+        editor.putString("font", "lora")
     }
+    else if (sharedPreferences.getString("font","jost") == "lora"){
+        editor.putString("font", "josefin")
+    }
+    else if(sharedPreferences.getString("font","jost") == "josefin"){
+        editor.putString("font", "jost")
+    }
+    else{
+        editor.putString("font", "jost")
+    }
+
     editor.apply()
 
-    goHome()
+    val intent = Intent(context, MainHomeScreen::class.java)
+    val options = ActivityOptions.makeBasic()
+    startActivity(context,intent, options.toBundle())
+    activity.finish()
 }
 
 fun changeLauncher(context: Context) {
@@ -249,7 +275,7 @@ fun SettingsButton(onClick: () -> Unit, text: String) {
         Text(
             text,
             color = MaterialTheme.colorScheme.primary,
-            fontSize = 24.sp
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 
