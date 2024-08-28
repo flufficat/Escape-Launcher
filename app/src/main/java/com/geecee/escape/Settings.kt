@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
+import com.geecee.escape.ui.theme.JostTypography
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -111,7 +112,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
                         .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = stringResource(id = R.string.settings), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
+                    text = stringResource(id = R.string.settings), color = MaterialTheme.colorScheme.primary, style = JostTypography.titleMedium,
                 )
             }
 

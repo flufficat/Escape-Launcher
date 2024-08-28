@@ -58,9 +58,12 @@ class MainHomeScreen : ComponentActivity() {
                 val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
                     R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
                 )
-                startDestination = if(sharedPreferencesSettings.getString("FirstTime", "True") == "True"){
+                startDestination = if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True"
+                ) {
+                    "setup"
+                } else if (sharedPreferencesSettings.getString("FirstTime", "True") == "True") {
                     "first_time"
-                } else{
+                } else {
                     "home"
                 }
 
@@ -72,7 +75,9 @@ class MainHomeScreen : ComponentActivity() {
                         .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
                 ) {
                     NavHost(navController, startDestination = startDestination) {
-                        composable("home") {
+                        composable("home",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
                             HomeScreen(
                                 onOpenAppDrawer = { navController.navigate("app_drawer") },
                                 onOpenSettings = { navController.navigate("settings") },
@@ -131,7 +136,14 @@ class MainHomeScreen : ComponentActivity() {
                         composable("first_time",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
-                            FirstTime({navController.navigate("home")})
+                            FirstTime { navController.navigate("setup") }
+                        }
+                        composable("setup",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
+                            Setup(
+                                packageManager, context, favoriteAppsManager
+                            ) { navController.navigate("home") }
                         }
                     }
                 }

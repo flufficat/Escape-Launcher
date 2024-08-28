@@ -25,10 +25,28 @@
     <string name="manage_open_challenges">공개 챌린지 관리</string>
     <string name="change_font">글꼴 변경</string>
     <string name="make_default_launcher">기본 실행기로 만들기</string>
-    <string name="open_challenges">열린 도전</string>
-    <string name="long_press_to_remove_challenge">길게 눌러 도전 과제 제거</string>
-    <string name="youve_set_a_challenge">이 앱에 대한 공개 도전을 설정했습니다.</string>
-    <string name="are_you_sure">정말 이 앱을 사용해야 하나요? 계속하려면 아래 텍스트를 복사하세요.</string>
-    <string name="try_again">다시 시도해보세요</string>
+    <string name="left">왼쪽</string>
+    <string name="center">센터</string>
+    <string name="right">오른쪽</string>
+    <string name="top">맨 위</string>
+    <string name="bottom">맨 아래</string>
 
+    <!-- Challenge apps strings -->
+    <string name="open_challenges">오픈 챌린지</string>
+    <string name="long_press_to_remove_challenge">챌린지를 제거하려면 길게 누르세요.</string>
+    <string name="youve_set_a_challenge">이 앱에 대한 공개 챌린지를 설정했습니다.</string>
+    <string name="are_you_sure">정말 이 앱을 사용해야 하나요\? 계속하려면 아래 텍스트를 복사하세요.</string>
+    <string name="try_again">다시 시도</string>
+
+    <!-- First time strings -->
+    <string name="all_apps_meu_button_long_hold_for_settings">모든 앱 메뉴를 열려면 여기를 누르세요. 설정을 위해 길게 누르고 더 많은 옵션을 보려면 모든 앱 화면에서 앱을 길게 누르세요.</string>
+    <string name="average_screen_time">하루 평균 화면 시간이 거의 9시간에 달한다는 사실을 알고 계셨나요\?</string>
+    <string name="three_days">매주 거의 3일 연속이네요.</string>
+    <string name="escape_change">탈출 발사기가 그것을 바꿀 수 있습니다.</string>
+    <string name="welcome_to_escape">탈출 실행기에 오신 것을 환영합니다</string>
+    <string name="choose_apps">홈 화면에 고정할 앱을 최대 5개까지 선택할 수 있습니다. 나중에 변경할 수 있습니다.</string>
+    <string name="set_launcher">S탈출을 청각 장애 런처로 설정하기r</string>
+    <string name="you_need_to_set_escape">휴대폰이 일반 홈 화면으로 돌아가는 것을 방지하려면 이스케이프를 휴대폰의 기본 홈 화면으로 설정해야 합니다. 나중에 이스케이프가 적합하지 않다고 판단되면 언제든지 마음을 바꿀 수 있습니다.</string>
+    <string name="set_launcher_button">런처 설정</string>
+    <string name="set_wallpaper">런처 애니메이션을 더 부드럽게 보이게 하려면 전체 검은색 배경 화면을 설정하는 것이 좋습니다.</string>
 </resources>
