@@ -42,4 +42,7 @@
 
     <!-- First time strings -->
     <string name="all_apps_meu_button_long_hold_for_settings">Press here to open the all apps menu, long hold for settings and long hold an app here or in the all apps screen for more options</string>
+    <string name="average_screen_time">Did you know that average screen time is almost 9 hours a day.</string>
+    <string name="three_days">Thats almost 3 days straight every week.</string>
+    <string name="escape_change">Escape launcher can change that.</string>
 </resources>

@@ -16,7 +16,7 @@ class FavoriteAppsManager(context: Context) {
         private const val FAVORITE_APPS_KEY = "FavoriteApps"
     }
 
-    fun saveFavoriteApps(favoriteApps: List<String>) {
+    private fun saveFavoriteApps(favoriteApps: List<String>) {
         val json = gson.toJson(favoriteApps)
         with(sharedPreferences.edit()) {
             putString(FAVORITE_APPS_KEY, json)

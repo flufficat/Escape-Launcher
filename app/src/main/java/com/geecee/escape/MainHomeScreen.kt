@@ -1,6 +1,7 @@
 package com.geecee.escape
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -53,6 +54,16 @@ class MainHomeScreen : ComponentActivity() {
                 challengesManager = ChallengesManager(context)
 
 
+                val startDestination: String
+                val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+                    R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+                )
+                startDestination = if(sharedPreferencesSettings.getString("FirstTime", "True") == "True"){
+                    "first_time"
+                } else{
+                    "home"
+                }
+
                 val navController = rememberNavController()
 
                 Box(
@@ -60,7 +71,7 @@ class MainHomeScreen : ComponentActivity() {
                         .fillMaxSize()
                         .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
                 ) {
-                    NavHost(navController, startDestination = "home") {
+                    NavHost(navController, startDestination = startDestination) {
                         composable("home") {
                             HomeScreen(
                                 onOpenAppDrawer = { navController.navigate("app_drawer") },
@@ -111,11 +122,16 @@ class MainHomeScreen : ComponentActivity() {
                             ) { navController.popBackStack() }
                         }
                         composable("open_challenges",
-                            enterTransition = { fadeIn(tween(300)) },
-                            exitTransition = { fadeOut(tween(300)) }) {
+                            enterTransition = { fadeIn(tween(500)) },
+                            exitTransition = { fadeOut(tween(500)) }) {
                             ChallengeAppsScreen(
                                 context, challengesManager, packageManager
                             ) { navController.popBackStack() }
+                        }
+                        composable("first_time",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
+                            FirstTime({navController.navigate("home")})
                         }
                     }
                 }
