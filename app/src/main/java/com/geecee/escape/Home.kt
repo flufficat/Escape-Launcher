@@ -139,7 +139,8 @@ fun HomeScreen(
                     context = context,
                     modifier = Modifier
                         .offset((widgetOffset).dp, 0.dp)
-                        .size(150.dp, 100.dp)
+                        .size(150.dp, 125.dp)
+                        .padding(0.dp,7.dp)
                 )
             }
 
