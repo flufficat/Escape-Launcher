@@ -33,6 +33,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -124,7 +125,11 @@ fun HiddenAppsScreen(
                         .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = stringResource(id = R.string.hidden_apps), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium
+                    text = stringResource(id = R.string.hidden_apps),
+                    fontSize = 38.sp,
+
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
 

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -47,8 +48,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.geecee.escape.ui.theme.JostTypography
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -72,6 +75,14 @@ fun HomeScreen(
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
+    var shouldShowFirstTimeAppDraw by remember {
+        mutableStateOf(
+            sharedPreferencesSettings.getString(
+                "FirstTimeAppDrawHelp",
+                "True"
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -80,6 +91,10 @@ fun HomeScreen(
             .combinedClickable(onClick = {}, onLongClickLabel = {}.toString(), onLongClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onOpenSettings()
+
+                val editor = sharedPreferencesSettings.edit()
+                editor.putString("FirstTimeAppDrawHelp", "False")
+                editor.apply()
             })
     ) {
         Column(
@@ -106,13 +121,18 @@ fun HomeScreen(
             Clock(sharedPreferencesSettings)
 
             var widgetOffset by remember { mutableIntStateOf(0) }
-            widgetOffset = if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
-                -10
-            } else if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Right") {
-                8
-            } else {
-                0
-            }
+            widgetOffset =
+                if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
+                    -8
+                } else if (sharedPreferencesSettings.getString(
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Right"
+                ) {
+                    8
+                } else {
+                    0
+                }
 
             if (sharedPreferencesSettings.getString("WidgetsToggle", "False") == "True") {
                 WidgetsScreen(
@@ -151,14 +171,40 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+
             Button(onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onOpenAppDrawer()
+                shouldShowFirstTimeAppDraw = false.toString()
+                val editor = sharedPreferencesSettings.edit()
+                editor.putString("FirstTimeAppDrawHelp", "False")
+                editor.apply()
             }) {
                 Icon(
                     Icons.Rounded.KeyboardArrowUp,
                     "Open app drawer",
                     tint = MaterialTheme.colorScheme.background
+                )
+            }
+
+            if (shouldShowFirstTimeAppDraw == "True") {
+                Spacer(modifier = Modifier.height(50.dp))
+                Icon(
+                    Icons.Rounded.KeyboardArrowUp,
+                    contentDescription = "Point",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .fillMaxSize()
+                        .align(Alignment.CenterHorizontally),
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = stringResource(id = R.string.all_apps_meu_button_long_hold_for_settings),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -182,7 +228,7 @@ fun HomeScreen(
                         Modifier,
                         MaterialTheme.colorScheme.primary,
                         fontSize = 32.sp,
-                        style = MaterialTheme.typography.titleMedium
+                        style = JostTypography.titleMedium
                     )
                 }
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
@@ -199,10 +245,14 @@ fun HomeScreen(
                                 Log.d("PACKAGE NAME", "package:$currentPackageName")
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
+                            }),
+                        MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(id = R.string.add_to_fav),
+                        text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(
+                            id = R.string.add_to_fav
+                        ),
                         modifier = Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
@@ -229,7 +279,9 @@ fun HomeScreen(
                                     }
                                 context.startActivity(intent)
                                 showBottomSheet = false
-                            }), MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyLarge
+                            }),
+                        MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
@@ -262,7 +314,7 @@ fun Clock(sharedPreferencesSettings: SharedPreferences) {
                 "HomeAlignment",
                 "Center"
             ) == "Left"
-        ) Modifier.offset((-4).dp) else if (sharedPreferencesSettings.getString(
+        ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
                 "HomeAlignment",
                 "Center"
             ) == "Right"

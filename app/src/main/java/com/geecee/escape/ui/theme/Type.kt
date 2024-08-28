@@ -38,14 +38,14 @@ val JostTypography = Typography(
         fontFamily = Jost,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        lineHeight = 24.sp,
+        lineHeight = 25.sp,
         letterSpacing = 0.5.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Jost,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
-        lineHeight = 48.sp,
+        lineHeight = 49.sp,
         letterSpacing = 0.5.sp
     )
 )
@@ -55,14 +55,14 @@ val JosefinTypography = Typography(
         fontFamily = Josefin,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        lineHeight = 24.sp,
+        lineHeight = 25.sp,
         letterSpacing = 0.5.sp
     ),
     titleMedium = TextStyle(
         fontFamily = JosefinBold,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
-        lineHeight = 24.sp,
+        lineHeight = 49.sp,
         letterSpacing = 0.5.sp
     )
 )
@@ -72,14 +72,14 @@ val LoraTypography = Typography(
         fontFamily = Lora,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        lineHeight = 24.sp,
+        lineHeight = 25.sp,
         letterSpacing = 0.5.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Lora,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
-        lineHeight = 24.sp,
+        lineHeight = 49.sp,
         letterSpacing = 0.5.sp
     )
 )
@@ -89,14 +89,14 @@ val JPTypography = Typography(
         fontFamily = NotoJP,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        lineHeight = 24.sp,
+        lineHeight = 25.sp,
         letterSpacing = 0.5.sp
     ),
     titleMedium = TextStyle(
         fontFamily = NotoJPBold,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
-        lineHeight = 24.sp,
+        lineHeight = 49.sp,
         letterSpacing = 0.5.sp
     )
 )

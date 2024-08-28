@@ -113,7 +113,7 @@ class MainHomeScreen : ComponentActivity() {
                         composable("open_challenges",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
-                            challengeAppsScreen(
+                            ChallengeAppsScreen(
                                 context, challengesManager, packageManager
                             ) { navController.popBackStack() }
                         }

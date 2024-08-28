@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -179,7 +180,7 @@ fun AppDrawer(
         Dialog(onDismissRequest = { showDialog = false }) {
 
             var typedString by remember { mutableStateOf("") }
-            var challengeString = "I want to continue"
+            val challengeString = "I want to continue"
             var isWrong by remember { mutableStateOf(false) }
 
             Box(
@@ -190,8 +191,8 @@ fun AppDrawer(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         stringResource(id = R.string.youve_set_a_challenge),
-                        fontSize = 30.sp,
-                        lineHeight = 32.sp,
+                        fontSize = 25.sp,
+                        lineHeight = 27.sp,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -224,7 +225,7 @@ fun AppDrawer(
                         Button(
                             onClick = {
                                 if (typedString == challengeString) {
-                                    isWrong = false;
+                                    isWrong = false
                                     // Launch the app
                                     val launchIntent =
                                         packageManager.getLaunchIntentForPackage(currentPackageName)
@@ -235,15 +236,15 @@ fun AppDrawer(
                                     }
                                     onCloseAppDrawer()
                                 } else {
-                                    isWrong = true;
+                                    isWrong = true
                                 }
                             },
-                            content = { Text("Continue") },
+                            content = { Text("Continue", color = MaterialTheme.colorScheme.background) },
                             modifier = Modifier.padding(5.dp)
                         )
                         Button(
                             onClick = { showDialog = false },
-                            content = { Text("Cancel") },
+                            content = { Text("Cancel", color = MaterialTheme.colorScheme.background) },
                             modifier = Modifier.padding(5.dp)
                         )
                     }
@@ -273,7 +274,7 @@ fun AppDrawer(
                         Modifier,
                         MaterialTheme.colorScheme.primary,
                         fontSize = 32.sp,
-                        style = MaterialTheme.typography.titleMedium
+                        style = JostTypography.titleMedium
                     )
                 }
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))

@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 
@@ -52,11 +53,11 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
     }
 
     homeAlignText = if (sharedPreferences.getString("HomeAlignment", "Center") == "Right") {
-        "Left"
+        stringResource(id = R.string.left)
     } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
-        "Right"
+        stringResource(id = R.string.right)
     } else {
-        "Center"
+        stringResource(id = R.string.center)
     }
 
     var homeVAlignText by remember {
@@ -64,11 +65,11 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
     }
 
     homeVAlignText = if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-        "Center"
+        stringResource(id = R.string.center)
     } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
-        "Bottom"
+        stringResource(id = R.string.bottom)
     } else {
-        "Top"
+        stringResource(id = R.string.top)
     }
 
     var appsAlignText by remember {
@@ -76,11 +77,11 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
     }
 
     appsAlignText = if (sharedPreferences.getString("AppsAlignment", "Center") == "Right") {
-        "Left"
+        stringResource(id = R.string.left)
     } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
-        "Right"
+        stringResource(id = R.string.right)
     } else {
-        "Center"
+        stringResource(id = R.string.center)
     }
 
     Box(
@@ -133,17 +134,17 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
 
             SettingsButton(
                 onClick = { changeHomeAlignment(context); goHome() },
-                text = stringResource(R.string.align_home)
+                text = stringResource(R.string.align_home) + " " + homeAlignText
             )
 
             SettingsButton(
                 onClick = { changeAppsAlignment(context); goHome() },
-                text = stringResource(R.string.align_apps_list)
+                text = stringResource(R.string.align_apps_list) + " " + appsAlignText
             )
 
             SettingsButton(
                 onClick = { changeHomeVAlignment(context); goHome() },
-                text = stringResource(R.string.vertically_align_home)
+                text = stringResource(R.string.vertically_align_home) + " " + homeVAlignText
             )
 
             SettingsButton(
@@ -319,13 +320,15 @@ fun changeLauncher(context: Context) {
 fun SettingsButton(onClick: () -> Unit, text: String) {
     Button(
         onClick = { onClick() },
-        modifier = Modifier.height(60.dp),
+        modifier = Modifier.padding(0.dp,0.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Text(
             text,
+            Modifier.padding(0.dp,15.dp),
             color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
         )
     }
 
