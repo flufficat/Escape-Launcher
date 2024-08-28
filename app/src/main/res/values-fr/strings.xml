@@ -25,10 +25,28 @@
     <string name="manage_open_challenges">Gérer les défis ouverts</string>
     <string name="change_font">Changer la police</string>
     <string name="make_default_launcher">Créer un lanceur par défaut</string>
-    <string name="open_challenges">Défis ouverts</string>
-    <string name="long_press_to_remove_challenge">Appui long pour supprimer le défi</string>
-    <string name="youve_set_a_challenge">Vous avez lancé un défi ouvert pour cette application.</string>
-    <string name="are_you_sure">Avez-vous vraiment besoin d\'utiliser cette application ? Copiez le texte ci-dessous pour continuer.</string>
-    <string name="try_again">" réessayez"</string>
+    <string name="left">Gauche</string>
+    <string name="center">Centre</string>
+    <string name="right">Droite</string>
+    <string name="top">Haut</string>
+    <string name="bottom">Bas</string>
 
+    <!-- Challenge apps strings -->
+    <string name="open_challenges">Défis ouverts</string>
+    <string name="long_press_to_remove_challenge">Appuyez longuement pour supprimer le défi</string>
+    <string name="youve_set_a_challenge">Vous avez défini un défi ouvert pour cette application</string>
+    <string name="are_you_sure">Avez-vous vraiment besoin d\'aller sur cette application \? Copiez le texte ci-dessous pour continuer.</string>
+    <string name="try_again">Essayer à nouveau</string>
+
+    <!-- First time strings -->
+    <string name="all_apps_meu_button_long_hold_for_settings">Appuyez ici pour ouvrir le menu de toutes les applications, appuyez longuement sur les paramètres et maintenez longuement une application dans l\'écran de toutes les applications pour plus d\'options.</string>
+    <string name="average_screen_time">Saviez-vous que le temps d’écran moyen est de près de 9 heures par jour.</string>
+    <string name="three_days">Cela fait presque 3 jours d\'affilée chaque semaine.</string>
+    <string name="escape_change">Le lanceur d\'évasion peut changer cela.</string>
+    <string name="welcome_to_escape">Bienvenue sur Escape Launcher</string>
+    <string name="choose_apps">Choisissez jusqu\'à cinq applications à épingler sur l\'écran d\'accueil. Vous pourrez les modifier ultérieurement.</string>
+    <string name="set_launcher">Définir Escape comme lanceur par défaut</string>
+    <string name="you_need_to_set_escape">Vous devez définir l\'échappement comme écran d\'accueil par défaut de votre téléphone pour empêcher le téléphone de revenir à l\'écran d\'accueil normal. Vous pourrez toujours changer d\'avis plus tard si vous décidez qu\'Escape n\'est pas pour vous.</string>
+    <string name="set_launcher_button">Définir le lanceur</string>
+    <string name="set_wallpaper">Nous vous recommandons de définir un fond d\'écran entièrement noir pour rendre les animations du lanceur plus fluides.</string>
 </resources>
