@@ -32,6 +32,7 @@
     <string name="right">Right</string>
     <string name="top">Top</string>
     <string name="bottom">Bottom</string>
+    <string name="toggle_search">Toggle Search</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>
@@ -51,4 +52,5 @@
     <string name="you_need_to_set_escape">You need to set escape as the default home screen for your phone to prevent the phone returning to the normal home screen. You can always change your mind later if you decide Escape isn\'t for you.</string>
     <string name="set_launcher_button">Set Launcher</string>
     <string name="set_wallpaper">We recommend that you set an all black wallpaper to make the launcher animations seem smoother</string>
+    <string name="search">Search</string>
 </resources>

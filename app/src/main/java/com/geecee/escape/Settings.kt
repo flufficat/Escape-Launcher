@@ -44,10 +44,15 @@ import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () -> Unit, activity: Activity, onOpenChallenges: () -> Unit) {
+fun SettingsScreen(
+    context: Context,
+    goHome: () -> Unit,
+    onOpenHiddenApps: () -> Unit,
+    activity: Activity,
+    onOpenChallenges: () -> Unit
+) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     var homeAlignText by remember {
         mutableStateOf("Center")
@@ -106,13 +111,19 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
                 })
             ) {
                 Icon(
-                    Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Go Back",tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Go Back",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
                         .size(48.dp)
                         .fillMaxSize()
-                        .align(Alignment.CenterVertically))
+                        .align(Alignment.CenterVertically)
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = stringResource(id = R.string.settings), color = MaterialTheme.colorScheme.primary, style = JostTypography.titleMedium,
+                    text = stringResource(id = R.string.settings),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.titleMedium,
                 )
             }
 
@@ -121,6 +132,11 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             SettingsButton(
                 onClick = { toggleLightTheme(context, activity) },
                 text = stringResource(R.string.toggle_light_mode)
+            )
+
+            SettingsButton(
+                onClick = { toggleSearchBox(context) },
+                text = stringResource(id = R.string.toggle_search)
             )
 
             SettingsButton(
@@ -134,23 +150,46 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             )
 
             SettingsButton(
-                onClick = { changeHomeAlignment(context); goHome() },
-                text = stringResource(R.string.align_home) + " " + homeAlignText
+                onClick = {
+                    changeHomeAlignment(context)
+                    if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
+                        homeAlignText = "Center"
+                    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
+                        homeAlignText = "Right"
+                    } else {
+                        homeAlignText = "Left"
+                    }
+                }, text = stringResource(R.string.align_home) + " " + homeAlignText
             )
 
             SettingsButton(
-                onClick = { changeAppsAlignment(context); goHome() },
-                text = stringResource(R.string.align_apps_list) + " " + appsAlignText
+                onClick = {
+                    changeAppsAlignment(context)
+                    if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
+                        appsAlignText = "Center"
+                    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
+                        appsAlignText = "Right"
+                    } else {
+                        appsAlignText = "Left"
+                    }
+                }, text = stringResource(R.string.align_apps_list) + " " + appsAlignText
             )
 
             SettingsButton(
-                onClick = { changeHomeVAlignment(context); goHome() },
-                text = stringResource(R.string.vertically_align_home) + " " + homeVAlignText
+                onClick = {
+                    changeHomeVAlignment(context)
+                    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+                        homeVAlignText = "Center"
+                    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
+                        homeVAlignText = "Bottom"
+                    } else {
+                        homeVAlignText = "Top"
+                    }
+                }, text = stringResource(R.string.vertically_align_home) + " " + homeVAlignText
             )
 
             SettingsButton(
-                onClick = { onOpenHiddenApps() },
-                text = stringResource(R.string.manage_hidden_apps)
+                onClick = { onOpenHiddenApps() }, text = stringResource(R.string.manage_hidden_apps)
             )
 
             SettingsButton(
@@ -159,7 +198,7 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
             )
 
             SettingsButton(
-                onClick = { changeFont(context,activity)},
+                onClick = { changeFont(context, activity) },
                 text = stringResource(R.string.change_font)
             )
 
@@ -174,17 +213,15 @@ fun SettingsScreen(context: Context, goHome: () -> Unit, onOpenHiddenApps: () ->
     }
 }
 
-fun toggleLightTheme(context: Context,activity: Activity){
+fun toggleLightTheme(context: Context, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     if (sharedPreferences.getString("LightMode", "False") == "False") {
         editor.putString("LightMode", "True")
-    }
-    else{
+    } else {
         editor.putString("LightMode", "False")
     }
 
@@ -192,14 +229,28 @@ fun toggleLightTheme(context: Context,activity: Activity){
 
     val intent = Intent(context, MainHomeScreen::class.java)
     val options = ActivityOptions.makeBasic()
-    startActivity(context,intent, options.toBundle())
+    startActivity(context, intent, options.toBundle())
     activity.finish()
+}
+
+fun toggleSearchBox(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (sharedPreferences.getString("showSearchBox", "False") == "False") {
+        editor.putString("showSearchBox", "True")
+    } else {
+        editor.putString("showSearchBox", "False")
+    }
+
+    editor.apply()
 }
 
 fun changeWidget(context: Context, goHome: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
@@ -216,8 +267,7 @@ fun changeWidget(context: Context, goHome: () -> Unit) {
 
 fun toggleWidgets(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
@@ -232,8 +282,7 @@ fun toggleWidgets(context: Context) {
 
 fun changeHomeAlignment(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
@@ -250,8 +299,7 @@ fun changeHomeAlignment(context: Context) {
 
 fun changeAppsAlignment(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
@@ -268,8 +316,7 @@ fun changeAppsAlignment(context: Context) {
 
 fun changeHomeVAlignment(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
@@ -284,23 +331,19 @@ fun changeHomeVAlignment(context: Context) {
     editor.apply()
 }
 
-fun changeFont(context: Context, activity: Activity){
+fun changeFont(context: Context, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(),
-        Context.MODE_PRIVATE
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     if (sharedPreferences.getString("font", "jost") == "jost") {
         editor.putString("font", "lora")
-    }
-    else if (sharedPreferences.getString("font","jost") == "lora"){
+    } else if (sharedPreferences.getString("font", "jost") == "lora") {
         editor.putString("font", "josefin")
-    }
-    else if(sharedPreferences.getString("font","jost") == "josefin"){
+    } else if (sharedPreferences.getString("font", "jost") == "josefin") {
         editor.putString("font", "jost")
-    }
-    else{
+    } else {
         editor.putString("font", "jost")
     }
 
@@ -308,7 +351,7 @@ fun changeFont(context: Context, activity: Activity){
 
     val intent = Intent(context, MainHomeScreen::class.java)
     val options = ActivityOptions.makeBasic()
-    startActivity(context,intent, options.toBundle())
+    startActivity(context, intent, options.toBundle())
     activity.finish()
 }
 
@@ -321,12 +364,12 @@ fun changeLauncher(context: Context) {
 fun SettingsButton(onClick: () -> Unit, text: String) {
     Button(
         onClick = { onClick() },
-        modifier = Modifier.padding(0.dp,0.dp),
+        modifier = Modifier.padding(0.dp, 0.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
         Text(
             text,
-            Modifier.padding(0.dp,15.dp),
+            Modifier.padding(0.dp, 15.dp),
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,

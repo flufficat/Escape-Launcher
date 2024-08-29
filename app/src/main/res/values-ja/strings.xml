@@ -32,6 +32,7 @@
     <string name="bottom">底</string>
 
     <!-- Challenge apps strings -->
+    <string name="toggle_search">検索を切り替える</string>
     <string name="open_challenges">オープンチャレンジ</string>
     <string name="long_press_to_remove_challenge">長押ししてチャレンジを削除します</string>
     <string name="youve_set_a_challenge">このアプリにオープンチャレンジを設定しました</string>
@@ -49,4 +50,5 @@
     <string name="you_need_to_set_escape">電話機が通常のホーム画面に戻らないようにするには、エスケープを電話機のデフォルトのホーム画面として設定する必要があります。 Escape が自分には合わないと判断した場合は、後でいつでも考えを変えることができます。</string>
     <string name="set_launcher_button">ランチャーを設定する</string>
     <string name="set_wallpaper">ランチャーのアニメーションをよりスムーズに見せるために、すべて黒の壁紙を設定することをお勧めします。</string>
+    <string name="search">検索</string>
 </resources>

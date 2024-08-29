@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,6 +34,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -79,12 +81,12 @@ fun AppDrawer(
     )
     var showDialog by remember { mutableStateOf(false) }
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
             .padding(0.dp, 50.dp, 0.dp, 0.dp)
+            .imePadding()
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -108,11 +110,30 @@ fun AppDrawer(
                 style = MaterialTheme.typography.titleMedium
             )
 
+
+            var searchText by remember { mutableStateOf("") }
+
+            if (sharedPreferencesSettings.getString("showSearchBox", "False") == "True") {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    label = { Text(stringResource(id = R.string.search)) },
+                    shape = RoundedCornerShape(60.dp),
+                    singleLine = true,
+                    maxLines = 1
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
+            val filteredApps = installedApps.filter { appInfo ->
+                val appName = appInfo.loadLabel(packageManager).toString()
+                appName.contains(searchText, ignoreCase = true)
+            }.sortedBy { it.loadLabel(packageManager).toString() }
 
-
-            installedApps.sortedBy { it.loadLabel(packageManager).toString() }.forEach { appInfo ->
+            filteredApps.forEach { appInfo ->
                 if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape") {
                     Text(
                         appInfo.loadLabel(packageManager).toString(),
@@ -239,12 +260,22 @@ fun AppDrawer(
                                     isWrong = true
                                 }
                             },
-                            content = { Text("Continue", color = MaterialTheme.colorScheme.background) },
+                            content = {
+                                Text(
+                                    "Continue",
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                            },
                             modifier = Modifier.padding(5.dp)
                         )
                         Button(
                             onClick = { showDialog = false },
-                            content = { Text("Cancel", color = MaterialTheme.colorScheme.background) },
+                            content = {
+                                Text(
+                                    "Cancel",
+                                    color = MaterialTheme.colorScheme.background
+                                )
+                            },
                             modifier = Modifier.padding(5.dp)
                         )
                     }

@@ -32,6 +32,7 @@
     <string name="bottom">맨 아래</string>
 
     <!-- Challenge apps strings -->
+    <string name="toggle_search">검색 토글</string>
     <string name="open_challenges">오픈 챌린지</string>
     <string name="long_press_to_remove_challenge">챌린지를 제거하려면 길게 누르세요.</string>
     <string name="youve_set_a_challenge">이 앱에 대한 공개 챌린지를 설정했습니다.</string>
@@ -49,4 +50,5 @@
     <string name="you_need_to_set_escape">휴대폰이 일반 홈 화면으로 돌아가는 것을 방지하려면 이스케이프를 휴대폰의 기본 홈 화면으로 설정해야 합니다. 나중에 이스케이프가 적합하지 않다고 판단되면 언제든지 마음을 바꿀 수 있습니다.</string>
     <string name="set_launcher_button">런처 설정</string>
     <string name="set_wallpaper">런처 애니메이션을 더 부드럽게 보이게 하려면 전체 검은색 배경 화면을 설정하는 것이 좋습니다.</string>
+    <string name="search">찾다</string>
 </resources>
