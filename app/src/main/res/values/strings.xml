@@ -1,7 +1,4 @@
 <resources>
-    <string name="app_name" translatable="false">Escape</string>
-    <string name="settings_pref_file_name" translatable="false">SettingsPref</string>
-
     <!-- All Apps strings -->
     <string name="all_apps">All Apps</string>
     <string name="uninstall">Uninstall</string>
@@ -17,22 +14,25 @@
 
     <!-- Settings strings-->
     <string name="settings">Settings</string>
-    <string name="toggle_light_mode">Toggle Light Mode</string>
-    <string name="select_home_screen_widget">Select Home Screen Widget</string>
-    <string name="toggle_widgets">Toggle Widgets</string>
     <string name="align_home">Align Home</string>
     <string name="align_apps_list">Align Apps List</string>
     <string name="vertically_align_home">Vertically Align Home</string>
-    <string name="manage_hidden_apps">Manage Hidden Apps</string>
-    <string name="manage_open_challenges">Manage Open Challenges</string>
-    <string name="change_font">Change Font</string>
     <string name="make_default_launcher">Make Default Launcher</string>
     <string name="left">Left</string>
     <string name="center">Center</string>
     <string name="right">Right</string>
     <string name="top">Top</string>
     <string name="bottom">Bottom</string>
-    <string name="toggle_search">Toggle Search</string>
+    <string name="light_theme">Light theme</string>
+    <string name="search_box">Search box</string>
+    <string name="widget_options">Widget options</string>
+    <string name="alignments">Alignments</string>
+    <string name="choose_font">Choose Font</string>
+    <string name="enable_widget">Enable Widget</string>
+    <string name="select_widget">Select Widget</string>
+    <string name="manage_open_challenges">Manage Open Challenges</string>
+    <string name="manage_hidden_apps">Manage Hidden Apps</string>
+    <string name="escape_launcher">Escape launcher</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

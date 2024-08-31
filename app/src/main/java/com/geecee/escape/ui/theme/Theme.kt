@@ -12,15 +12,15 @@ import androidx.compose.ui.text.intl.Locale
 import com.geecee.escape.R
 
 private val DarkColorScheme = darkColorScheme(
-    primary = foreground,
-    secondary = between,
+    primary = primary,
+    secondary = secondary,
     background = background
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = background,
-    secondary = between,
-    background = foreground
+    primary = lprimary,
+    secondary = lsecondary,
+    background = lbackground
 )
 
 @Composable

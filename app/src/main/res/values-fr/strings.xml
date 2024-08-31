@@ -1,5 +1,4 @@
 <resources>
-
     <!-- All Apps strings -->
     <string name="all_apps">Toutes les applications</string>
     <string name="uninstall">Désinstaller</string>
@@ -15,24 +14,27 @@
 
     <!-- Settings strings-->
     <string name="settings">Paramètres</string>
-    <string name="toggle_light_mode">Basculer le mode lumière</string>
-    <string name="select_home_screen_widget">Sélectionnez le widget de l\'écran d\'accueil</string>
-    <string name="toggle_widgets">Basculer les widgets</string>
     <string name="align_home">Aligner la maison</string>
     <string name="align_apps_list">Aligner la liste des applications</string>
     <string name="vertically_align_home">Aligner verticalement la maison</string>
-    <string name="manage_hidden_apps">Gérer les applications cachées</string>
-    <string name="manage_open_challenges">Gérer les défis ouverts</string>
-    <string name="change_font">Changer la police</string>
     <string name="make_default_launcher">Créer un lanceur par défaut</string>
     <string name="left">Gauche</string>
     <string name="center">Centre</string>
     <string name="right">Droite</string>
     <string name="top">Haut</string>
     <string name="bottom">Bas</string>
+    <string name="light_theme">Thème lumière</string>
+    <string name="search_box">Zone de recherche</string>
+    <string name="widget_options">Options des widgets</string>
+    <string name="alignments">Alignements</string>
+    <string name="choose_font">Choisir la police</string>
+    <string name="enable_widget">Activer le widget</string>
+    <string name="select_widget">Sélectionnez un widget</string>
+    <string name="manage_open_challenges">Gérer les défis ouverts</string>
+    <string name="manage_hidden_apps">Gérer les applications cachées</string>
+    <string name="escape_launcher">Lanceur d\'évasion</string>
 
     <!-- Challenge apps strings -->
-    <string name="toggle_search">Basculer la recherche</string>
     <string name="open_challenges">Défis ouverts</string>
     <string name="long_press_to_remove_challenge">Appuyez longuement pour supprimer le défi</string>
     <string name="youve_set_a_challenge">Vous avez défini un défi ouvert pour cette application</string>

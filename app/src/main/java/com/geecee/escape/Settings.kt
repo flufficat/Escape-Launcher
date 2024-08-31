@@ -4,8 +4,10 @@ import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.provider.Settings
+import android.content.pm.PackageManager
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -15,7 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,10 +25,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.sharp.Close
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,345 +40,773 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.ui.theme.JosefinTypography
 import com.geecee.escape.ui.theme.JostTypography
+import com.geecee.escape.ui.theme.LoraTypography
 
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsScreen(
+fun Settings(
     context: Context,
     goHome: () -> Unit,
-    onOpenHiddenApps: () -> Unit,
     activity: Activity,
-    onOpenChallenges: () -> Unit
+    packageManager: PackageManager,
+    hiddenAppsManager: HiddenAppsManager,
+    challengesManager: ChallengesManager
 ) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    var homeAlignText by remember {
-        mutableStateOf("Center")
-    }
-
-    homeAlignText = if (sharedPreferences.getString("HomeAlignment", "Center") == "Right") {
-        stringResource(id = R.string.left)
-    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
-        stringResource(id = R.string.right)
-    } else {
-        stringResource(id = R.string.center)
-    }
-
-    var homeVAlignText by remember {
-        mutableStateOf("Center")
-    }
-
-    homeVAlignText = if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-        stringResource(id = R.string.center)
-    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
-        stringResource(id = R.string.bottom)
-    } else {
-        stringResource(id = R.string.top)
-    }
-
-    var appsAlignText by remember {
-        mutableStateOf("Center")
-    }
-
-    appsAlignText = if (sharedPreferences.getString("AppsAlignment", "Center") == "Right") {
-        stringResource(id = R.string.left)
-    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
-        stringResource(id = R.string.right)
-    } else {
-        stringResource(id = R.string.center)
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(10.dp, 50.dp, 10.dp, 11.dp)
+            .padding(20.dp, 20.dp, 20.dp, 11.dp)
     ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(140.dp))
 
-            Row(
-                modifier = Modifier.combinedClickable(onClick = {
-                    goHome()
-                })
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Go Back",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .fillMaxSize()
-                        .align(Alignment.CenterVertically)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = stringResource(id = R.string.settings),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.titleMedium,
-                )
+        val navController = rememberNavController()
+
+        NavHost(navController = navController, "mainSettingsPage") {
+            composable("mainSettingsPage",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                MainSettingsPage({ goHome() }, navController, context, activity)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsButton(
-                onClick = { toggleLightTheme(context, activity) },
-                text = stringResource(R.string.toggle_light_mode)
-            )
-
-            SettingsButton(
-                onClick = { toggleSearchBox(context) },
-                text = stringResource(id = R.string.toggle_search)
-            )
-
-            SettingsButton(
-                onClick = { changeWidget(context, goHome) },
-                text = stringResource(R.string.select_home_screen_widget)
-            )
-
-            SettingsButton(
-                onClick = { toggleWidgets(context); goHome() },
-                text = stringResource(R.string.toggle_widgets)
-            )
-
-            SettingsButton(
-                onClick = {
-                    changeHomeAlignment(context)
-                    if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
-                        homeAlignText = "Center"
-                    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
-                        homeAlignText = "Right"
-                    } else {
-                        homeAlignText = "Left"
-                    }
-                }, text = stringResource(R.string.align_home) + " " + homeAlignText
-            )
-
-            SettingsButton(
-                onClick = {
-                    changeAppsAlignment(context)
-                    if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
-                        appsAlignText = "Center"
-                    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
-                        appsAlignText = "Right"
-                    } else {
-                        appsAlignText = "Left"
-                    }
-                }, text = stringResource(R.string.align_apps_list) + " " + appsAlignText
-            )
-
-            SettingsButton(
-                onClick = {
-                    changeHomeVAlignment(context)
-                    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-                        homeVAlignText = "Center"
-                    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
-                        homeVAlignText = "Bottom"
-                    } else {
-                        homeVAlignText = "Top"
-                    }
-                }, text = stringResource(R.string.vertically_align_home) + " " + homeVAlignText
-            )
-
-            SettingsButton(
-                onClick = { onOpenHiddenApps() }, text = stringResource(R.string.manage_hidden_apps)
-            )
-
-            SettingsButton(
-                onClick = { onOpenChallenges() },
-                text = stringResource(R.string.manage_open_challenges)
-            )
-
-            SettingsButton(
-                onClick = { changeFont(context, activity) },
-                text = stringResource(R.string.change_font)
-            )
-
-            SettingsButton(
-                onClick = { changeLauncher(context) },
-                text = stringResource(R.string.make_default_launcher)
-            )
-
-
-            Spacer(modifier = Modifier.height(140.dp))
+            composable("widgetOptions",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                WidgetOptions(context, { navController.popBackStack() }, { goHome() })
+            }
+            composable("alignmentOptions",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                AlignmentOptions(context) { navController.popBackStack() }
+            }
+            composable("hiddenApps",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                HiddenApps(
+                    hiddenAppsManager = hiddenAppsManager,
+                    packageManager = packageManager,
+                    context = context
+                ) { navController.popBackStack() }
+            }
+            composable("openChallenges",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                OpenChallenges(
+                    context,
+                    challengesManager = challengesManager,
+                    packageManager
+                ) { navController.popBackStack() }
+            }
+            composable("chooseFont",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                ChooseFont(context, activity) { navController.popBackStack() }
+            }
         }
     }
 }
 
-fun toggleLightTheme(context: Context, activity: Activity) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("LightMode", "False") == "False") {
-        editor.putString("LightMode", "True")
-    } else {
-        editor.putString("LightMode", "False")
-    }
-
-    editor.apply()
-
-    val intent = Intent(context, MainHomeScreen::class.java)
-    val options = ActivityOptions.makeBasic()
-    startActivity(context, intent, options.toBundle())
-    activity.finish()
-}
-
-fun toggleSearchBox(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("showSearchBox", "False") == "False") {
-        editor.putString("showSearchBox", "True")
-    } else {
-        editor.putString("showSearchBox", "False")
-    }
-
-    editor.apply()
-}
-
-fun changeWidget(context: Context, goHome: () -> Unit) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    removeWidget(context)
-
-
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
-        editor.putString("WidgetsToggle", "True")
-    }
-    editor.apply()
-
-    goHome()
-}
-
-fun toggleWidgets(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
-        editor.putString("WidgetsToggle", "True")
-    } else {
-        editor.putString("WidgetsToggle", "False")
-    }
-
-    editor.apply()
-}
-
-fun changeHomeAlignment(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
-        editor.putString("HomeAlignment", "Center")
-    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
-        editor.putString("HomeAlignment", "Right")
-    } else {
-        editor.putString("HomeAlignment", "Left")
-    }
-
-    editor.apply()
-}
-
-fun changeAppsAlignment(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
-        editor.putString("AppsAlignment", "Center")
-    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
-        editor.putString("AppsAlignment", "Right")
-    } else {
-        editor.putString("AppsAlignment", "Left")
-    }
-
-    editor.apply()
-}
-
-fun changeHomeVAlignment(context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
-        editor.putString("HomeVAlignment", "Center")
-    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
-        editor.putString("HomeVAlignment", "Bottom")
-    } else {
-        editor.putString("HomeVAlignment", "Top")
-    }
-
-    editor.apply()
-}
-
-fun changeFont(context: Context, activity: Activity) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (sharedPreferences.getString("font", "jost") == "jost") {
-        editor.putString("font", "lora")
-    } else if (sharedPreferences.getString("font", "jost") == "lora") {
-        editor.putString("font", "josefin")
-    } else if (sharedPreferences.getString("font", "jost") == "josefin") {
-        editor.putString("font", "jost")
-    } else {
-        editor.putString("font", "jost")
-    }
-
-    editor.apply()
-
-    val intent = Intent(context, MainHomeScreen::class.java)
-    val options = ActivityOptions.makeBasic()
-    startActivity(context, intent, options.toBundle())
-    activity.finish()
-}
-
-fun changeLauncher(context: Context) {
-    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
-    context.startActivity(intent)
-}
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsButton(onClick: () -> Unit, text: String) {
-    Button(
-        onClick = { onClick() },
-        modifier = Modifier.padding(0.dp, 0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+fun MainSettingsPage(
+    goHome: () -> Unit,
+    navController: NavController,
+    context: Context,
+    activity: Activity
+) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(onClick = {
+                    goHome()
+                })
+                .padding(0.dp, 120.dp, 0.dp, 0.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.settings),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.light_theme),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getLightTheme(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleLightTheme(checked, context, activity)
+                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
+                )
+            )
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.search_box),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getSearchBox(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleSearchBox(checked, context)
+                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
+                )
+            )
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    navController.navigate("widgetOptions")
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.widget_options),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    navController.navigate("alignmentOptions")
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.alignments),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    navController.navigate("hiddenApps")
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.manage_hidden_apps),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    navController.navigate("openChallenges")
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.manage_open_challenges),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        if (Locale.current.language != "ja") {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(onClick = {
+                        navController.navigate("chooseFont")
+                    })
+            ) {
+                Text(
+                    stringResource(id = R.string.choose_font),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+
+                Icon(
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    "",
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(48.dp)
+                        .fillMaxSize(),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    changeLauncher(context)
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.make_default_launcher),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .rotate(-45f),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
         Text(
-            text,
+            stringResource(id = R.string.escape_launcher) + " " + stringResource(id = R.string.app_version),
             Modifier.padding(0.dp, 15.dp),
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
     }
+}
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(0.dp, 120.dp, 0.dp, 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.combinedClickable(onClick = {
+                goBack()
+            })
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.widget_options),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.enable_widget),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getWidgetEnabled(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleWidgets(context, checked)
+                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
+                )
+            )
+        }
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable {
+                    changeWidget(context) {
+                        goHome()
+                    }
+                }) {
+            Text(
+                stringResource(id = R.string.select_widget),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun AlignmentOptions(context: Context, goBack: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(onClick = {
+                    goBack()
+                })
+                .padding(0.dp, 120.dp, 0.dp, 0.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.alignments),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.align(Alignment.CenterStart)) {
+                Text(
+                    stringResource(id = R.string.align_home),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+
+                SegmentedButtonGroup(
+                    listOf("Left", "Center", "Right"), getHomeAlignment(context)
+                ) { index ->
+                    changeHomeAlignment(context, index)
+                }
+            }
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Column {
+                Text(
+                    stringResource(id = R.string.vertically_align_home),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+
+                SegmentedButtonGroup(
+                    listOf(
+                        stringResource(id = R.string.top),
+                        stringResource(id = R.string.center),
+                        stringResource(
+                            id = R.string.bottom
+                        )
+                    ), getHomeVAlignment(context)
+                ) { index ->
+                    changeHomeVAlignment(context, index)
+                }
+            }
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Column {
+                Text(
+                    stringResource(id = R.string.align_apps_list),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+
+                SegmentedButtonGroup(
+                    listOf(
+                        stringResource(id = R.string.left),
+                        stringResource(id = R.string.center),
+                        stringResource(id = R.string.right)
+                    ), selectedButtonIndex = getAppsAlignment(context)
+                ) { index ->
+                    changeAppsAlignment(context, index)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun HiddenApps(
+    hiddenAppsManager: HiddenAppsManager,
+    context: Context,
+    packageManager: PackageManager,
+    goBack: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(onClick = {
+                    goBack()
+                })
+                .padding(0.dp, 120.dp, 0.dp, 0.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.manage_hidden_apps),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        val haptics = LocalHapticFeedback.current
+        val hiddenApps = remember { mutableStateOf(hiddenAppsManager.getHiddenApps()) }
+
+        for (app in hiddenApps.value) {
+            Box(Modifier.fillMaxWidth()) {
+                Text(
+                    getAppNameFromPackageName(context, app),
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp)
+                        .combinedClickable(onClick = {
+                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            if (launchIntent != null) {
+                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                val options = ActivityOptions.makeCustomAnimation(
+                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                )
+                                context.startActivity(launchIntent, options.toBundle())
+                            }
+                        }, onLongClick = {
+                            hiddenAppsManager.removeHiddenApp(app)
+                            haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
+                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                        }),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Icon(
+                    Icons.Sharp.Close,
+                    "",
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(30.dp)
+                        .fillMaxSize()
+                        .combinedClickable(onClick = {
+                            hiddenAppsManager.removeHiddenApp(app)
+                            haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
+                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                        }),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun OpenChallenges(
+    context: Context,
+    challengesManager: ChallengesManager,
+    packageManager: PackageManager,
+    goBack: () -> Unit
+) {
+    val challengeApps = remember { mutableStateOf(challengesManager.getChallengeApps()) }
+    val haptics = LocalHapticFeedback.current
+
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(onClick = {
+                    goBack()
+                })
+                .padding(0.dp, 120.dp, 0.dp, 0.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.manage_open_challenges),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        for (app in challengeApps.value) {
+            Box(Modifier.fillMaxWidth()) {
+                Text(
+                    getAppNameFromPackageName(context, app),
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp)
+                        .combinedClickable(onClick = {
+                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            if (launchIntent != null) {
+                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                val options = ActivityOptions.makeCustomAnimation(
+                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                )
+                                context.startActivity(launchIntent, options.toBundle())
+                            }
+                        }, onLongClick = {
+                            challengesManager.removeChallengeApp(app)
+                            haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
+                            challengeApps.value = challengesManager.getChallengeApps()
+                        }),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Icon(
+                    Icons.Sharp.Close,
+                    "",
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(30.dp)
+                        .fillMaxSize()
+                        .combinedClickable(onClick = {
+                            challengesManager.removeChallengeApp(app)
+                            haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
+                            challengeApps.value = challengesManager.getChallengeApps()
+                        }),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(onClick = {
+                    goBack()
+                })
+                .padding(0.dp, 120.dp, 0.dp, 0.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = stringResource(id = R.string.choose_font),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium,
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        Text(
+            "Jost",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    changeFont(context, activity, "jost")
+                }),
+            color = MaterialTheme.colorScheme.primary,
+            style = JostTypography.bodyLarge
+        )
+        Text(
+            "Josefin",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    changeFont(context, activity, "josefin")
+                }),
+            color = MaterialTheme.colorScheme.primary,
+            style = JosefinTypography.bodyLarge
+        )
+        Text(
+            "Lora",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    changeFont(context, activity, "lora")
+                }),
+            color = MaterialTheme.colorScheme.primary,
+            style = LoraTypography.bodyLarge
+        )
+    }
 }

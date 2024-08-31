@@ -113,25 +113,12 @@ class MainHomeScreen : ComponentActivity() {
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
-                            SettingsScreen(context,
+                            Settings(context,
                                 { navController.popBackStack() },
-                                { navController.navigate("hidden_apps") },
                                 this@MainHomeScreen,
-                                { navController.navigate("open_challenges") })
-                        }
-                        composable("hidden_apps",
-                            enterTransition = { fadeIn(tween(300)) },
-                            exitTransition = { fadeOut(tween(300)) }) {
-                            HiddenAppsScreen(
-                                context, hiddenAppsManager = hiddenAppsManager, packageManager
-                            ) { navController.popBackStack() }
-                        }
-                        composable("open_challenges",
-                            enterTransition = { fadeIn(tween(500)) },
-                            exitTransition = { fadeOut(tween(500)) }) {
-                            ChallengeAppsScreen(
-                                context, challengesManager, packageManager
-                            ) { navController.popBackStack() }
+                                packageManager = packageManager,
+                                hiddenAppsManager = hiddenAppsManager,
+                                challengesManager = challengesManager)
                         }
                         composable("first_time",
                             enterTransition = { fadeIn(tween(300)) },
