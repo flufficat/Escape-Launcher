@@ -7,8 +7,11 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,9 +26,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
@@ -34,23 +40,30 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -110,27 +123,61 @@ fun AppDrawer(
                 style = MaterialTheme.typography.titleMedium
             )
 
-
-            var searchText by remember { mutableStateOf("") }
+            val autoOpen = sharedPreferencesSettings.getString("searchAutoOpen", "False")
+            var searchBoxText by remember {mutableStateOf("")}
 
             if (sharedPreferencesSettings.getString("showSearchBox", "False") == "True") {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    label = { Text(stringResource(id = R.string.search)) },
-                    shape = RoundedCornerShape(60.dp),
-                    singleLine = true,
-                    maxLines = 1
-                )
+                AnimatedPillSearchBar({ searchText ->
+                    searchBoxText = searchText
+
+                    if (autoOpen == "True") {
+                        val filteredApps = installedApps.filter { appInfo ->
+                            val appName = appInfo.loadLabel(packageManager).toString()
+                            appName.contains(searchText, ignoreCase = true)
+                        }.sortedBy { sortIT -> sortIT.loadLabel(packageManager).toString() }
+
+                        if (filteredApps.size == 1) { // If there is exactly one app matching the search
+                            val appInfo = filteredApps.first()
+                            val packageName = appInfo.activityInfo.packageName
+                            val launchIntent =
+                                packageManager.getLaunchIntentForPackage(packageName)
+                            if (launchIntent != null) {
+                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                val options = ActivityOptions.makeBasic()
+                                context.startActivity(launchIntent, options.toBundle())
+                                onCloseAppDrawer()
+                            }
+                        }
+                    }
+                },
+                    { searchText ->
+                        val filteredApps = installedApps.filter { appInfo ->
+                            val appName = appInfo.loadLabel(packageManager).toString()
+                            appName.contains(searchText, ignoreCase = true)
+                        }.sortedBy { it.loadLabel(packageManager).toString() }
+
+                        if (filteredApps.isNotEmpty()) {
+                            val firstAppInfo = filteredApps.first()
+                            val packageName = firstAppInfo.activityInfo.packageName
+                            val launchIntent =
+                                packageManager.getLaunchIntentForPackage(packageName)
+                            if (launchIntent != null) {
+                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                val options = ActivityOptions.makeBasic()
+                                context.startActivity(launchIntent, options.toBundle())
+                                onCloseAppDrawer()
+                            }
+                        }
+                    })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val filteredApps = installedApps.filter { appInfo ->
+            val filteredApps = installedApps.filter{appInfo ->
                 val appName = appInfo.loadLabel(packageManager).toString()
-                appName.contains(searchText, ignoreCase = true)
+                appName.contains(searchBoxText, ignoreCase = true)
             }.sortedBy { it.loadLabel(packageManager).toString() }
 
             filteredApps.forEach { appInfo ->
@@ -165,7 +212,7 @@ fun AppDrawer(
                                 isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -219,7 +266,7 @@ fun AppDrawer(
                     )
                     Text(
                         stringResource(id = R.string.are_you_sure),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
 
@@ -238,7 +285,7 @@ fun AppDrawer(
                     if (isWrong) {
                         Text(
                             stringResource(id = R.string.try_again),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = Color.Red
                         )
                     }
@@ -324,7 +371,7 @@ fun AppDrawer(
                                 context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         stringResource(id = R.string.hide),
@@ -335,7 +382,7 @@ fun AppDrawer(
                                 showBottomSheet = false
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(
@@ -354,7 +401,7 @@ fun AppDrawer(
                                     favoriteAppsManager.isAppFavorite(currentPackageName)
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         stringResource(id = R.string.add_open_challenge),
@@ -365,7 +412,7 @@ fun AppDrawer(
                                 showBottomSheet = false
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         stringResource(id = R.string.app_info),
@@ -380,10 +427,106 @@ fun AppDrawer(
                                 showBottomSheet = false
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+fun AnimatedPillSearchBar(
+    textChange: (searchText: String) -> Unit,
+    keyboardDone: (searchText: String) -> Unit
+) {
+    var searchText by remember { mutableStateOf(TextFieldValue("")) }
+    var expanded by remember { mutableStateOf(false) }
+
+    // Animate the width of the search bar
+    val width by animateDpAsState(targetValue = if (expanded) 280.dp else 150.dp, label = "")
+
+    // Animate the alpha of the text field content
+    val alpha by animateFloatAsState(targetValue = if (expanded) 1f else 0f, label = "")
+
+    // FocusRequester to request focus on the text field
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
+    Surface(
+        modifier = Modifier
+            .width(width)
+            .height(56.dp)
+            .clickable {
+                expanded = !expanded
+            },
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primary
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search Icon",
+                tint = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .padding(5.dp, 0.dp)
+                    .size(25.dp)
+            )
+
+            if (!expanded) {
+                Text(
+                    stringResource(id = R.string.search),
+                    modifier = Modifier,
+                    color = MaterialTheme.colorScheme.background,
+                    style = JostTypography.bodyMedium
+                )
+            }
+
+            if (expanded) {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                BasicTextField(
+                    value = searchText,
+                    onValueChange = {
+                        searchText = it
+                        textChange(searchText.text)
+                    },
+                    modifier = Modifier
+                        .alpha(alpha)
+                        .weight(1f)
+                        .focusRequester(focusRequester),
+                    singleLine = true,
+                    decorationBox = { innerTextField ->
+                        if (alpha > 0) {
+                            innerTextField()
+                        }
+                    },
+                    maxLines = 1,
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            keyboardDone(searchText.text)
+                        }
+                    ),
+                    textStyle = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewSearchBar() {
+    AnimatedPillSearchBar({}, {})
 }

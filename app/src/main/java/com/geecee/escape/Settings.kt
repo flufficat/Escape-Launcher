@@ -31,7 +31,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +43,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -112,6 +110,11 @@ fun Settings(
                 exitTransition = { fadeOut(tween(300)) }) {
                 ChooseFont(context, activity) { navController.popBackStack() }
             }
+            composable("devOptions",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                DevOptions(context = context) { navController.popBackStack() }
+            }
         }
     }
 }
@@ -161,7 +164,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.light_theme),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -172,12 +175,7 @@ fun MainSettingsPage(
                 checked = checked, onCheckedChange = {
                     checked = it
                     toggleLightTheme(checked, context, activity)
-                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
-                )
+                }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
@@ -186,7 +184,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.search_box),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -197,12 +195,47 @@ fun MainSettingsPage(
                 checked = checked, onCheckedChange = {
                     checked = it
                     toggleSearchBox(checked, context)
-                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
-                )
+                }, Modifier.align(Alignment.CenterEnd)
+            )
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.auto_open),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getAutoOpen(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleAutoOpen(context, checked)
+                }, Modifier.align(Alignment.CenterEnd)
+            )
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.dynamic_colour),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getDynamicColour(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleDynamicColour(context, checked, activity)
+                }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
@@ -217,7 +250,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.widget_options),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -243,7 +276,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.alignments),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -269,7 +302,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_hidden_apps),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -295,7 +328,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_open_challenges),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -310,32 +343,31 @@ fun MainSettingsPage(
             )
         }
 
-        if (Locale.current.language != "ja") {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(onClick = {
-                        navController.navigate("chooseFont")
-                    })
-            ) {
-                Text(
-                    stringResource(id = R.string.choose_font),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                )
 
-                Icon(
-                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    "",
-                    Modifier
-                        .align(Alignment.CenterEnd)
-                        .size(48.dp)
-                        .fillMaxSize(),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {
+                    navController.navigate("chooseFont")
+                })
+        ) {
+            Text(
+                stringResource(id = R.string.choose_font),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
 
         Box(
@@ -349,7 +381,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.make_default_launcher),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -369,9 +401,13 @@ fun MainSettingsPage(
 
         Text(
             stringResource(id = R.string.escape_launcher) + " " + stringResource(id = R.string.app_version),
-            Modifier.padding(0.dp, 15.dp),
+            Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {}, onLongClick = {
+                    navController.navigate("devOptions")
+                }),
             color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
     }
@@ -406,7 +442,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
             Text(
                 text = stringResource(id = R.string.widget_options),
                 color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
+                style = JostTypography.titleSmall
             )
         }
 
@@ -417,7 +453,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
                 stringResource(id = R.string.enable_widget),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -428,12 +464,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
                 checked = checked, onCheckedChange = {
                     checked = it
                     toggleWidgets(context, checked)
-                }, Modifier.align(Alignment.CenterEnd), colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.primary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
-                )
+                }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
@@ -449,7 +480,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
                 stringResource(id = R.string.select_widget),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -496,7 +527,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             Text(
                 text = stringResource(id = R.string.alignments),
                 color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
+                style = JostTypography.titleSmall,
             )
         }
 
@@ -508,12 +539,16 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     stringResource(id = R.string.align_home),
                     Modifier.padding(0.dp, 15.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
 
                 SegmentedButtonGroup(
-                    listOf("Left", "Center", "Right"), getHomeAlignment(context)
+                    listOf(
+                        stringResource(id = R.string.left),
+                        stringResource(id = R.string.center),
+                        stringResource(id = R.string.right)
+                    ), getHomeAlignment(context)
                 ) { index ->
                     changeHomeAlignment(context, index)
                 }
@@ -526,7 +561,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     stringResource(id = R.string.vertically_align_home),
                     Modifier.padding(0.dp, 15.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
 
@@ -550,7 +585,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     stringResource(id = R.string.align_apps_list),
                     Modifier.padding(0.dp, 15.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
 
@@ -603,7 +638,7 @@ fun HiddenApps(
             Text(
                 text = stringResource(id = R.string.manage_hidden_apps),
                 color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
+                style = JostTypography.titleSmall,
             )
         }
 
@@ -633,7 +668,7 @@ fun HiddenApps(
                             hiddenApps.value = hiddenAppsManager.getHiddenApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Icon(
@@ -693,7 +728,7 @@ fun OpenChallenges(
             Text(
                 text = stringResource(id = R.string.manage_open_challenges),
                 color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
+                style = JostTypography.titleSmall,
             )
         }
 
@@ -720,7 +755,7 @@ fun OpenChallenges(
                             challengeApps.value = challengesManager.getChallengeApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Icon(
@@ -772,7 +807,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             Text(
                 text = stringResource(id = R.string.choose_font),
                 color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
+                style = JostTypography.titleSmall,
             )
         }
 
@@ -786,7 +821,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     changeFont(context, activity, "jost")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = JostTypography.bodyLarge
+            style = JostTypography.bodyMedium
         )
         Text(
             "Josefin",
@@ -796,7 +831,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     changeFont(context, activity, "josefin")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = JosefinTypography.bodyLarge
+            style = JosefinTypography.bodyMedium
         )
         Text(
             "Lora",
@@ -806,7 +841,64 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     changeFont(context, activity, "lora")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = LoraTypography.bodyLarge
+            style = LoraTypography.bodyMedium
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun DevOptions(context: Context, goBack: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(0.dp, 120.dp, 0.dp, 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.combinedClickable(onClick = {
+                goBack()
+            })
+        ) {
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = "Dev Options",
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleSmall
+            )
+        }
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                "First time",
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getFirstTime(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    resetFirstTime(context)
+                }, Modifier.align(Alignment.CenterEnd)
+            )
+        }
     }
 }

@@ -166,7 +166,7 @@ fun HomeScreen(
                             isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
@@ -203,7 +203,7 @@ fun HomeScreen(
                 Text(
                     text = stringResource(id = R.string.all_apps_meu_button_long_hold_for_settings),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -248,7 +248,7 @@ fun HomeScreen(
                                 context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = if (isFavorite) stringResource(id = R.string.rem_from_fav) else stringResource(
@@ -267,7 +267,7 @@ fun HomeScreen(
                                 favoriteApps.value = favoriteAppsManager.getFavoriteApps()
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         stringResource(id = R.string.app_info),
@@ -282,7 +282,7 @@ fun HomeScreen(
                                 showBottomSheet = false
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

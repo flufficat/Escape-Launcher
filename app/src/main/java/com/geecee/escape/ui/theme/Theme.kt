@@ -2,9 +2,12 @@ package com.geecee.escape.ui.theme
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -14,28 +17,30 @@ import com.geecee.escape.R
 private val DarkColorScheme = darkColorScheme(
     primary = primary,
     secondary = secondary,
-    background = background
+    background = background,
+    onPrimary = secondary,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = lprimary,
     secondary = lsecondary,
-    background = lbackground
+    background = lbackground,
+    onPrimary = lsecondary,
 )
 
 @Composable
 fun EscapeTheme(
     content: @Composable () -> Unit
 ) {
-    var colorScheme = DarkColorScheme
     val type: Typography
     val locale = Locale.current
     val context = LocalContext.current
+    var colorScheme = DarkColorScheme
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    type = if (locale.language == "ja") {
+    type = if (locale.language == "jp") {
         //Make font a font that supports japanese
         JPTypography
     } else {
@@ -56,6 +61,18 @@ fun EscapeTheme(
 
     if(sharedPreferencesSettings.getString("LightMode", "False") == "True"){
         colorScheme = LightColorScheme
+    }
+    if(sharedPreferencesSettings.getString("DynamicColour","False") == "True"){
+        if(sharedPreferencesSettings.getString("LightMode", "False") == "True"){
+            colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                dynamicLightColorScheme(context) } else {
+                LightColorScheme}
+        }
+        else{
+            colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                dynamicDarkColorScheme(context) } else {
+                DarkColorScheme}
+        }
     }
 
     MaterialTheme(

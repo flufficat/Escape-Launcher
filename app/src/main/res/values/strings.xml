@@ -33,6 +33,9 @@
     <string name="manage_open_challenges">Manage Open Challenges</string>
     <string name="manage_hidden_apps">Manage Hidden Apps</string>
     <string name="escape_launcher">Escape launcher</string>
+    <string name="auto_open">Quick search</string>
+    <string name="auto_keyboard">Auto open keyboard</string>
+    <string name="dynamic_colour">Dynamic Colour</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>
@@ -44,7 +47,7 @@
     <!-- First time strings -->
     <string name="all_apps_meu_button_long_hold_for_settings">Press here to open the all apps menu, long hold for settings and long hold an app in the all apps screen for more options</string>
     <string name="average_screen_time">Did you know that the average screen time is almost 9 hours a day.</string>
-    <string name="three_days">That\'s almost 3 days straight every week.</string>
+    <string name="three_days">That\'s almost 3 days of your week.</string>
     <string name="escape_change">Escape launcher can change that.</string>
     <string name="welcome_to_escape">Welcome to Escape Launcher</string>
     <string name="choose_apps">Choose up to five apps to have pinned to the home screen. You can change these later.</string>

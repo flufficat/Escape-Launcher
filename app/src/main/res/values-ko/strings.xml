@@ -33,6 +33,9 @@
     <string name="manage_open_challenges">공개 챌린지 관리</string>
     <string name="manage_hidden_apps">숨겨진 앱 관리</string>
     <string name="escape_launcher">탈출 발사기</string>
+    <string name="auto_open">빠른 검색</string>
+    <string name="auto_keyboard">자동으로 키보드 열기</string>
+    <string name="dynamic_colour">동적 색상</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">오픈 챌린지</string>

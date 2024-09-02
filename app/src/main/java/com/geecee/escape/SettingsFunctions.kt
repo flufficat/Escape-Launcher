@@ -245,6 +245,57 @@ fun changeFont(context: Context, activity: Activity, font: String) {
     activity.finish()
 }
 
+fun getAutoOpen(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getString("searchAutoOpen", "False") == "True"
+}
+
+fun toggleAutoOpen(context: Context, shouldTurnOn: Boolean) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (shouldTurnOn) {
+        editor.putString("searchAutoOpen", "True")
+    } else {
+        editor.putString("searchAutoOpen", "False")
+    }
+
+    editor.apply()
+}
+
+fun getDynamicColour(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getString("DynamicColour", "False") == "True"
+}
+
+fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean,activity: Activity) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (shouldTurnOn) {
+        editor.putString("DynamicColour", "True")
+    } else {
+        editor.putString("DynamicColour", "False")
+    }
+
+    editor.apply()
+
+    val intent = Intent(context, MainHomeScreen::class.java)
+    val options = ActivityOptions.makeBasic()
+    startActivity(context, intent, options.toBundle())
+    activity.finish()
+}
+
 @Composable
 fun SegmentedButtonGroup(
     buttons: List<String>,
@@ -283,9 +334,32 @@ fun SegmentedButtonGroup(
                 Text(
                     text = title,
                     color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
     }
+}
+
+
+// DevOptions
+
+fun getFirstTime(context: Context): Boolean{
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getString("FirstTime", "False") == "True"
+}
+
+fun resetFirstTime(context: Context){
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor = sharedPreferences.edit()
+
+    editor.putString("FirstTime", "True")
+    editor.putString("hasDoneSetupPageOne", "False")
+
+    editor.apply()
 }

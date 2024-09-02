@@ -107,7 +107,7 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.choose_apps),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(
@@ -139,7 +139,7 @@ fun Setup(
                                         )
                                     }),
                                 color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -157,7 +157,7 @@ fun Setup(
                                         updateFavoriteStatus(appInfo.activityInfo.packageName, true)
                                     }),
                                 color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -193,7 +193,7 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.you_need_to_set_escape),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(
@@ -213,7 +213,7 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.set_wallpaper),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(

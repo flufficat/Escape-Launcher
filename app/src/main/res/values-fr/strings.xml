@@ -33,6 +33,9 @@
     <string name="manage_open_challenges">Gérer les défis ouverts</string>
     <string name="manage_hidden_apps">Gérer les applications cachées</string>
     <string name="escape_launcher">Lanceur d\'évasion</string>
+    <string name="auto_open">Recherche rapide</string>
+    <string name="auto_keyboard">Ouvrir le clavier automatiquement</string>
+    <string name="dynamic_colour">Couleur dynamique</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Défis ouverts</string>

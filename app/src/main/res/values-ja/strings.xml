@@ -33,6 +33,9 @@
     <string name="manage_open_challenges">オープンチャレンジの管理</string>
     <string name="manage_hidden_apps">隠しアプリの管理</string>
     <string name="escape_launcher">エスケープランチャー</string>
+    <string name="auto_open">クイック検索</string>
+    <string name="auto_keyboard">キーボードを自動的に開く</string>
+    <string name="dynamic_colour">ダイナミックカラー</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">オープンチャレンジ</string>
