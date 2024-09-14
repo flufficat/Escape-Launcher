@@ -564,6 +564,100 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
             )
 
         }
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.height),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetHeight(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetHeight(context, sliderPosition)
+                    },
+                    valueRange = 100f..500f,
+                    steps = 10,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Rounded.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 125F
+                        setWidgetHeight(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+        }
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.width),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetWidth(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetWidth(context, sliderPosition)
+                    },
+                    valueRange = 150f..1000f,
+                    steps = 10,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Rounded.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 150F
+                        setWidgetWidth(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+        }
     }
 }
 

@@ -7,8 +7,11 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -42,7 +44,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,18 +56,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -89,10 +86,20 @@ fun AppDrawer(
     var currentSelectedApp by remember { mutableStateOf("") }
     var currentPackageName by remember { mutableStateOf("") }
     var isFavorite by remember { mutableStateOf(favoriteAppsManager.isAppFavorite(currentPackageName)) }
+    var isChallenge by remember {
+        mutableStateOf(
+            challengesManager.doesAppHaveChallenge(
+                currentPackageName
+            )
+        )
+    }
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     var showDialog by remember { mutableStateOf(false) }
+    var hasSearchedOpenApp by remember {
+        mutableStateOf(false)
+    }
 
     Box(
         modifier = Modifier
@@ -126,7 +133,11 @@ fun AppDrawer(
             val autoOpen = sharedPreferencesSettings.getString("searchAutoOpen", "False")
             var searchBoxText by remember { mutableStateOf("") }
 
-            if (sharedPreferencesSettings.getString("showSearchBox", "False") == "True") {
+            if (sharedPreferencesSettings.getString(
+                    "showSearchBox",
+                    "False"
+                ) == "True" && !hasSearchedOpenApp
+            ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 AnimatedPillSearchBar({ searchText ->
@@ -139,15 +150,23 @@ fun AppDrawer(
                         }.sortedBy { sortIT -> sortIT.loadLabel(packageManager).toString() }
 
                         if (filteredApps.size == 1) { // If there is exactly one app matching the search
+                            hasSearchedOpenApp = true
                             val appInfo = filteredApps.first()
-                            val packageName = appInfo.activityInfo.packageName
-                            val launchIntent =
-                                packageManager.getLaunchIntentForPackage(packageName)
-                            if (launchIntent != null) {
-                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeBasic()
-                                context.startActivity(launchIntent, options.toBundle())
+                            currentPackageName = appInfo.activityInfo.packageName
+
+                            if (challengesManager.doesAppHaveChallenge(currentPackageName)) {
+                                showDialog = true
+                            } else {
+
                                 onCloseAppDrawer()
+                                val launchIntent =
+                                    packageManager.getLaunchIntentForPackage(currentPackageName)
+                                if (launchIntent != null) {
+                                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    val options = ActivityOptions.makeBasic()
+                                    context.startActivity(launchIntent, options.toBundle())
+                                }
+                                hasSearchedOpenApp = false
                             }
                         }
                     }
@@ -161,13 +180,18 @@ fun AppDrawer(
                         if (filteredApps.isNotEmpty()) {
                             val firstAppInfo = filteredApps.first()
                             val packageName = firstAppInfo.activityInfo.packageName
-                            val launchIntent =
-                                packageManager.getLaunchIntentForPackage(packageName)
-                            if (launchIntent != null) {
-                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeBasic()
-                                context.startActivity(launchIntent, options.toBundle())
-                                onCloseAppDrawer()
+                            currentPackageName = packageName
+                            if (challengesManager.doesAppHaveChallenge(currentPackageName)) {
+                                showDialog = true
+                            } else {
+                                val launchIntent =
+                                    packageManager.getLaunchIntentForPackage(packageName)
+                                if (launchIntent != null) {
+                                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    val options = ActivityOptions.makeBasic()
+                                    context.startActivity(launchIntent, options.toBundle())
+                                    onCloseAppDrawer()
+                                }
                             }
                         }
                     })
@@ -210,6 +234,8 @@ fun AppDrawer(
                                     .toString()
                                 currentPackageName = appInfo.activityInfo.packageName
                                 isFavorite = favoriteAppsManager.isAppFavorite(currentPackageName)
+                                isChallenge =
+                                    challengesManager.doesAppHaveChallenge(currentPackageName)
                             }),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium
@@ -244,86 +270,6 @@ fun AppDrawer(
         }
     }
 
-    if (showDialog) {
-        Dialog(onDismissRequest = { showDialog = false }) {
-
-            var typedString by remember { mutableStateOf("") }
-            val challengeString = "I want to continue"
-            var isWrong by remember { mutableStateOf(false) }
-
-            Box(
-                Modifier
-                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp))
-                    .padding(20.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                    Text(
-                        stringResource(id = R.string.are_you_sure),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    TextField(
-                        value = typedString,
-                        onValueChange = { typedString = it },
-                        label = { Text(challengeString) },
-                        singleLine = true,
-                        modifier = Modifier.padding(0.dp, 10.dp),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.None,
-                            autoCorrect = false
-                        )
-                    )
-                    if (isWrong) {
-                        Text(
-                            stringResource(id = R.string.try_again),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Red
-                        )
-                    }
-                    Row {
-                        Button(
-                            onClick = {
-                                if (typedString == challengeString) {
-                                    isWrong = false
-                                    // Launch the app
-                                    val launchIntent =
-                                        packageManager.getLaunchIntentForPackage(currentPackageName)
-                                    if (launchIntent != null) {
-                                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        val options = ActivityOptions.makeBasic()
-                                        context.startActivity(launchIntent, options.toBundle())
-                                    }
-                                    onCloseAppDrawer()
-                                } else {
-                                    isWrong = true
-                                }
-                            },
-                            content = {
-                                Text(
-                                    "Continue",
-                                    color = MaterialTheme.colorScheme.background
-                                )
-                            },
-                            modifier = Modifier.padding(5.dp)
-                        )
-                        Button(
-                            onClick = { showDialog = false },
-                            content = {
-                                Text(
-                                    "Cancel",
-                                    color = MaterialTheme.colorScheme.background
-                                )
-                            },
-                            modifier = Modifier.padding(5.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -397,17 +343,19 @@ fun AppDrawer(
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Text(
-                        stringResource(id = R.string.add_open_challenge),
-                        Modifier
-                            .padding(0.dp, 10.dp)
-                            .combinedClickable(onClick = {
-                                challengesManager.addChallengeApp(currentPackageName)
-                                showBottomSheet = false
-                            }),
-                        MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    if (!isChallenge) {
+                        Text(
+                            stringResource(id = R.string.add_open_challenge),
+                            Modifier
+                                .padding(0.dp, 10.dp)
+                                .combinedClickable(onClick = {
+                                    challengesManager.addChallengeApp(currentPackageName)
+                                    showBottomSheet = false
+                                }),
+                            MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                     Text(
                         stringResource(id = R.string.app_info),
                         Modifier
@@ -426,6 +374,27 @@ fun AppDrawer(
                 }
             }
         }
+    }
+
+    AnimatedVisibility(
+        visible = showDialog,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        OpenChallenge({
+            val launchIntent =
+                packageManager.getLaunchIntentForPackage(currentPackageName)
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val options = ActivityOptions.makeBasic()
+                context.startActivity(launchIntent, options.toBundle())
+            }
+            onCloseAppDrawer()
+            hasSearchedOpenApp = false
+        }, {
+            hasSearchedOpenApp = false
+            onCloseAppDrawer()
+        })
     }
 }
 

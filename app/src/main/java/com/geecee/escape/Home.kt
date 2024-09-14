@@ -8,6 +8,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -65,7 +68,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     packageManager: PackageManager,
     context: Context,
-    favoriteAppsManager: FavoriteAppsManager
+    favoriteAppsManager: FavoriteAppsManager,
+    challengesManager: ChallengesManager
 ) {
     val haptics = LocalHapticFeedback.current
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -85,6 +89,7 @@ fun HomeScreen(
             )
         )
     }
+    var showDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -144,7 +149,7 @@ fun HomeScreen(
                     context = context,
                     modifier = Modifier
                         .offset((widgetOffset).dp, 0.dp)
-                        .size(150.dp, 125.dp)
+                        .size((getWidgetWidth(context)).dp, (getWidgetHeight(context)).dp)
                         .padding(0.dp, 7.dp)
                 )
             }
@@ -155,6 +160,9 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
+                            if (challengesManager.doesAppHaveChallenge(app)) {
+                                showDialog = true
+                            } else {
                             val launchIntent = packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -162,6 +170,7 @@ fun HomeScreen(
                                     context, R.anim.slide_in_bottom, R.anim.slide_out_top
                                 )
                                 context.startActivity(launchIntent, options.toBundle())
+                            }
                             }
                         }, onLongClick = {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -291,6 +300,24 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    AnimatedVisibility(
+        visible = showDialog,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        OpenChallenge({
+            val launchIntent =
+                packageManager.getLaunchIntentForPackage(currentPackageName)
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val options = ActivityOptions.makeBasic()
+                context.startActivity(launchIntent, options.toBundle())
+            }
+        }, {
+            showDialog = false;
+        })
     }
 }
 

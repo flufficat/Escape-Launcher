@@ -88,10 +88,9 @@ class MainHomeScreen : ComponentActivity() {
                                 onOpenSettings = { navController.navigate("settings") },
                                 packageManager = packageManager,
                                 context = context,
-                                favoriteAppsManager = favoriteAppsManager
+                                favoriteAppsManager = favoriteAppsManager,
+                                challengesManager = challengesManager
                             )
-
-
                         }
                         composable(
                             "app_drawer",

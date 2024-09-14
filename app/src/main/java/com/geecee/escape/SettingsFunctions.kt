@@ -308,6 +308,44 @@ fun getWidgetOffset(context: Context): Float {
     return sharedPreferences.getFloat("WidgetOffset", 0f)
 }
 
+fun setWidgetHeight(context: Context, sliderPosition: Float) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    editor.putFloat("WidgetHeight", sliderPosition)
+
+    editor.apply()
+}
+
+fun getWidgetWidth(context: Context): Float {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getFloat("WidgetWidth", 150f)
+}
+
+fun setWidgetWidth(context: Context, sliderPosition: Float) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    editor.putFloat("WidgetWidth", sliderPosition)
+
+    editor.apply()
+}
+
+fun getWidgetHeight(context: Context): Float {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getFloat("WidgetHeight", 125f)
+}
+
 fun getClock(context: Context): Boolean {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
