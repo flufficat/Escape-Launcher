@@ -28,12 +28,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -71,7 +74,8 @@ fun Setup(
         !favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
     }.sortedBy { it.loadLabel(packageManager).toString() }
 
-    val startDestination: String = if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True") {
+    val startDestination: String =
+        if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True") {
             "launcher"
         } else {
             "choose_apps"
@@ -97,10 +101,10 @@ fun Setup(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(64.dp))
+                    Spacer(modifier = Modifier.height(200.dp))
 
                     Text(
-                        text = stringResource(id = R.string.welcome_to_escape),
+                        text = stringResource(id = R.string.hi),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -144,7 +148,10 @@ fun Setup(
                         }
                     }
 
-                    HorizontalDivider(Modifier.fillMaxWidth())
+                    HorizontalDivider(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp, 15.dp))
 
                     Column {
                         nonFavoritedApps.forEach { appInfo ->
@@ -182,8 +189,8 @@ fun Setup(
                     Modifier
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
+                        .align(Alignment.CenterStart)
                 ) {
-                    Spacer(modifier = Modifier.height(64.dp))
 
                     Text(
                         text = stringResource(id = R.string.set_launcher),
@@ -238,3 +245,149 @@ fun Setup(
         }
     }
 }
+
+@Preview
+@Composable
+fun SetupPrev() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(64.dp))
+
+            Text(
+                text = "Hi.",
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.titleMedium
+            )
+            Text(
+                text = stringResource(id = R.string.choose_apps),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.bodyMedium
+            )
+
+            Button(
+                onClick = {
+
+                },
+                modifier = Modifier.padding(0.dp, 16.dp)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    "Continue Home",
+                    tint = MaterialTheme.colorScheme.background
+                )
+            }
+
+            Column {
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+            }
+
+            HorizontalDivider(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 15.dp))
+
+            Column {
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+                Text(
+                    "App",
+                    modifier = Modifier
+                        .padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+

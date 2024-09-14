@@ -36,6 +36,8 @@
     <string name="auto_open">Quick search</string>
     <string name="auto_keyboard">Auto open keyboard</string>
     <string name="dynamic_colour">Dynamic Colour</string>
+    <string name="offset">Offset</string>
+    <string name="show_clock">Show Clock</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>
@@ -56,4 +58,5 @@
     <string name="set_launcher_button">Set Launcher</string>
     <string name="set_wallpaper">We recommend that you set an all black wallpaper to make the launcher animations seem smoother</string>
     <string name="search">Search</string>
+    <string name="hi">Hi.</string>
 </resources>

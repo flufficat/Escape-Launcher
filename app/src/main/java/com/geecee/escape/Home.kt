@@ -56,7 +56,9 @@ import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
+)
 @Composable
 fun HomeScreen(
     onOpenAppDrawer: () -> Unit,
@@ -118,7 +120,9 @@ fun HomeScreen(
                 .padding(30.dp, 90.dp, 30.dp, 30.dp)
         ) {
 
-            Clock(sharedPreferencesSettings)
+            if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
+                Clock(sharedPreferencesSettings)
+            }
 
             var widgetOffset by remember { mutableIntStateOf(0) }
             widgetOffset =
@@ -133,6 +137,7 @@ fun HomeScreen(
                 } else {
                     0
                 }
+            widgetOffset += getWidgetOffset(context).toInt()
 
             if (sharedPreferencesSettings.getString("WidgetsToggle", "False") == "True") {
                 WidgetsScreen(
@@ -140,7 +145,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .offset((widgetOffset).dp, 0.dp)
                         .size(150.dp, 125.dp)
-                        .padding(0.dp,7.dp)
+                        .padding(0.dp, 7.dp)
                 )
             }
 
@@ -170,8 +175,7 @@ fun HomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
-
+            Spacer(modifier = Modifier.height(15.dp))
 
             Button(onClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)

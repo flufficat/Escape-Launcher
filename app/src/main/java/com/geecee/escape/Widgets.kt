@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -52,22 +54,30 @@ fun WidgetsScreen(
     }
 
     LaunchedEffect(appWidgetId) {
-        if (appWidgetId != -1) {
-            val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
-            if (widgetInfo != null) {
-                appWidgetHostView =
-                    appWidgetHost.createView(context, appWidgetId, widgetInfo).apply {
-                        setAppWidget(appWidgetId, widgetInfo)
-                    }
+        try {
+            if (appWidgetId != -1) {
+                val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+                if (widgetInfo != null) {
+
+                    appWidgetHostView =
+                        appWidgetHost.createView(context, appWidgetId, widgetInfo).apply {
+                            setAppWidget(appWidgetId, widgetInfo)
+                        }
+
+                }
+
+            } else {
+                appWidgetId = appWidgetHost.allocateAppWidgetId()
+                val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                }
+                widgetPickerLauncher.launch(pickIntent)
             }
-        } else {
-            appWidgetId = appWidgetHost.allocateAppWidgetId()
-            val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            }
-            widgetPickerLauncher.launch(pickIntent)
+        } catch (e: Exception) {
+            Log.e("Widget error", e.message.toString())
         }
     }
+
 
     appWidgetHostView?.let { hostView ->
         AndroidView(
@@ -75,25 +85,41 @@ fun WidgetsScreen(
             modifier = modifier
         )
     }
-
 }
 
 fun isWidgetConfigurable(context: Context, appWidgetId: Int): Boolean {
     val appWidgetManager = AppWidgetManager.getInstance(context)
     val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId) ?: return false
-    return appWidgetInfo.configure != null
+    val configureComponent = appWidgetInfo.configure
+
+    // Check if the configuration activity is exported
+    val resolveInfo = context.packageManager.resolveActivity(
+        Intent().setComponent(configureComponent),
+        PackageManager.MATCH_DEFAULT_ONLY
+    )
+    return resolveInfo != null && resolveInfo.activityInfo.exported
 }
 
 fun launchWidgetConfiguration(context: Context, appWidgetId: Int) {
     val appWidgetManager = AppWidgetManager.getInstance(context)
     val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+    val configureComponent = appWidgetInfo?.configure
 
-    appWidgetInfo?.let {
-        val configureIntent = Intent().apply {
-            component = it.configure
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+    configureComponent?.let {
+        val resolveInfo = context.packageManager.resolveActivity(
+            Intent().setComponent(configureComponent),
+            PackageManager.MATCH_DEFAULT_ONLY
+        )
+
+        if (resolveInfo?.activityInfo?.exported == true) {
+            val configureIntent = Intent().apply {
+                component = it
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            context.startActivity(configureIntent)
+        } else {
+            Log.w("WidgetsScreen", "Configuration activity is not exported and cannot be started.")
         }
-        context.startActivity(configureIntent)
     }
 }
 

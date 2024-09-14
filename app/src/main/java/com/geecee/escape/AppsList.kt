@@ -124,7 +124,7 @@ fun AppDrawer(
             )
 
             val autoOpen = sharedPreferencesSettings.getString("searchAutoOpen", "False")
-            var searchBoxText by remember {mutableStateOf("")}
+            var searchBoxText by remember { mutableStateOf("") }
 
             if (sharedPreferencesSettings.getString("showSearchBox", "False") == "True") {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +175,7 @@ fun AppDrawer(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val filteredApps = installedApps.filter{appInfo ->
+            val filteredApps = installedApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(packageManager).toString()
                 appName.contains(searchBoxText, ignoreCase = true)
             }.sortedBy { it.loadLabel(packageManager).toString() }
@@ -257,13 +257,7 @@ fun AppDrawer(
                     .padding(20.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        stringResource(id = R.string.youve_set_a_challenge),
-                        fontSize = 25.sp,
-                        lineHeight = 27.sp,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+
                     Text(
                         stringResource(id = R.string.are_you_sure),
                         style = MaterialTheme.typography.bodyMedium,
@@ -280,7 +274,7 @@ fun AppDrawer(
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.None,
                             autoCorrect = false
-                        ),
+                        )
                     )
                     if (isWrong) {
                         Text(

@@ -20,14 +20,6 @@ val Lora = FontFamily(
     Font(R.font.lora)
 )
 
-val NotoJP = FontFamily(
-    Font(R.font.notojpnormal)
-)
-
-val NotoJPBold = FontFamily(
-    Font(R.font.notojpsemibold)
-)
-
 // Set of Material typography styles to start with
 val JostTypography = Typography(
     bodyLarge = TextStyle(
@@ -164,47 +156,3 @@ val LoraTypography = Typography(
     )
 )
 
-val JPTypography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = NotoJP,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 29.sp,
-        letterSpacing = 0.6.sp
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = NotoJP,
-        fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 25.sp,
-        letterSpacing = 0.6.sp
-    ),
-    bodySmall = TextStyle(
-        fontFamily = NotoJP,
-        fontWeight = FontWeight.Normal,
-        fontSize = 20.sp,
-        lineHeight = 21.sp,
-        letterSpacing = 0.6.sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = NotoJPBold,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 52.sp,
-        lineHeight = 53.sp,
-        letterSpacing = 0.6.sp
-    ),
-    titleMedium = TextStyle(
-        fontFamily = NotoJPBold,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 48.sp,
-        lineHeight = 49.sp,
-        letterSpacing = 0.6.sp
-    ),
-    titleSmall = TextStyle(
-        fontFamily = NotoJPBold,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 44.sp,
-        lineHeight = 45.sp,
-        letterSpacing = 0.6.sp
-    )
-)

@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,9 +18,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,15 +78,20 @@ fun FirstTime(onOpenSetup: () -> Unit) {
     if (!nextScreen) {
         Box(
             Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFAABB), // Peachy-pink color
+                            Color(0xFFB19CD9)  // Soft lavender color
+                        ),
+                        start = Offset(0f, 0f),  // Starting point (top-left corner)
+                        end = Offset(0f, Float.POSITIVE_INFINITY) // Ending point (bottom-center)
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.verticalbackground),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
-            )
+
 
             AnimatedVisibility(
                 visible = showText,
@@ -95,20 +100,32 @@ fun FirstTime(onOpenSetup: () -> Unit) {
             ) {
                 Text(
                     currentText,
-                    Modifier.padding(16.dp),
+                    Modifier.padding(32.dp),
                     Color.White,
                     style = JosefinTypography.titleSmall,
                     textAlign = TextAlign.Center,
 
-                )
+                    )
             }
         }
     } else {
         Box(
             Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFAABB), // Peachy-pink color
+                            Color(0xFFB19CD9)  // Soft lavender color
+                        ),
+                        start = Offset(0f, 0f),  // Starting point (top-left corner)
+                        end = Offset(0f, Float.POSITIVE_INFINITY) // Ending point (bottom-center)
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
+
+
             // Second Box with custom animation
             AnimatedVisibility(
                 visible = true,
@@ -119,12 +136,24 @@ fun FirstTime(onOpenSetup: () -> Unit) {
                     animationSpec = tween(durationMillis = 1000)
                 )
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.verticalbackground),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFFFAABB), // Peachy-pink color
+                                    Color(0xFFB19CD9)  // Soft lavender color
+                                ),
+                                start = Offset(0f, 0f),  // Starting point (top-left corner)
+                                end = Offset(
+                                    0f,
+                                    Float.POSITIVE_INFINITY
+                                ) // Ending point (bottom-center)
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {}
             }
         }
     }

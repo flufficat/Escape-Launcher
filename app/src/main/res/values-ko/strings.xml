@@ -36,6 +36,8 @@
     <string name="auto_open">빠른 검색</string>
     <string name="auto_keyboard">자동으로 키보드 열기</string>
     <string name="dynamic_colour">동적 색상</string>
+    <string name="offset">오프셋</string>
+    <string name="show_clock">시계 표시</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">오픈 챌린지</string>
@@ -56,4 +58,5 @@
     <string name="set_launcher_button">런처 설정</string>
     <string name="set_wallpaper">런처 애니메이션이 더 부드럽게 보이도록 올블랙 배경화면을 설정하는 것이 좋습니다.</string>
     <string name="search">찾다</string>
+    <string name="hi">안녕.</string>
 </resources>

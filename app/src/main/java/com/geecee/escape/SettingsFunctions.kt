@@ -48,7 +48,7 @@ fun changeLauncher(context: Context) {
     context.startActivity(intent)
 }
 
-fun toggleLightTheme(shouldTurnOn: Boolean,context: Context, activity: Activity) {
+fun toggleLightTheme(shouldTurnOn: Boolean, context: Context, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -76,7 +76,7 @@ fun getLightTheme(context: Context): Boolean {
     return sharedPreferences.getString("LightMode", "False") == "True"
 }
 
-fun toggleSearchBox(shouldTurnOn: Boolean,context: Context) {
+fun toggleSearchBox(shouldTurnOn: Boolean, context: Context) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -128,29 +128,27 @@ fun changeHomeAlignment(context: Context, alignment: Int) {
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (alignment == 1) {
-        editor.putString("HomeAlignment", "Center")
-    } else if (alignment == 0) {
-        editor.putString("HomeAlignment", "Left")
-    } else {
-        editor.putString("HomeAlignment", "Right")
-    }
+    editor.putString(
+        "HomeAlignment", when (alignment) {
+            1 -> "Center"
+            0 -> "Left"
+            else -> "Right"
+        }
+    )
 
     editor.apply()
 }
 
-fun getHomeAlignment(context: Context): Int{
+fun getHomeAlignment(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if(sharedPreferences.getString("HomeAlignment", "Center") == "Left"){
+    return if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
         0
-    }
-    else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center"){
+    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
         1
-    }
-    else{
+    } else {
         2
     }
 }
@@ -161,29 +159,27 @@ fun changeHomeVAlignment(context: Context, alignment: Int) {
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (alignment == 1) {
-        editor.putString("HomeVAlignment", "Center")
-    } else if (alignment == 0) {
-        editor.putString("HomeVAlignment", "Top")
-    } else {
-        editor.putString("HomeVAlignment", "Bottom")
-    }
+    editor.putString(
+        "HomeVAlignment", when (alignment) {
+            1 -> "Center"
+            0 -> "Top"
+            else -> "Bottom"
+        }
+    )
 
     editor.apply()
 }
 
-fun getHomeVAlignment(context: Context): Int{
+fun getHomeVAlignment(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if(sharedPreferences.getString("HomeVAlignment", "Center") == "Top"){
+    return if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
         0
-    }
-    else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center"){
+    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
         1
-    }
-    else{
+    } else {
         2
     }
 }
@@ -194,29 +190,27 @@ fun changeAppsAlignment(context: Context, alignment: Int) {
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (alignment == 1) {
-        editor.putString("AppsAlignment", "Center")
-    } else if (alignment == 0) {
-        editor.putString("AppsAlignment", "Left")
-    } else {
-        editor.putString("AppsAlignment", "Right")
-    }
+    editor.putString(
+        "AppsAlignment", when (alignment) {
+            1 -> "Center"
+            0 -> "Left"
+            else -> "Right"
+        }
+    )
 
     editor.apply()
 }
 
-fun getAppsAlignment(context: Context): Int{
+fun getAppsAlignment(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if(sharedPreferences.getString("AppsAlignment", "Center") == "Left"){
+    return if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
         0
-    }
-    else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center"){
+    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
         1
-    }
-    else{
+    } else {
         2
     }
 }
@@ -227,15 +221,14 @@ fun changeFont(context: Context, activity: Activity, font: String) {
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (font == "lora") {
-        editor.putString("font", "lora")
-    } else if (font == "josefin") {
-        editor.putString("font", "josefin")
-    } else if (font == "jost") {
-        editor.putString("font", "jost")
-    } else {
-        editor.putString("font", "jost")
-    }
+    editor.putString(
+        "font", when (font) {
+            "lora" -> "lora"
+            "josefin" -> "josefin"
+            "jost" -> "jost"
+            else -> "jost"
+        }
+    )
 
     editor.apply()
 
@@ -276,7 +269,7 @@ fun getDynamicColour(context: Context): Boolean {
     return sharedPreferences.getString("DynamicColour", "False") == "True"
 }
 
-fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean,activity: Activity) {
+fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -294,6 +287,48 @@ fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean,activity: Activi
     val options = ActivityOptions.makeBasic()
     startActivity(context, intent, options.toBundle())
     activity.finish()
+}
+
+fun setWidgetOffset(context: Context, sliderPosition: Float) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    editor.putFloat("WidgetOffset", sliderPosition)
+
+    editor.apply()
+}
+
+fun getWidgetOffset(context: Context): Float {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getFloat("WidgetOffset", 0f)
+}
+
+fun getClock(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getString("ShowClock", "True") == "True"
+}
+
+fun toggleClock(context: Context, shouldTurnOn: Boolean) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (shouldTurnOn) {
+        editor.putString("ShowClock", "True")
+    } else {
+        editor.putString("ShowClock", "False")
+    }
+
+    editor.apply()
 }
 
 @Composable
@@ -344,7 +379,7 @@ fun SegmentedButtonGroup(
 
 // DevOptions
 
-fun getFirstTime(context: Context): Boolean{
+fun getFirstTime(context: Context): Boolean {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -352,7 +387,7 @@ fun getFirstTime(context: Context): Boolean{
     return sharedPreferences.getString("FirstTime", "False") == "True"
 }
 
-fun resetFirstTime(context: Context){
+fun resetFirstTime(context: Context) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )

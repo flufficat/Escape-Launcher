@@ -26,14 +26,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -235,6 +238,26 @@ fun MainSettingsPage(
                 checked = checked, onCheckedChange = {
                     checked = it
                     toggleDynamicColour(context, checked, activity)
+                }, Modifier.align(Alignment.CenterEnd)
+            )
+        }
+
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.show_clock),
+                Modifier.padding(0.dp, 15.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+
+            var checked by remember { mutableStateOf(true) }
+            checked = getClock(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleClock(context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -493,6 +516,53 @@ fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
                     .fillMaxSize(),
                 tint = MaterialTheme.colorScheme.primary,
             )
+        }
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.offset),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetOffset(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetOffset(context, sliderPosition)
+                    },
+                    valueRange = -20f..20f,
+                    steps = 40,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Rounded.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 0F
+                        setWidgetOffset(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
         }
     }
 }

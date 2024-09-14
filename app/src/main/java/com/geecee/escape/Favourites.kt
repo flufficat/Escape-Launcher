@@ -36,7 +36,7 @@ class FavoriteAppsManager(context: Context) {
 
     fun addFavoriteApp(packageName: String) {
         val favoriteApps = getFavoriteApps().toMutableList()
-        if (favoriteApps.size < 5 && packageName !in favoriteApps) {
+        if (favoriteApps.size < 10 && packageName !in favoriteApps) {
             favoriteApps.add(packageName)
             saveFavoriteApps(favoriteApps)
         }

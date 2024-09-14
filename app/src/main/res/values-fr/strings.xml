@@ -36,6 +36,8 @@
     <string name="auto_open">Recherche rapide</string>
     <string name="auto_keyboard">Ouvrir le clavier automatiquement</string>
     <string name="dynamic_colour">Couleur dynamique</string>
+    <string name="offset">Compenser</string>
+    <string name="show_clock">Afficher l\'horloge</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Défis ouverts</string>
@@ -56,4 +58,5 @@
     <string name="set_launcher_button">Définir le lanceur</string>
     <string name="set_wallpaper">Nous vous recommandons de définir un fond d\'écran entièrement noir pour rendre les animations du lanceur plus fluides.</string>
     <string name="search">Recherche</string>
+    <string name="hi">Salut.</string>
 </resources>

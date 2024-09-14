@@ -36,6 +36,8 @@
     <string name="auto_open">クイック検索</string>
     <string name="auto_keyboard">キーボードを自動的に開く</string>
     <string name="dynamic_colour">ダイナミックカラー</string>
+    <string name="offset">オフセット</string>
+    <string name="show_clock">時計を表示する</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">オープンチャレンジ</string>
@@ -56,4 +58,5 @@
     <string name="set_launcher_button">ランチャーを設定する</string>
     <string name="set_wallpaper">ランチャーのアニメーションをよりスムーズに見せるために、すべて黒の壁紙を設定することをお勧めします。</string>
     <string name="search">検索</string>
+    <string name="hi">こんいちは</string>
 </resources>

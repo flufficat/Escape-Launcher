@@ -58,7 +58,10 @@ class MainHomeScreen : ComponentActivity() {
                 val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
                     R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
                 )
-                startDestination = if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True"
+                startDestination = if (sharedPreferencesSettings.getString(
+                        "hasDoneSetupPageOne",
+                        "False"
+                    ) == "True"
                 ) {
                     "setup"
                 } else if (sharedPreferencesSettings.getString("FirstTime", "True") == "True") {
@@ -78,13 +81,17 @@ class MainHomeScreen : ComponentActivity() {
                         composable("home",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
+
+
                             HomeScreen(
                                 onOpenAppDrawer = { navController.navigate("app_drawer") },
                                 onOpenSettings = { navController.navigate("settings") },
-                                context = context,
                                 packageManager = packageManager,
+                                context = context,
                                 favoriteAppsManager = favoriteAppsManager
                             )
+
+
                         }
                         composable(
                             "app_drawer",
@@ -113,12 +120,14 @@ class MainHomeScreen : ComponentActivity() {
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
-                            Settings(context,
+                            Settings(
+                                context,
                                 { navController.popBackStack() },
                                 this@MainHomeScreen,
                                 packageManager = packageManager,
                                 hiddenAppsManager = hiddenAppsManager,
-                                challengesManager = challengesManager)
+                                challengesManager = challengesManager
+                            )
                         }
                         composable("first_time",
                             enterTransition = { fadeIn(tween(300)) },

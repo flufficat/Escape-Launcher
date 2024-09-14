@@ -22,10 +22,10 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = lprimary,
-    secondary = lsecondary,
-    background = lbackground,
-    onPrimary = lsecondary,
+    primary = lightPrimary,
+    secondary = lightSecondary,
+    background = lightBackground,
+    onPrimary = lightSecondary,
 )
 
 @Composable
@@ -33,45 +33,40 @@ fun EscapeTheme(
     content: @Composable () -> Unit
 ) {
     val type: Typography
-    val locale = Locale.current
+    Locale.current
     val context = LocalContext.current
     var colorScheme = DarkColorScheme
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    type = if (locale.language == "jp") {
-        //Make font a font that supports japanese
-        JPTypography
+    type = if (sharedPreferencesSettings.getString("font", "jost") == "jost") {
+        JostTypography
+    } else if (sharedPreferencesSettings.getString("font", "jost") == "lora") {
+        LoraTypography
+    } else if (sharedPreferencesSettings.getString("font", "jost") == "josefin") {
+        JosefinTypography
     } else {
-        //Find users preferred font and use it here
-        if (sharedPreferencesSettings.getString("font", "jost") == "jost") {
-            JostTypography
-        }
-        else if (sharedPreferencesSettings.getString("font","jost") == "lora"){
-            LoraTypography
-        }
-        else if(sharedPreferencesSettings.getString("font","jost") == "josefin"){
-            JosefinTypography
-        }
-        else{
-            JostTypography
-        }
+        JostTypography
     }
 
-    if(sharedPreferencesSettings.getString("LightMode", "False") == "True"){
+
+    if (sharedPreferencesSettings.getString("LightMode", "False") == "True") {
         colorScheme = LightColorScheme
     }
-    if(sharedPreferencesSettings.getString("DynamicColour","False") == "True"){
-        if(sharedPreferencesSettings.getString("LightMode", "False") == "True"){
-            colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicLightColorScheme(context) } else {
-                LightColorScheme}
-        }
-        else{
-            colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicDarkColorScheme(context) } else {
-                DarkColorScheme}
+    if (sharedPreferencesSettings.getString("DynamicColour", "False") == "True") {
+        colorScheme = if (sharedPreferencesSettings.getString("LightMode", "False") == "True") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                dynamicLightColorScheme(context)
+            } else {
+                LightColorScheme
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                dynamicDarkColorScheme(context)
+            } else {
+                DarkColorScheme
+            }
         }
     }
 
