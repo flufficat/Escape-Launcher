@@ -2,12 +2,14 @@ package com.geecee.escape
 
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
+import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -66,11 +68,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.geecee.escape.ui.theme.JostTypography
+import java.util.Calendar
 
 data class AppsListState(
-    var showDialog: Boolean = false,
     var hasSearchedOpenApp: Boolean = false,
     var currentPackageName: String = "",
     var currentSelectedApp: String = "",
@@ -126,14 +127,33 @@ fun AppDrawer(
         )
     }
     val sheetState = rememberModalBottomSheetState()
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE)
+    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(),
+        Context.MODE_PRIVATE
+    )
     val state = remember { mutableStateOf(AppsListState()) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var searchBoxText by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
 
     if (sharedPreferencesSettings.getString(SEARCH_AUTO_OPEN, "False") == "True") {
         state.value.autoOpen = true
     }
+
+    val usageStatsManager =
+        context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+    val endTime = System.currentTimeMillis()
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = endTime
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+    val startTime = calendar.timeInMillis + 1000
+    usageStatsManager.queryUsageStats(
+        UsageStatsManager.INTERVAL_DAILY, startTime, endTime
+    )
 
     Box(
         modifier = Modifier
@@ -188,7 +208,7 @@ fun AppDrawer(
                                         appInfo.activityInfo.packageName
 
                                     if (challengesManager.doesAppHaveChallenge(state.value.currentPackageName)) {
-                                        state.value.showDialog = true
+                                        showDialog = true
                                     } else {
 
                                         onCloseAppDrawer()
@@ -224,7 +244,7 @@ fun AppDrawer(
                                     val packageName = firstAppInfo.activityInfo.packageName
                                     state.value.currentPackageName = packageName
                                     if (challengesManager.doesAppHaveChallenge(state.value.currentPackageName)) {
-                                        state.value.showDialog = true
+                                        showDialog = true
                                     } else {
                                         AppUtils.OpenApp(
                                             packageManager,
@@ -247,8 +267,11 @@ fun AppDrawer(
                     if (!hiddenAppsManager.isAppHidden(appInfo.activityInfo.packageName) &&
                         appInfo.activityInfo.packageName != "com.geecee.escape"
                     ) {
+
+
+
                         Text(
-                            appInfo.loadLabel(packageManager).toString(),
+                            appInfo.loadLabel(packageManager).toString() + " " + AppUtils.getScreenTimeForPackage(context, appInfo.activityInfo.packageName),
                             modifier = Modifier
                                 .padding(vertical = 15.dp)
                                 .combinedClickable(
@@ -256,7 +279,7 @@ fun AppDrawer(
                                         val packageName = appInfo.activityInfo.packageName
                                         state.value.currentPackageName = packageName
                                         if (challengesManager.doesAppHaveChallenge(packageName)) {
-                                            state.value.showDialog = true
+                                            showDialog = true
                                         } else {
                                             val launchIntent =
                                                 packageManager.getLaunchIntentForPackage(packageName)
@@ -296,9 +319,8 @@ fun AppDrawer(
 
         if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState,
-                modifier = Modifier.zIndex(1f)
+                onDismissRequest = { showBottomSheet = false; },
+                sheetState = sheetState
             ) {
                 Column(Modifier.padding(25.dp, 25.dp, 25.dp, 50.dp)) {
                     Row {
@@ -326,9 +348,10 @@ fun AppDrawer(
                             Modifier
                                 .padding(0.dp, 10.dp)
                                 .combinedClickable(onClick = {
+                                    // Uninstall logic here
                                     val intent = Intent(
                                         Intent.ACTION_DELETE,
-                                        Uri.parse("package:${state.value.currentPackageName}")
+                                        Uri.parse("package:$state.value.currentPackageName")
                                     )
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     context.startActivity(intent)
@@ -356,13 +379,43 @@ fun AppDrawer(
                                 .combinedClickable(onClick = {
                                     if (state.value.isFavorite) {
                                         favoriteAppsManager.removeFavoriteApp(state.value.currentPackageName)
-                                        state.value.isFavorite = false
                                     } else {
                                         favoriteAppsManager.addFavoriteApp(state.value.currentPackageName)
-                                        state.value.isFavorite = true
                                     }
+                                    // Update the state after the operation
+                                    state.value.isFavorite =
+                                        favoriteAppsManager.isAppFavorite(state.value.currentPackageName)
                                 }),
                             color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (!state.value.isChallenge) {
+                            Text(
+                                stringResource(id = R.string.add_open_challenge),
+                                Modifier
+                                    .padding(0.dp, 10.dp)
+                                    .combinedClickable(onClick = {
+                                        challengesManager.addChallengeApp(state.value.currentPackageName)
+                                        showBottomSheet = false
+                                    }),
+                                MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Text(
+                            stringResource(id = R.string.app_info),
+                            Modifier
+                                .padding(0.dp, 10.dp)
+                                .combinedClickable(onClick = {
+                                    val intent =
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data =
+                                                Uri.parse("package:$state.value.currentPackageName")
+                                        }
+                                    context.startActivity(intent)
+                                    showBottomSheet = false
+                                }),
+                            MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -400,7 +453,7 @@ fun AppDrawer(
     }
 
     AnimatedVisibility(
-        visible = state.value.showDialog,
+        visible = showDialog,
         enter = fadeIn(),
         exit = fadeOut()
     ) {

@@ -59,6 +59,7 @@ import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+
 @OptIn(
     ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 )
@@ -90,6 +91,7 @@ fun HomeScreen(
         )
     }
     var showDialog by remember { mutableStateOf(false) }
+
 
     Box(
         modifier = Modifier
@@ -163,14 +165,14 @@ fun HomeScreen(
                             if (challengesManager.doesAppHaveChallenge(app)) {
                                 showDialog = true
                             } else {
-                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
-                            if (launchIntent != null) {
-                                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
-                                )
-                                context.startActivity(launchIntent, options.toBundle())
-                            }
+                                val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                                if (launchIntent != null) {
+                                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    val options = ActivityOptions.makeCustomAnimation(
+                                        context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    )
+                                    context.startActivity(launchIntent, options.toBundle())
+                                }
                             }
                         }, onLongClick = {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -316,7 +318,7 @@ fun HomeScreen(
                 context.startActivity(launchIntent, options.toBundle())
             }
         }, {
-            showDialog = false;
+            showDialog = false
         })
     }
 }

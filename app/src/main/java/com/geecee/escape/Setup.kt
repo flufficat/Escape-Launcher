@@ -216,6 +216,19 @@ fun Setup(
                             color = MaterialTheme.colorScheme.background
                         )
                     }
+                    Button(
+                        onClick = {
+                            val intent = Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.padding(0.dp, 16.dp)
+                    ) {
+                        Text(
+                            stringResource(id = R.string.set_launcher_button),
+                            Modifier,
+                            color = MaterialTheme.colorScheme.background
+                        )
+                    }
 
                     Text(
                         text = stringResource(id = R.string.set_wallpaper),
