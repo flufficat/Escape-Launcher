@@ -38,6 +38,8 @@
     <string name="dynamic_colour">동적 색상</string>
     <string name="offset">오프셋</string>
     <string name="show_clock">시계 표시</string>
+    <string name="height">키</string>
+    <string name="width">너비</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">오픈 챌린지</string>

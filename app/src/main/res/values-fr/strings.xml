@@ -38,6 +38,8 @@
     <string name="dynamic_colour">Couleur dynamique</string>
     <string name="offset">Compenser</string>
     <string name="show_clock">Afficher l\'horloge</string>
+    <string name="height">Hauteur</string>
+    <string name="width">Largeur</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Défis ouverts</string>

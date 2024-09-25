@@ -38,6 +38,8 @@
     <string name="dynamic_colour">ダイナミックカラー</string>
     <string name="offset">オフセット</string>
     <string name="show_clock">時計を表示する</string>
+    <string name="height">身長</string>
+    <string name="width">幅</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">オープンチャレンジ</string>
