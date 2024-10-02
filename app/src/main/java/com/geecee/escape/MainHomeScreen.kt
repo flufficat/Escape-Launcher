@@ -67,7 +67,7 @@ class MainHomeScreen : ComponentActivity() {
                 } else if (sharedPreferencesSettings.getString("FirstTime", "True") == "True") {
                     "first_time"
                 } else {
-                    "home"
+                    "swipe_home"
                 }
 
                 val navController = rememberNavController()
@@ -78,6 +78,13 @@ class MainHomeScreen : ComponentActivity() {
                         .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
                 ) {
                     NavHost(navController, startDestination = startDestination) {
+                        composable("swipe_home",
+                            enterTransition = { fadeIn(tween(300)) },
+                            exitTransition = { fadeOut(tween(300)) }) {
+
+
+                            SwipeHome(context,packageManager)
+                        }
                         composable("home",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {

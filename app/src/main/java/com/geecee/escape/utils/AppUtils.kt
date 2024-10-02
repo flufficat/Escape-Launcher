@@ -4,11 +4,13 @@ import android.app.ActivityOptions
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import java.util.concurrent.TimeUnit
 
 object AppUtils {
-    fun OpenApp(packageManager: PackageManager,context: Context, packageName: String){
+    fun openApp(packageManager: PackageManager, context: Context, packageName: String){
         val launchIntent =
             packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent != null) {
@@ -36,5 +38,24 @@ object AppUtils {
         }
 
         return totalUsageTime // Return total usage time in milliseconds
+    }
+
+    fun getAllInstalledApps(packageManager: PackageManager): MutableList<ResolveInfo>{
+        return packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
+            PackageManager.GET_ACTIVITIES
+        ).toMutableList()
+    }
+
+    fun getAppNameFromPackageName(context: Context, packageName: String): String {
+        return try {
+            val packageManager: PackageManager = context.packageManager
+
+            val applicationInfo: ApplicationInfo = packageManager.getApplicationInfo(packageName, 0)
+
+            packageManager.getApplicationLabel(applicationInfo).toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            "null"
+        }
     }
 }

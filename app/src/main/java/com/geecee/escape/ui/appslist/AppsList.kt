@@ -246,7 +246,7 @@ fun AppDrawer(
                                     if (challengesManager.doesAppHaveChallenge(state.value.currentPackageName)) {
                                         showDialog = true
                                     } else {
-                                        AppUtils.OpenApp(
+                                        AppUtils.openApp(
                                             packageManager,
                                             context,
                                             state.value.currentPackageName
