@@ -249,7 +249,10 @@ fun AppDrawer(
                                         AppUtils.openApp(
                                             packageManager,
                                             context,
-                                            state.value.currentPackageName
+                                            state.value.currentPackageName,
+                                            challengesManager,
+                                            false,
+                                            null
                                         )
                                         onCloseAppDrawer()
                                     }

@@ -83,7 +83,11 @@ class MainHomeScreen : ComponentActivity() {
                             exitTransition = { fadeOut(tween(300)) }) {
 
 
-                            SwipeHome(context,packageManager)
+                            SwipeHome(context,packageManager,hiddenAppsManager,favoriteAppsManager,challengesManager) {
+                                navController.navigate(
+                                    "settings"
+                                )
+                            }
                         }
                         composable("home",
                             enterTransition = { fadeIn(tween(300)) },

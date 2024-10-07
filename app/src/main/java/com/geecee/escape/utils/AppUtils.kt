@@ -7,16 +7,24 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import androidx.compose.runtime.MutableState
 import java.util.concurrent.TimeUnit
 
 object AppUtils {
-    fun openApp(packageManager: PackageManager, context: Context, packageName: String){
+    fun openApp(packageManager: PackageManager, context: Context, packageName: String,challengesManager: ChallengesManager, overrideOpenChallenge: Boolean, openChallengeShow: MutableState<Boolean>?){
         val launchIntent =
             packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            val options = ActivityOptions.makeBasic()
-            context.startActivity(launchIntent, options.toBundle())
+            if(!challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge){
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val options = ActivityOptions.makeBasic()
+                context.startActivity(launchIntent, options.toBundle())
+            }
+            else{
+                if(openChallengeShow != null){
+                    openChallengeShow.value = true;
+                }
+            }
         }
     }
 
