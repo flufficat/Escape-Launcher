@@ -8,10 +8,14 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
@@ -27,25 +31,40 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -129,7 +148,8 @@ fun SwipeHome(
             favoriteAppsManager = favoriteAppsManager,
             hiddenAppsManager = hiddenAppsManager,
             challengesManager = challengesManager,
-            showOpenChallenge = showOpenChallenge
+            showOpenChallenge = showOpenChallenge,
+            sharedPreferencesSettings = sharedPreferencesSettings
         )
 
     }
@@ -247,7 +267,14 @@ fun SwipeHome(
         exit = fadeOut()
     ) {
         OpenChallenge({
-            AppUtils.openApp(packageManager,context,currentPackageName.value,challengesManager,true,null)
+            AppUtils.openApp(
+                packageManager,
+                context,
+                currentPackageName.value,
+                challengesManager,
+                true,
+                null
+            )
             showOpenChallenge.value = false
         }, {
             showOpenChallenge.value = false
@@ -276,11 +303,13 @@ fun SwipeHomeAppsList(
     favoriteAppsManager: FavoriteAppsManager,
     challengesManager: ChallengesManager,
     showOpenChallenge: MutableState<Boolean>,
+    sharedPreferencesSettings: SharedPreferences
 ) {
     val installedApps = AppUtils.getAllInstalledApps(packageManager = packageManager)
     val sortedInstalledApps =
         installedApps.sortedBy { getAppNameFromPackageName(context, it.activityInfo.packageName) }
     val scrollState = rememberLazyListState()
+    var searchBoxText by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -303,10 +332,85 @@ fun SwipeHomeAppsList(
                 )
             }
 
-            //TODO: Search bar
+            item {
+                if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
+                    Spacer(modifier = Modifier.height(15.dp))
+                    AnimatedPillSearchBar({ searchText ->
+                        searchBoxText = searchText
+                        var autoOpen = false
 
-            items(sortedInstalledApps) { app ->
-                if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(app.activityInfo.packageName))
+                        if (sharedPreferencesSettings.getString(
+                                "searchAutoOpen",
+                                "False"
+                            ) == "True"
+                        ) {
+                            autoOpen = true
+                        }
+
+                        if (autoOpen) {
+                            if (filterAndSortApps(
+                                    installedApps,
+                                    searchText,
+                                    packageManager
+                                ).size == 1
+                            ) {
+                                val appInfo = filterAndSortApps(
+                                    installedApps,
+                                    searchText,
+                                    packageManager
+                                ).first()
+                                currentPackageName.value =
+                                    appInfo.activityInfo.packageName
+
+                                AppUtils.openApp(
+                                    packageManager,
+                                    context,
+                                    currentPackageName.value,
+                                    challengesManager,
+                                    false,
+                                    openChallengeShow = showOpenChallenge
+                                )
+
+                            }
+                        }
+                    },
+                        { searchText ->
+                            if (filterAndSortApps(
+                                    installedApps,
+                                    searchText,
+                                    packageManager
+                                ).isNotEmpty()
+                            ) {
+                                val firstAppInfo = filterAndSortApps(
+                                    installedApps,
+                                    searchText,
+                                    packageManager
+                                ).first()
+                                currentPackageName.value = firstAppInfo.activityInfo.packageName
+
+
+                                AppUtils.openApp(
+                                    packageManager,
+                                    context,
+                                    currentPackageName.value,
+                                    challengesManager,
+                                    false,
+                                    null
+                                )
+                            }
+                        })
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
+            }
+
+            items(sortedInstalledApps.filter { appInfo ->
+                val appName = appInfo.loadLabel(packageManager).toString()
+                appName.contains(searchBoxText, ignoreCase = true)
+            }) { app ->
+                if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(
+                        app.activityInfo.packageName
+                    )
+                )
                     SwipeAppsListItem(
                         app,
                         context = context,
@@ -369,11 +473,27 @@ fun SwipeAppsListItem(
                 },
                 onLongClick = {
                     showBottomSheet.value = true
-                    currentAppName.value = AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName)
+                    currentAppName.value =
+                        AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName)
                     currentPackageName.value = app.activityInfo.packageName
-                    isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName))
-                    isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName))
-                    isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName))
+                    isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(
+                        AppUtils.getAppNameFromPackageName(
+                            context,
+                            app.activityInfo.packageName
+                        )
+                    )
+                    isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(
+                        AppUtils.getAppNameFromPackageName(
+                            context,
+                            app.activityInfo.packageName
+                        )
+                    )
+                    isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(
+                        AppUtils.getAppNameFromPackageName(
+                            context,
+                            app.activityInfo.packageName
+                        )
+                    )
                 }
             ),
         color = MaterialTheme.colorScheme.primary,
@@ -381,3 +501,107 @@ fun SwipeAppsListItem(
     )
 }
 
+
+@Composable
+fun AnimatedPillSearchBar(
+    textChange: (searchText: String) -> Unit,
+    keyboardDone: (searchText: String) -> Unit
+) {
+    var searchText by remember { mutableStateOf(TextFieldValue("")) }
+    var expanded by remember { mutableStateOf(false) }
+
+    // Animate the width of the search bar
+    val width by animateDpAsState(targetValue = if (expanded) 280.dp else 150.dp, label = "")
+
+    // Animate the alpha of the text field content
+    val alpha by animateFloatAsState(targetValue = if (expanded) 1f else 0f, label = "")
+
+    // FocusRequester to request focus on the text field
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
+    Surface(
+        modifier = Modifier
+            .width(width)
+            .height(56.dp)
+            .clickable {
+                expanded = !expanded
+            }
+            .animateContentSize(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primary
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .animateContentSize()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search Icon",
+                tint = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .padding(5.dp, 0.dp)
+                    .size(25.dp)
+            )
+
+            if (!expanded) {
+                Text(
+                    stringResource(id = R.string.search),
+                    modifier = Modifier.animateContentSize(),
+                    color = MaterialTheme.colorScheme.background,
+                    style = JostTypography.bodyMedium
+                )
+            }
+
+            if (expanded) {
+                Spacer(
+                    modifier = Modifier
+                        .width(8.dp)
+                        .animateContentSize()
+                )
+
+                BasicTextField(
+                    value = searchText,
+                    onValueChange = {
+                        searchText = it
+                        textChange(searchText.text)
+                    },
+                    modifier = Modifier
+                        .alpha(alpha)
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                        .animateContentSize(),
+                    singleLine = true,
+                    decorationBox = { innerTextField ->
+                        if (alpha > 0) {
+                            innerTextField()
+                        }
+                    },
+                    maxLines = 1,
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            keyboardDone(searchText.text)
+                        }
+                    ),
+                    textStyle = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewSearchBar() {
+    AnimatedPillSearchBar({}, {})
+}

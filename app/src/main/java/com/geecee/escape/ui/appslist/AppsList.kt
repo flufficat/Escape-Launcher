@@ -11,14 +11,10 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,11 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
@@ -46,26 +38,18 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geecee.escape.ui.theme.JostTypography
@@ -207,25 +191,21 @@ fun AppDrawer(
                                     state.value.currentPackageName =
                                         appInfo.activityInfo.packageName
 
-                                    if (challengesManager.doesAppHaveChallenge(state.value.currentPackageName)) {
-                                        showDialog = true
-                                    } else {
-
-                                        onCloseAppDrawer()
-                                        val launchIntent =
-                                            packageManager.getLaunchIntentForPackage(
-                                                state.value.currentPackageName
-                                            )
-                                        if (launchIntent != null) {
-                                            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            val options = ActivityOptions.makeBasic()
-                                            context.startActivity(
-                                                launchIntent,
-                                                options.toBundle()
-                                            )
-                                        }
-                                        state.value.hasSearchedOpenApp = false
+                                    onCloseAppDrawer()
+                                    val launchIntent =
+                                        packageManager.getLaunchIntentForPackage(
+                                            state.value.currentPackageName
+                                        )
+                                    if (launchIntent != null) {
+                                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        val options = ActivityOptions.makeBasic()
+                                        context.startActivity(
+                                            launchIntent,
+                                            options.toBundle()
+                                        )
                                     }
+                                    state.value.hasSearchedOpenApp = false
+
                                 }
                             }
                         },
@@ -272,9 +252,12 @@ fun AppDrawer(
                     ) {
 
 
-
                         Text(
-                            appInfo.loadLabel(packageManager).toString() + " " + AppUtils.getScreenTimeForPackage(context, appInfo.activityInfo.packageName),
+                            appInfo.loadLabel(packageManager)
+                                .toString() + " " + AppUtils.getScreenTimeForPackage(
+                                context,
+                                appInfo.activityInfo.packageName
+                            ),
                             modifier = Modifier
                                 .padding(vertical = 15.dp)
                                 .combinedClickable(
@@ -475,108 +458,4 @@ fun AppDrawer(
             onCloseAppDrawer()
         })
     }
-}
-
-@Composable
-fun AnimatedPillSearchBar(
-    textChange: (searchText: String) -> Unit,
-    keyboardDone: (searchText: String) -> Unit
-) {
-    var searchText by remember { mutableStateOf(TextFieldValue("")) }
-    var expanded by remember { mutableStateOf(false) }
-
-    // Animate the width of the search bar
-    val width by animateDpAsState(targetValue = if (expanded) 280.dp else 150.dp, label = "")
-
-    // Animate the alpha of the text field content
-    val alpha by animateFloatAsState(targetValue = if (expanded) 1f else 0f, label = "")
-
-    // FocusRequester to request focus on the text field
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(expanded) {
-        if (expanded) {
-            focusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
-
-    Surface(
-        modifier = Modifier
-            .width(width)
-            .height(56.dp)
-            .clickable {
-                expanded = !expanded
-            }
-            .animateContentSize(),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.primary
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .animateContentSize()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search Icon",
-                tint = MaterialTheme.colorScheme.background,
-                modifier = Modifier
-                    .padding(5.dp, 0.dp)
-                    .size(25.dp)
-            )
-
-            if (!expanded) {
-                Text(
-                    stringResource(id = R.string.search),
-                    modifier = Modifier.animateContentSize(),
-                    color = MaterialTheme.colorScheme.background,
-                    style = JostTypography.bodyMedium
-                )
-            }
-
-            if (expanded) {
-                Spacer(
-                    modifier = Modifier
-                        .width(8.dp)
-                        .animateContentSize()
-                )
-
-                BasicTextField(
-                    value = searchText,
-                    onValueChange = {
-                        searchText = it
-                        textChange(searchText.text)
-                    },
-                    modifier = Modifier
-                        .alpha(alpha)
-                        .weight(1f)
-                        .focusRequester(focusRequester)
-                        .animateContentSize(),
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        if (alpha > 0) {
-                            innerTextField()
-                        }
-                    },
-                    maxLines = 1,
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            keyboardController?.hide()
-                            keyboardDone(searchText.text)
-                        }
-                    ),
-                    textStyle = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PreviewSearchBar() {
-    AnimatedPillSearchBar({}, {})
 }
