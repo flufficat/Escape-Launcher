@@ -321,7 +321,8 @@ fun SwipeHomeAppsList(
             state = scrollState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(30.dp, 0.dp)
+                .padding(30.dp, 0.dp),
+            horizontalAlignment = getAppsListAlignmentFromPreferences(sharedPreferencesSettings)
         ) {
             item {
                 Spacer(modifier = Modifier.height(140.dp))
@@ -604,4 +605,22 @@ fun AnimatedPillSearchBar(
 @Composable
 fun PreviewSearchBar() {
     AnimatedPillSearchBar({}, {})
+}
+
+fun getAppsListAlignmentFromPreferences(preferences: SharedPreferences): Alignment.Horizontal {
+    return when (preferences.getString("AppsAlignment", "Center")) {
+        "Center" -> Alignment.CenterHorizontally
+        "Left" -> Alignment.Start
+        else -> Alignment.End
+    }
+}
+fun filterAndSortApps(
+    apps: List<ResolveInfo>,
+    searchText: String,
+    packageManager: PackageManager
+): List<ResolveInfo> {
+    return apps.filter { appInfo ->
+        val appName = appInfo.loadLabel(packageManager).toString()
+        appName.contains(searchText, ignoreCase = true)
+    }.sortedBy { it.loadLabel(packageManager).toString() }
 }

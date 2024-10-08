@@ -116,16 +116,7 @@ class MainHomeScreen : ComponentActivity() {
                                 )
                             },
                         ) {
-                            AppDrawer(
-                                packageManager,
-                                context,
-                                onCloseAppDrawer = {
-                                    navController.popBackStack()
-                                },
-                                favoriteAppsManager = favoriteAppsManager,
-                                hiddenAppsManager,
-                                challengesManager
-                            )
+
                         }
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
