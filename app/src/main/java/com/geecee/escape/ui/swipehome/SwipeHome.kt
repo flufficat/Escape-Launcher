@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.ui.swipehome
 
 import android.content.Context
 import android.content.Intent
@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -18,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,8 +59,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -73,7 +76,17 @@ import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.SwipeableState
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import com.geecee.escape.AppUtils
+import com.geecee.escape.ChallengesManager
+import com.geecee.escape.Clock
+import com.geecee.escape.FavoriteAppsManager
+import com.geecee.escape.HiddenAppsManager
+import com.geecee.escape.OpenChallenge
+import com.geecee.escape.R
+import com.geecee.escape.getAppNameFromPackageName
 import com.geecee.escape.ui.theme.JostTypography
+import kotlinx.coroutines.delay
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
 
@@ -125,7 +138,6 @@ fun SwipeHome(
                 thresholds = { _, _ -> FractionalThreshold(0.3f) },
                 orientation = Orientation.Horizontal
             )
-            .background(Color.LightGray)
             .combinedClickable(onClick = {}, onLongClickLabel = {}.toString(), onLongClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onOpenSettings()
@@ -135,7 +147,29 @@ fun SwipeHome(
                 editor.apply()
             })
     ) {
-        SwipeHomeAppsList(
+
+        SwipeHomeHome(
+            context = context,
+            packageManager = packageManager,
+            swipeableState = swipeableState,
+            currentAppName = currentSelectedApp,
+            currentPackageName = currentPackageName,
+            isCurrentAppFavorite = isCurrentAppFavorite,
+            isCurrentAppHidden = isCurrentAppHidden,
+            isCurrentAppChallenged = isCurrentAppChallenge,
+            showBottomSheet = showBottomSheet,
+            favoriteAppsManager = favoriteAppsManager,
+            hiddenAppsManager = hiddenAppsManager,
+            challengesManager = challengesManager,
+            showOpenChallenge = showOpenChallenge,
+            sharedPreferencesSettings = sharedPreferencesSettings,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
+        )
+
+
+        AppsList(
             context = context,
             packageManager = packageManager,
             swipeableState = swipeableState,
@@ -151,7 +185,6 @@ fun SwipeHome(
             showOpenChallenge = showOpenChallenge,
             sharedPreferencesSettings = sharedPreferencesSettings
         )
-
     }
 
     //Bottom Sheet
@@ -282,14 +315,77 @@ fun SwipeHome(
     }
 }
 
+@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun SwipeHomeHome() {
+fun SwipeHomeHome(
+    context: Context,
+    packageManager: PackageManager,
+    swipeableState: SwipeableState<Int>,
+    currentAppName: MutableState<String>,
+    currentPackageName: MutableState<String>,
+    isCurrentAppFavorite: MutableState<Boolean>,
+    isCurrentAppHidden: MutableState<Boolean>,
+    isCurrentAppChallenged: MutableState<Boolean>,
+    showBottomSheet: MutableState<Boolean>,
+    hiddenAppsManager: HiddenAppsManager,
+    favoriteAppsManager: FavoriteAppsManager,
+    challengesManager: ChallengesManager,
+    showOpenChallenge: MutableState<Boolean>,
+    sharedPreferencesSettings: SharedPreferences,
+    modifier: Modifier
+) {
+    val scrollState = rememberLazyListState()
+    val favoriteApps = remember { mutableStateOf(favoriteAppsManager.getFavoriteApps()) }
+
+
+    LazyColumn(
+        state = scrollState,
+        verticalArrangement = if (sharedPreferencesSettings.getString(
+                "HomeVAlignment", "Center"
+            ) == "Center"
+        ) Arrangement.Center else if (sharedPreferencesSettings.getString(
+                "HomeVAlignment", "Center"
+            ) == "Top"
+        ) Arrangement.Top else Arrangement.Bottom,
+        horizontalAlignment = if (sharedPreferencesSettings.getString(
+                "HomeAlignment", "Center"
+            ) == "Center"
+        ) Alignment.CenterHorizontally else if (sharedPreferencesSettings.getString(
+                "HomeAlignment", "Center"
+            ) == "Left"
+        ) Alignment.Start else Alignment.End,
+        modifier = modifier
+    ) {
+        item {
+            if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
+                Clock(sharedPreferencesSettings)
+            }
+        }
+
+        items(favoriteApps.value) { app ->
+            AppsListItem(
+                AppUtils.getResolveInfoFromPackageName(app, packageManager),
+                packageManager,
+                context,
+                showBottomSheet,
+                currentAppName,
+                currentPackageName,
+                isCurrentAppFavorite,
+                isCurrentAppHidden,
+                isCurrentAppChallenged,
+                showOpenChallenge,
+                challengesManager,
+                favoriteAppsManager,
+                hiddenAppsManager
+            )
+        }
+    }
 
 }
 
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
-fun SwipeHomeAppsList(
+fun AppsList(
     context: Context,
     packageManager: PackageManager,
     swipeableState: SwipeableState<Int>,
@@ -311,136 +407,134 @@ fun SwipeHomeAppsList(
     val scrollState = rememberLazyListState()
     var searchBoxText by remember { mutableStateOf("") }
 
-    Box(
+
+    LazyColumn(
+        state = scrollState,
         modifier = Modifier
             .fillMaxSize()
+            .padding(30.dp, 0.dp)
             .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = AppUtils.getAppsListAlignmentFromPreferences(
+            sharedPreferencesSettings
+        )
     ) {
-        LazyColumn(
-            state = scrollState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(30.dp, 0.dp),
-            horizontalAlignment = getAppsListAlignmentFromPreferences(sharedPreferencesSettings)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(140.dp))
-                Text(
-                    text = stringResource(id = R.string.all_apps),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+        item {
+            Spacer(modifier = Modifier.height(140.dp))
+            Text(
+                text = stringResource(id = R.string.all_apps),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
-            item {
-                if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
-                    Spacer(modifier = Modifier.height(15.dp))
-                    AnimatedPillSearchBar({ searchText ->
-                        searchBoxText = searchText
-                        var autoOpen = false
+        item {
+            if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
+                Spacer(modifier = Modifier.height(15.dp))
+                AnimatedPillSearchBar({ searchText ->
+                    searchBoxText = searchText
+                    var autoOpen = false
 
-                        if (sharedPreferencesSettings.getString(
-                                "searchAutoOpen",
-                                "False"
-                            ) == "True"
+                    if (sharedPreferencesSettings.getString(
+                            "searchAutoOpen",
+                            "False"
+                        ) == "True"
+                    ) {
+                        autoOpen = true
+                    }
+
+                    if (autoOpen) {
+                        if (AppUtils.filterAndSortApps(
+                                installedApps,
+                                searchText,
+                                packageManager
+                            ).size == 1
                         ) {
-                            autoOpen = true
+                            val appInfo = AppUtils.filterAndSortApps(
+                                installedApps,
+                                searchText,
+                                packageManager
+                            ).first()
+                            currentPackageName.value =
+                                appInfo.activityInfo.packageName
+
+                            AppUtils.openApp(
+                                packageManager,
+                                context,
+                                currentPackageName.value,
+                                challengesManager,
+                                false,
+                                openChallengeShow = showOpenChallenge
+                            )
+
                         }
+                    }
+                },
+                    { searchText ->
+                        if (AppUtils.filterAndSortApps(
+                                installedApps,
+                                searchText,
+                                packageManager
+                            ).isNotEmpty()
+                        ) {
+                            val firstAppInfo = AppUtils.filterAndSortApps(
+                                installedApps,
+                                searchText,
+                                packageManager
+                            ).first()
+                            currentPackageName.value = firstAppInfo.activityInfo.packageName
 
-                        if (autoOpen) {
-                            if (filterAndSortApps(
-                                    installedApps,
-                                    searchText,
-                                    packageManager
-                                ).size == 1
-                            ) {
-                                val appInfo = filterAndSortApps(
-                                    installedApps,
-                                    searchText,
-                                    packageManager
-                                ).first()
-                                currentPackageName.value =
-                                    appInfo.activityInfo.packageName
 
-                                AppUtils.openApp(
-                                    packageManager,
-                                    context,
-                                    currentPackageName.value,
-                                    challengesManager,
-                                    false,
-                                    openChallengeShow = showOpenChallenge
-                                )
-
-                            }
+                            AppUtils.openApp(
+                                packageManager,
+                                context,
+                                currentPackageName.value,
+                                challengesManager,
+                                false,
+                                null
+                            )
                         }
-                    },
-                        { searchText ->
-                            if (filterAndSortApps(
-                                    installedApps,
-                                    searchText,
-                                    packageManager
-                                ).isNotEmpty()
-                            ) {
-                                val firstAppInfo = filterAndSortApps(
-                                    installedApps,
-                                    searchText,
-                                    packageManager
-                                ).first()
-                                currentPackageName.value = firstAppInfo.activityInfo.packageName
-
-
-                                AppUtils.openApp(
-                                    packageManager,
-                                    context,
-                                    currentPackageName.value,
-                                    challengesManager,
-                                    false,
-                                    null
-                                )
-                            }
-                        })
-                    Spacer(modifier = Modifier.height(15.dp))
-                }
+                    })
+                Spacer(modifier = Modifier.height(15.dp))
             }
+        }
 
-            items(sortedInstalledApps.filter { appInfo ->
-                val appName = appInfo.loadLabel(packageManager).toString()
-                appName.contains(searchBoxText, ignoreCase = true)
-            }) { app ->
-                if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(
-                        app.activityInfo.packageName
-                    )
+        items(sortedInstalledApps.filter { appInfo ->
+            val appName = appInfo.loadLabel(packageManager).toString()
+            appName.contains(searchBoxText, ignoreCase = true)
+        }) { app ->
+            if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(
+                    app.activityInfo.packageName
                 )
-                    SwipeAppsListItem(
-                        app,
-                        context = context,
-                        packageManager = packageManager,
-                        currentAppName = currentAppName,
-                        currentPackageName = currentPackageName,
-                        isCurrentAppHidden = isCurrentAppHidden,
-                        isCurrentAppChallenged = isCurrentAppChallenged,
-                        isCurrentAppFavorite = isCurrentAppFavorite,
-                        showBottomSheet = showBottomSheet,
-                        challengesManager = challengesManager,
-                        hiddenAppsManager = hiddenAppsManager,
-                        favoriteAppsManager = favoriteAppsManager,
-                        showOpenChallenge = showOpenChallenge
-                    )
-            }
+            )
+                AppsListItem(
+                    app,
+                    context = context,
+                    packageManager = packageManager,
+                    currentAppName = currentAppName,
+                    currentPackageName = currentPackageName,
+                    isCurrentAppHidden = isCurrentAppHidden,
+                    isCurrentAppChallenged = isCurrentAppChallenged,
+                    isCurrentAppFavorite = isCurrentAppFavorite,
+                    showBottomSheet = showBottomSheet,
+                    challengesManager = challengesManager,
+                    hiddenAppsManager = hiddenAppsManager,
+                    favoriteAppsManager = favoriteAppsManager,
+                    showOpenChallenge = showOpenChallenge
+                )
+        }
 
 
-            item {
-                Spacer(modifier = Modifier.height(90.dp))
-            }
+        item {
+            Spacer(modifier = Modifier.height(90.dp))
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SwipeAppsListItem(
-    app: ResolveInfo,
+fun AppsListItem(
+    app: ResolveInfo?,
     packageManager: PackageManager,
     context: Context,
     showBottomSheet: MutableState<Boolean>,
@@ -454,52 +548,57 @@ fun SwipeAppsListItem(
     favoriteAppsManager: FavoriteAppsManager,
     hiddenAppsManager: HiddenAppsManager
 ) {
-    Text(
-        AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName),
-        modifier = Modifier
-            .padding(vertical = 15.dp)
-            .combinedClickable(
-                onClick = {
-                    val packageName = app.activityInfo.packageName
-                    currentPackageName.value = packageName
+    if (app != null) {
+        Text(
+            AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName),
+            modifier = Modifier
+                .padding(vertical = 15.dp)
+                .combinedClickable(
+                    onClick = {
+                        val packageName = app.activityInfo.packageName
+                        currentPackageName.value = packageName
 
-                    AppUtils.openApp(
-                        packageManager = packageManager,
-                        context = context,
-                        packageName,
-                        challengesManager,
-                        false,
-                        showOpenChallenge
-                    )
-                },
-                onLongClick = {
-                    showBottomSheet.value = true
-                    currentAppName.value =
-                        AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName)
-                    currentPackageName.value = app.activityInfo.packageName
-                    isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(
-                        AppUtils.getAppNameFromPackageName(
-                            context,
-                            app.activityInfo.packageName
+                        AppUtils.openApp(
+                            packageManager = packageManager,
+                            context = context,
+                            packageName,
+                            challengesManager,
+                            false,
+                            showOpenChallenge
                         )
-                    )
-                    isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(
-                        AppUtils.getAppNameFromPackageName(
-                            context,
-                            app.activityInfo.packageName
+                    },
+                    onLongClick = {
+                        showBottomSheet.value = true
+                        currentAppName.value =
+                            AppUtils.getAppNameFromPackageName(
+                                context,
+                                app.activityInfo.packageName
+                            )
+                        currentPackageName.value = app.activityInfo.packageName
+                        isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(
+                            AppUtils.getAppNameFromPackageName(
+                                context,
+                                app.activityInfo.packageName
+                            )
                         )
-                    )
-                    isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(
-                        AppUtils.getAppNameFromPackageName(
-                            context,
-                            app.activityInfo.packageName
+                        isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(
+                            AppUtils.getAppNameFromPackageName(
+                                context,
+                                app.activityInfo.packageName
+                            )
                         )
-                    )
-                }
-            ),
-        color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodyMedium
-    )
+                        isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(
+                            AppUtils.getAppNameFromPackageName(
+                                context,
+                                app.activityInfo.packageName
+                            )
+                        )
+                    }
+                ),
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }
 
 
@@ -605,22 +704,4 @@ fun AnimatedPillSearchBar(
 @Composable
 fun PreviewSearchBar() {
     AnimatedPillSearchBar({}, {})
-}
-
-fun getAppsListAlignmentFromPreferences(preferences: SharedPreferences): Alignment.Horizontal {
-    return when (preferences.getString("AppsAlignment", "Center")) {
-        "Center" -> Alignment.CenterHorizontally
-        "Left" -> Alignment.Start
-        else -> Alignment.End
-    }
-}
-fun filterAndSortApps(
-    apps: List<ResolveInfo>,
-    searchText: String,
-    packageManager: PackageManager
-): List<ResolveInfo> {
-    return apps.filter { appInfo ->
-        val appName = appInfo.loadLabel(packageManager).toString()
-        appName.contains(searchText, ignoreCase = true)
-    }.sortedBy { it.loadLabel(packageManager).toString() }
 }

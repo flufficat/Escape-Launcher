@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.ui.swipehome.SwipeHome
 import com.geecee.escape.ui.theme.EscapeTheme
 
 @Suppress("DEPRECATION")
@@ -103,21 +104,6 @@ class MainHomeScreen : ComponentActivity() {
                                 challengesManager = challengesManager
                             )
                         }
-                        composable(
-                            "app_drawer",
-                            enterTransition = {
-                                slideIntoContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Up, tween(300)
-                                )
-                            },
-                            exitTransition = {
-                                slideOutOfContainer(
-                                    AnimatedContentTransitionScope.SlideDirection.Down, tween(300)
-                                )
-                            },
-                        ) {
-
-                        }
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
@@ -140,7 +126,7 @@ class MainHomeScreen : ComponentActivity() {
                             exitTransition = { fadeOut(tween(300)) }) {
                             Setup(
                                 packageManager, context, favoriteAppsManager
-                            ) { navController.navigate("home") }
+                            ) { navController.navigate("swipe_home") }
                         }
                     }
                 }
