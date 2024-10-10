@@ -10,6 +10,8 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 object AppUtils {
@@ -30,7 +32,7 @@ object AppUtils {
                 context.startActivity(launchIntent, options.toBundle())
             } else {
                 if (openChallengeShow != null) {
-                    openChallengeShow.value = true;
+                    openChallengeShow.value = true
                 }
             }
         }
@@ -102,5 +104,11 @@ object AppUtils {
             return packageManager.resolveActivity(it, PackageManager.MATCH_DEFAULT_ONLY)
         }
         return null
+    }
+
+    fun getCurrentTime(): String {
+        val now = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm") // Format as hours:minutes:seconds
+        return now.format(formatter)
     }
 }

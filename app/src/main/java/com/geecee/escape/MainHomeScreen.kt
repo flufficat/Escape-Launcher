@@ -10,7 +10,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,7 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.ui.swipehome.SwipeHome
+import com.geecee.escape.ui.home.SwipeableHome
 import com.geecee.escape.ui.theme.EscapeTheme
 
 @Suppress("DEPRECATION")
@@ -68,7 +67,7 @@ class MainHomeScreen : ComponentActivity() {
                 } else if (sharedPreferencesSettings.getString("FirstTime", "True") == "True") {
                     "first_time"
                 } else {
-                    "swipe_home"
+                    "home"
                 }
 
                 val navController = rememberNavController()
@@ -79,30 +78,16 @@ class MainHomeScreen : ComponentActivity() {
                         .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
                 ) {
                     NavHost(navController, startDestination = startDestination) {
-                        composable("swipe_home",
-                            enterTransition = { fadeIn(tween(300)) },
-                            exitTransition = { fadeOut(tween(300)) }) {
-
-
-                            SwipeHome(context,packageManager,hiddenAppsManager,favoriteAppsManager,challengesManager) {
-                                navController.navigate(
-                                    "settings"
-                                )
-                            }
-                        }
                         composable("home",
                             enterTransition = { fadeIn(tween(300)) },
                             exitTransition = { fadeOut(tween(300)) }) {
 
 
-                            HomeScreen(
-                                onOpenAppDrawer = { navController.navigate("app_drawer") },
-                                onOpenSettings = { navController.navigate("settings") },
-                                packageManager = packageManager,
-                                context = context,
-                                favoriteAppsManager = favoriteAppsManager,
-                                challengesManager = challengesManager
-                            )
+                            SwipeableHome(context,packageManager,hiddenAppsManager,favoriteAppsManager,challengesManager) {
+                                navController.navigate(
+                                    "settings"
+                                )
+                            }
                         }
                         composable("settings",
                             enterTransition = { fadeIn(tween(300)) },
@@ -126,7 +111,7 @@ class MainHomeScreen : ComponentActivity() {
                             exitTransition = { fadeOut(tween(300)) }) {
                             Setup(
                                 packageManager, context, favoriteAppsManager
-                            ) { navController.navigate("swipe_home") }
+                            ) { navController.navigate("home") }
                         }
                     }
                 }

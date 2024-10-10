@@ -814,7 +814,7 @@ fun HiddenApps(
         for (app in hiddenApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
@@ -901,7 +901,7 @@ fun OpenChallenges(
         for (app in challengeApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
