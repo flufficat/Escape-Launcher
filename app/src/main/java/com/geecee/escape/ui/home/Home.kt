@@ -181,7 +181,7 @@ fun SwipeableHome(
             swipeableState = swipeableState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(30.dp)
+                .padding(30.dp,90.dp)
         )
 
 
@@ -424,6 +424,8 @@ fun HomeScreen(
                 favoriteAppsManager,
                 hiddenAppsManager,
                 swipeableState,
+                null,
+                null,
                 null
             )
         }
@@ -449,6 +451,7 @@ fun AppsList(
     showOpenChallenge: MutableState<Boolean>,
     sharedPreferencesSettings: SharedPreferences
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val installedApps = AppUtils.getAllInstalledApps(packageManager = packageManager)
     val sortedInstalledApps =
         installedApps.sortedBy {
@@ -458,7 +461,8 @@ fun AppsList(
             )
         }
     val scrollState = rememberLazyListState()
-    var searchBoxText by remember { mutableStateOf("") }
+    val searchText = remember { mutableStateOf("") }
+    val expanded = remember { mutableStateOf(false) }
 
     Box(
         Modifier
@@ -487,8 +491,8 @@ fun AppsList(
             item {
                 if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
                     Spacer(modifier = Modifier.height(15.dp))
-                    AnimatedPillSearchBar({ searchText ->
-                        searchBoxText = searchText
+                    AnimatedPillSearchBar({ searchBoxText ->
+                        searchText.value = searchBoxText
                         var autoOpen = false
 
                         if (sharedPreferencesSettings.getString(
@@ -502,62 +506,82 @@ fun AppsList(
                         if (autoOpen) {
                             if (AppUtils.filterAndSortApps(
                                     installedApps,
-                                    searchText,
+                                    searchText.value,
                                     packageManager
                                 ).size == 1
                             ) {
                                 val appInfo = AppUtils.filterAndSortApps(
                                     installedApps,
-                                    searchText,
+                                    searchText.value,
                                     packageManager
                                 ).first()
                                 currentPackageName.value =
                                     appInfo.activityInfo.packageName
 
                                 AppUtils.openApp(
-                                    packageManager,
-                                    context,
+                                    packageManager = packageManager,
+                                    context = context,
                                     currentPackageName.value,
                                     challengesManager,
                                     false,
-                                    openChallengeShow = showOpenChallenge
+                                    showOpenChallenge
                                 )
+
+                                coroutineScope.launch {
+                                    delay(200)
+                                    swipeableState.animateTo(1, tween(1))
+
+                                    scrollState.scrollToItem(0)
+                                    expanded.value = false
+                                    searchText.value = ""
+                                }
 
                             }
                         }
                     },
-                        { searchText ->
+                        { searchBoxText ->
                             if (AppUtils.filterAndSortApps(
                                     installedApps,
-                                    searchText,
+                                    searchBoxText,
                                     packageManager
                                 ).isNotEmpty()
                             ) {
                                 val firstAppInfo = AppUtils.filterAndSortApps(
                                     installedApps,
-                                    searchText,
+                                    searchBoxText,
                                     packageManager
                                 ).first()
-                                currentPackageName.value = firstAppInfo.activityInfo.packageName
 
+                                val packageName = firstAppInfo.activityInfo.packageName
+                                currentPackageName.value = packageName
 
                                 AppUtils.openApp(
-                                    packageManager,
-                                    context,
+                                    packageManager = packageManager,
+                                    context = context,
                                     currentPackageName.value,
                                     challengesManager,
                                     false,
-                                    null
+                                    showOpenChallenge
                                 )
+
+                                coroutineScope.launch {
+                                    delay(200)
+                                    swipeableState.animateTo(1, tween(1))
+
+                                    scrollState.scrollToItem(0)
+                                    expanded.value = false
+                                    searchText.value = ""
+                                }
                             }
-                        })
+                        },
+                        expanded)
                     Spacer(modifier = Modifier.height(15.dp))
                 }
             }
 
             items(sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(packageManager).toString()
-                appName.contains(searchBoxText, ignoreCase = true)
+                appName.contains(searchText.value, ignoreCase = true)
             }) { app ->
                 if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
@@ -578,7 +602,9 @@ fun AppsList(
                         favoriteAppsManager = favoriteAppsManager,
                         showOpenChallenge = showOpenChallenge,
                         swipeableState = swipeableState,
-                        lazyListState = scrollState
+                        lazyListState = scrollState,
+                        searchExpanded = expanded,
+                        searchText = searchText
                     )
             }
 
@@ -607,7 +633,9 @@ fun AppsListItem(
     favoriteAppsManager: FavoriteAppsManager,
     hiddenAppsManager: HiddenAppsManager,
     swipeableState: SwipeableState<Int>,
-    lazyListState: LazyListState?
+    lazyListState: LazyListState?,
+    searchExpanded: MutableState<Boolean>?,
+    searchText: MutableState<String>?
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -636,6 +664,8 @@ fun AppsListItem(
                             swipeableState.animateTo(1, tween(1))
 
                             lazyListState?.scrollToItem(0)
+                            searchExpanded?.value = false
+                            searchText?.value = ""
                         }
                     },
                     onLongClick = {
@@ -672,23 +702,25 @@ fun AppsListItem(
 @Composable
 fun AnimatedPillSearchBar(
     textChange: (searchText: String) -> Unit,
-    keyboardDone: (searchText: String) -> Unit
+    keyboardDone: (searchText: String) -> Unit,
+    expanded: MutableState<Boolean>
 ) {
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
-    var expanded by remember { mutableStateOf(false) }
+
 
     // Animate the width of the search bar
-    val width by animateDpAsState(targetValue = if (expanded) 280.dp else 150.dp, label = "")
+    val width by animateDpAsState(targetValue = if (expanded.value) 280.dp else 150.dp, label = "")
 
     // Animate the alpha of the text field content
-    val alpha by animateFloatAsState(targetValue = if (expanded) 1f else 0f, label = "")
+    val alpha by animateFloatAsState(targetValue = if (expanded.value) 1f else 0f, label = "")
 
     // FocusRequester to request focus on the text field
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(expanded) {
-        if (expanded) {
+    LaunchedEffect(expanded.value) {
+        if (expanded.value) {
+            searchText = TextFieldValue("")
             focusRequester.requestFocus()
             keyboardController?.show()
         }
@@ -699,7 +731,7 @@ fun AnimatedPillSearchBar(
             .width(width)
             .height(56.dp)
             .clickable {
-                expanded = !expanded
+                expanded.value = !expanded.value
             }
             .animateContentSize(),
         shape = RoundedCornerShape(28.dp),
@@ -720,7 +752,7 @@ fun AnimatedPillSearchBar(
                     .size(25.dp)
             )
 
-            if (!expanded) {
+            if (!expanded.value) {
                 Text(
                     stringResource(id = R.string.search),
                     modifier = Modifier.animateContentSize(),
@@ -729,7 +761,7 @@ fun AnimatedPillSearchBar(
                 )
             }
 
-            if (expanded) {
+            if (expanded.value) {
                 Spacer(
                     modifier = Modifier
                         .width(8.dp)
@@ -798,7 +830,8 @@ fun Clock(sharedPreferencesSettings: SharedPreferences) {
 @Preview
 @Composable
 fun PreviewSearchBar() {
-    AnimatedPillSearchBar({}, {})
+    val expanded = remember { mutableStateOf(false) }
+    AnimatedPillSearchBar({}, {}, expanded)
 }
 
 fun updateFavorites(
