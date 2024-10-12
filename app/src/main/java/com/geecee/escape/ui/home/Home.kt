@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,6 +57,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -90,6 +93,7 @@ import com.geecee.escape.getWidgetOffset
 import com.geecee.escape.getWidgetWidth
 import com.geecee.escape.ui.theme.JostTypography
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
@@ -128,7 +132,8 @@ fun SwipeableHome(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
     )
-    val favoriteApps = remember { mutableStateListOf<String>().apply { addAll(favoriteAppsManager.getFavoriteApps()) } }
+    val favoriteApps =
+        remember { mutableStateListOf<String>().apply { addAll(favoriteAppsManager.getFavoriteApps()) } }
     val interactionSource = remember { MutableInteractionSource() }
 
     //Challenge stuff
@@ -140,8 +145,10 @@ fun SwipeableHome(
             .swipeable(
                 state = swipeableState,
                 anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
+                thresholds = { _, _ -> FractionalThreshold(01f) },
+                orientation = Orientation.Horizontal,
+                velocityThreshold = 100.dp,
+                resistance = null
             )
             .combinedClickable(onClick = {}, onLongClickLabel = {}.toString(), onLongClick = {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -151,7 +158,8 @@ fun SwipeableHome(
                 editor.putString("FirstTimeAppDrawHelp", "False")
                 editor.apply()
             },
-                indication = null, interactionSource = interactionSource)
+                indication = null, interactionSource = interactionSource
+            )
 
     ) {
 
@@ -170,6 +178,7 @@ fun SwipeableHome(
             showOpenChallenge = showOpenChallenge,
             sharedPreferencesSettings = sharedPreferencesSettings,
             favouriteApps = favoriteApps,
+            swipeableState = swipeableState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(30.dp)
@@ -238,17 +247,17 @@ fun SwipeableHome(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (!isCurrentAppHidden.value) {
-                    Text(
-                        stringResource(id = R.string.hide),
-                        Modifier
-                            .padding(0.dp, 10.dp)
-                            .combinedClickable(onClick = {
-                                hiddenAppsManager.addHiddenApp(currentPackageName.value)
-                                showBottomSheet.value = false
-                            }),
-                        MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                        Text(
+                            stringResource(id = R.string.hide),
+                            Modifier
+                                .padding(0.dp, 10.dp)
+                                .combinedClickable(onClick = {
+                                    hiddenAppsManager.addHiddenApp(currentPackageName.value)
+                                    showBottomSheet.value = false
+                                }),
+                            MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                     Text(
                         text = if (isCurrentAppFavorite.value) stringResource(id = R.string.rem_from_fav) else stringResource(
@@ -257,11 +266,10 @@ fun SwipeableHome(
                         modifier = Modifier
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
-                                if (isCurrentAppFavorite.value){
+                                if (isCurrentAppFavorite.value) {
                                     favoriteAppsManager.removeFavoriteApp(currentPackageName.value)
                                     isCurrentAppFavorite.value = false
-                                }
-                                else{
+                                } else {
                                     favoriteAppsManager.addFavoriteApp(currentPackageName.value)
                                     isCurrentAppFavorite.value = true
                                 }
@@ -343,6 +351,7 @@ fun HomeScreen(
     showOpenChallenge: MutableState<Boolean>,
     sharedPreferencesSettings: SharedPreferences,
     favouriteApps: SnapshotStateList<String>,
+    swipeableState: SwipeableState<Int>,
     modifier: Modifier
 ) {
     val scrollState = rememberLazyListState()
@@ -413,7 +422,9 @@ fun HomeScreen(
                 showOpenChallenge,
                 challengesManager,
                 favoriteAppsManager,
-                hiddenAppsManager
+                hiddenAppsManager,
+                swipeableState,
+                null
             )
         }
     }
@@ -440,7 +451,12 @@ fun AppsList(
 ) {
     val installedApps = AppUtils.getAllInstalledApps(packageManager = packageManager)
     val sortedInstalledApps =
-        installedApps.sortedBy { AppUtils.getAppNameFromPackageName(context, it.activityInfo.packageName) }
+        installedApps.sortedBy {
+            AppUtils.getAppNameFromPackageName(
+                context,
+                it.activityInfo.packageName
+            )
+        }
     val scrollState = rememberLazyListState()
     var searchBoxText by remember { mutableStateOf("") }
 
@@ -560,7 +576,9 @@ fun AppsList(
                         challengesManager = challengesManager,
                         hiddenAppsManager = hiddenAppsManager,
                         favoriteAppsManager = favoriteAppsManager,
-                        showOpenChallenge = showOpenChallenge
+                        showOpenChallenge = showOpenChallenge,
+                        swipeableState = swipeableState,
+                        lazyListState = scrollState
                     )
             }
 
@@ -572,7 +590,7 @@ fun AppsList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalWearMaterialApi::class)
 @Composable
 fun AppsListItem(
     app: ResolveInfo?,
@@ -587,9 +605,14 @@ fun AppsListItem(
     showOpenChallenge: MutableState<Boolean>,
     challengesManager: ChallengesManager,
     favoriteAppsManager: FavoriteAppsManager,
-    hiddenAppsManager: HiddenAppsManager
+    hiddenAppsManager: HiddenAppsManager,
+    swipeableState: SwipeableState<Int>,
+    lazyListState: LazyListState?
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     if (app != null) {
+
         Text(
             AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName),
             modifier = Modifier
@@ -607,6 +630,13 @@ fun AppsListItem(
                             false,
                             showOpenChallenge
                         )
+
+                        coroutineScope.launch {
+                            delay(200)
+                            swipeableState.animateTo(1, tween(1))
+
+                            lazyListState?.scrollToItem(0)
+                        }
                     },
                     onLongClick = {
                         showBottomSheet.value = true
@@ -618,12 +648,12 @@ fun AppsListItem(
                         currentPackageName.value = app.activityInfo.packageName
                         isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(
 
-                                app.activityInfo.packageName
+                            app.activityInfo.packageName
 
                         )
                         isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(
 
-                                app.activityInfo.packageName
+                            app.activityInfo.packageName
 
                         )
                         isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(
