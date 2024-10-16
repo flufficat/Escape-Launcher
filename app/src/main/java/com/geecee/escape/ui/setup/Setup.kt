@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.ui.setup
 
 import android.content.Context
 import android.content.Intent
@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.utils.FavoriteAppsManager
+import com.geecee.escape.R
 import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalFoundationApi::class)

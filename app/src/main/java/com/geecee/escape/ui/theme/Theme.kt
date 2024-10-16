@@ -42,10 +42,12 @@ fun EscapeTheme(
 
     type = if (sharedPreferencesSettings.getString("font", "jost") == "jost") {
         JostTypography
-    } else if (sharedPreferencesSettings.getString("font", "jost") == "lora") {
-        LoraTypography
-    } else if (sharedPreferencesSettings.getString("font", "jost") == "josefin") {
-        JosefinTypography
+    } else if (sharedPreferencesSettings.getString("font", "jost") == "lexend") {
+        LexendTypography
+    } else if (sharedPreferencesSettings.getString("font", "jost") == "inter") {
+        InterTypography }
+    else if (sharedPreferencesSettings.getString("font", "jost") == "work") {
+        WorkTypography
     } else {
         JostTypography
     }

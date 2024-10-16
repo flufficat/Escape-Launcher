@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.utils
 
 import android.app.ActivityOptions
 import android.app.usage.UsageStatsManager

@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.ui.settings
 
 import android.app.Activity
 import android.app.ActivityOptions
@@ -26,17 +26,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.sharp.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,9 +53,36 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.ui.theme.JosefinTypography
+import com.geecee.escape.R
+import com.geecee.escape.ui.theme.InterTypography
 import com.geecee.escape.ui.theme.JostTypography
-import com.geecee.escape.ui.theme.LoraTypography
+import com.geecee.escape.ui.theme.LexendTypography
+import com.geecee.escape.ui.theme.WorkTypography
+import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.ChallengesManager
+import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.changeAppsAlignment
+import com.geecee.escape.utils.changeFont
+import com.geecee.escape.utils.changeHomeAlignment
+import com.geecee.escape.utils.changeHomeVAlignment
+import com.geecee.escape.utils.changeLauncher
+import com.geecee.escape.utils.getAppsAlignment
+import com.geecee.escape.utils.getAutoOpen
+import com.geecee.escape.utils.getBigClock
+import com.geecee.escape.utils.getClock
+import com.geecee.escape.utils.getDynamicColour
+import com.geecee.escape.utils.getFirstTime
+import com.geecee.escape.utils.getHomeAlignment
+import com.geecee.escape.utils.getHomeVAlignment
+import com.geecee.escape.utils.getLightTheme
+import com.geecee.escape.utils.getSearchBox
+import com.geecee.escape.utils.resetFirstTime
+import com.geecee.escape.utils.toggleAutoOpen
+import com.geecee.escape.utils.toggleBigClock
+import com.geecee.escape.utils.toggleClock
+import com.geecee.escape.utils.toggleDynamicColour
+import com.geecee.escape.utils.toggleLightTheme
+import com.geecee.escape.utils.toggleSearchBox
 
 @Composable
 fun Settings(
@@ -79,11 +107,6 @@ fun Settings(
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 MainSettingsPage({ goHome() }, navController, context, activity)
-            }
-            composable("widgetOptions",
-                enterTransition = { fadeIn(tween(300)) },
-                exitTransition = { fadeOut(tween(300)) }) {
-                WidgetOptions(context, { navController.popBackStack() }, { goHome() })
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
@@ -262,29 +285,23 @@ fun MainSettingsPage(
             )
         }
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("widgetOptions")
-                })
-        ) {
+        Box(Modifier.fillMaxWidth()) {
             Text(
-                stringResource(id = R.string.widget_options),
+                stringResource(id = R.string.big_clock),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
+            var checked by remember { mutableStateOf(true) }
+            checked = getBigClock(context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleBigClock(context, checked)
+                }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
@@ -436,232 +453,7 @@ fun MainSettingsPage(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(0.dp, 120.dp, 0.dp, 0.dp)
-    ) {
-        Row(
-            modifier = Modifier.combinedClickable(onClick = {
-                goBack()
-            })
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.widget_options),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall
-            )
-        }
-
-        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.enable_widget),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getWidgetEnabled(context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleWidgets(context, checked)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable {
-                    changeWidget(context) {
-                        goHome()
-                    }
-                }) {
-            Text(
-                stringResource(id = R.string.select_widget),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.offset),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetOffset(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetOffset(context, sliderPosition)
-                    },
-                    valueRange = -20f..20f,
-                    steps = 40,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 0F
-                        setWidgetOffset(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.height),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetHeight(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetHeight(context, sliderPosition)
-                    },
-                    valueRange = 100f..500f,
-                    steps = 10,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 125F
-                        setWidgetHeight(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.width),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetWidth(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetWidth(context, sliderPosition)
-                    },
-                    valueRange = 150f..1000f,
-                    steps = 10,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 150F
-                        setWidgetWidth(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AlignmentOptions(context: Context, goBack: () -> Unit) {
     Column(
@@ -697,70 +489,115 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Box(Modifier.fillMaxWidth()) {
-            Column(Modifier.align(Alignment.CenterStart)) {
-                Text(
-                    stringResource(id = R.string.align_home),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            Text(
+                stringResource(id = R.string.home),
+                Modifier
+                    .padding(0.dp, 5.dp)
+                    .align(Alignment.CenterStart),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
 
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.left),
-                        stringResource(id = R.string.center),
-                        stringResource(id = R.string.right)
-                    ), getHomeAlignment(context)
-                ) { index ->
-                    changeHomeAlignment(context, index)
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getHomeAlignment(context)
+                )
+            }
+            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeHomeAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Column {
-                Text(
-                    stringResource(id = R.string.vertically_align_home),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getHomeVAlignment(context)
                 )
-
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.top),
-                        stringResource(id = R.string.center),
-                        stringResource(
-                            id = R.string.bottom
-                        )
-                    ), getHomeVAlignment(context)
-                ) { index ->
-                    changeHomeVAlignment(context, index)
+            }
+            val options = listOf(stringResource(R.string.top), stringResource(R.string.center), stringResource(R.string.bottom))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeHomeVAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Column {
-                Text(
-                    stringResource(id = R.string.align_apps_list),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            Text(
+                stringResource(id = R.string.apps),
+                Modifier
+                    .padding(0.dp, 5.dp)
+                    .align(Alignment.CenterStart),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
 
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.left),
-                        stringResource(id = R.string.center),
-                        stringResource(id = R.string.right)
-                    ), selectedButtonIndex = getAppsAlignment(context)
-                ) { index ->
-                    changeAppsAlignment(context, index)
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getAppsAlignment(context)
+                )
+            }
+            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeAppsAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
@@ -988,24 +825,34 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             style = JostTypography.bodyMedium
         )
         Text(
-            "Josefin",
+            "Inter",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "josefin")
+                    changeFont(context, activity, "inter")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = JosefinTypography.bodyMedium
+            style = InterTypography.bodyMedium
         )
         Text(
-            "Lora",
+            "Lexend",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "lora")
+                    changeFont(context, activity, "lexend")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = LoraTypography.bodyMedium
+            style = LexendTypography.bodyMedium
+        )
+        Text(
+            "Work Sans",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    changeFont(context, activity, "work")
+                }),
+            color = MaterialTheme.colorScheme.primary,
+            style = WorkTypography.bodyMedium
         )
     }
 }

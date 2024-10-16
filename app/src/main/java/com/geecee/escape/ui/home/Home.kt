@@ -53,7 +53,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,18 +79,15 @@ import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.SwipeableState
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
-import com.geecee.escape.AppUtils
-import com.geecee.escape.AppUtils.getCurrentTime
-import com.geecee.escape.ChallengesManager
-import com.geecee.escape.FavoriteAppsManager
-import com.geecee.escape.HiddenAppsManager
-import com.geecee.escape.OpenChallenge
 import com.geecee.escape.R
-import com.geecee.escape.WidgetsScreen
-import com.geecee.escape.getWidgetHeight
-import com.geecee.escape.getWidgetOffset
-import com.geecee.escape.getWidgetWidth
 import com.geecee.escape.ui.theme.JostTypography
+import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.AppUtils.getCurrentTime
+import com.geecee.escape.utils.ChallengesManager
+import com.geecee.escape.utils.FavoriteAppsManager
+import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.OpenChallenge
+import com.geecee.escape.utils.getBigClock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -181,7 +177,7 @@ fun SwipeableHome(
             swipeableState = swipeableState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(30.dp,90.dp)
+                .padding(30.dp, 90.dp)
         )
 
 
@@ -244,7 +240,7 @@ fun SwipeableHome(
                                 context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.titleLarge
                     )
                     if (!isCurrentAppHidden.value) {
                         Text(
@@ -355,7 +351,7 @@ fun HomeScreen(
     modifier: Modifier
 ) {
     val scrollState = rememberLazyListState()
-
+    val noApps = remember { mutableStateOf(true) }
 
     LazyColumn(
         state = scrollState,
@@ -377,34 +373,7 @@ fun HomeScreen(
     ) {
         item {
             if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
-                Clock(sharedPreferencesSettings)
-            }
-        }
-
-        item {
-            var widgetOffset by remember { mutableIntStateOf(0) }
-            widgetOffset =
-                if (sharedPreferencesSettings.getString("HomeAlignment", "Center") == "Left") {
-                    -8
-                } else if (sharedPreferencesSettings.getString(
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Right"
-                ) {
-                    8
-                } else {
-                    0
-                }
-            widgetOffset += getWidgetOffset(context).toInt()
-
-            if (sharedPreferencesSettings.getString("WidgetsToggle", "False") == "True") {
-                WidgetsScreen(
-                    context = context,
-                    modifier = Modifier
-                        .offset((widgetOffset).dp, 0.dp)
-                        .size((getWidgetWidth(context)).dp, (getWidgetHeight(context)).dp)
-                        .padding(0.dp, 7.dp)
-                )
+                Clock(sharedPreferencesSettings,context,noApps)
             }
         }
 
@@ -491,54 +460,55 @@ fun AppsList(
             item {
                 if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
                     Spacer(modifier = Modifier.height(15.dp))
-                    AnimatedPillSearchBar({ searchBoxText ->
-                        searchText.value = searchBoxText
-                        var autoOpen = false
+                    AnimatedPillSearchBar(
+                        { searchBoxText ->
+                            searchText.value = searchBoxText
+                            var autoOpen = false
 
-                        if (sharedPreferencesSettings.getString(
-                                "searchAutoOpen",
-                                "False"
-                            ) == "True"
-                        ) {
-                            autoOpen = true
-                        }
-
-                        if (autoOpen) {
-                            if (AppUtils.filterAndSortApps(
-                                    installedApps,
-                                    searchText.value,
-                                    packageManager
-                                ).size == 1
+                            if (sharedPreferencesSettings.getString(
+                                    "searchAutoOpen",
+                                    "False"
+                                ) == "True"
                             ) {
-                                val appInfo = AppUtils.filterAndSortApps(
-                                    installedApps,
-                                    searchText.value,
-                                    packageManager
-                                ).first()
-                                currentPackageName.value =
-                                    appInfo.activityInfo.packageName
-
-                                AppUtils.openApp(
-                                    packageManager = packageManager,
-                                    context = context,
-                                    currentPackageName.value,
-                                    challengesManager,
-                                    false,
-                                    showOpenChallenge
-                                )
-
-                                coroutineScope.launch {
-                                    delay(200)
-                                    swipeableState.animateTo(1, tween(1))
-
-                                    scrollState.scrollToItem(0)
-                                    expanded.value = false
-                                    searchText.value = ""
-                                }
-
+                                autoOpen = true
                             }
-                        }
-                    },
+
+                            if (autoOpen) {
+                                if (AppUtils.filterAndSortApps(
+                                        installedApps,
+                                        searchText.value,
+                                        packageManager
+                                    ).size == 1
+                                ) {
+                                    val appInfo = AppUtils.filterAndSortApps(
+                                        installedApps,
+                                        searchText.value,
+                                        packageManager
+                                    ).first()
+                                    currentPackageName.value =
+                                        appInfo.activityInfo.packageName
+
+                                    AppUtils.openApp(
+                                        packageManager = packageManager,
+                                        context = context,
+                                        currentPackageName.value,
+                                        challengesManager,
+                                        false,
+                                        showOpenChallenge
+                                    )
+
+                                    coroutineScope.launch {
+                                        delay(200)
+                                        swipeableState.animateTo(1, tween(1))
+
+                                        scrollState.scrollToItem(0)
+                                        expanded.value = false
+                                        searchText.value = ""
+                                    }
+
+                                }
+                            }
+                        },
                         { searchBoxText ->
                             if (AppUtils.filterAndSortApps(
                                     installedApps,
@@ -574,7 +544,8 @@ fun AppsList(
                                 }
                             }
                         },
-                        expanded)
+                        expanded
+                    )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
             }
@@ -800,8 +771,11 @@ fun AnimatedPillSearchBar(
 }
 
 @Composable
-fun Clock(sharedPreferencesSettings: SharedPreferences) {
+fun Clock(sharedPreferencesSettings: SharedPreferences, context: Context, noApps: MutableState<Boolean>) {
     var time by remember { mutableStateOf(getCurrentTime()) }
+    val parts = time.split(":")
+    val hours = parts[0]
+    val minutes = parts[1]
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -810,20 +784,54 @@ fun Clock(sharedPreferencesSettings: SharedPreferences) {
         }
     }
 
-    Text(
-        text = time,
-        color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = if (sharedPreferencesSettings.getString(
-                "HomeAlignment",
-                "Center"
-            ) == "Left"
-        ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                "HomeAlignment",
-                "Center"
-            ) == "Right"
-        ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
-    )
+    if (getBigClock(context = context)) {
+
+        Column {
+            Text(
+                text = hours,
+                modifier = if (sharedPreferencesSettings.getString(
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Left"
+                ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Right"
+                ) Modifier.offset(0.dp) else Modifier.offset(0.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = if(!noApps.value){ MaterialTheme.typography.titleMedium} else { MaterialTheme.typography.titleLarge}
+            )
+            Text(
+                text = minutes,
+                color = MaterialTheme.colorScheme.primary,
+                style =if(!noApps.value){ MaterialTheme.typography.titleMedium} else { MaterialTheme.typography.titleLarge},
+                modifier = if (sharedPreferencesSettings.getString(
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Left"
+                ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Right"
+                ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+            )
+        }
+    } else {
+        Text(
+            text = time,
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = if (sharedPreferencesSettings.getString(
+                    "HomeAlignment",
+                    "Center"
+                ) == "Left"
+            ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+                    "HomeAlignment",
+                    "Center"
+                ) == "Right"
+            ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+        )
+    }
 }
 
 

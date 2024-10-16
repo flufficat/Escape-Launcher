@@ -22,7 +22,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.ui.home.SwipeableHome
+import com.geecee.escape.ui.settings.Settings
+import com.geecee.escape.ui.setup.FirstTime
+import com.geecee.escape.ui.setup.Setup
 import com.geecee.escape.ui.theme.EscapeTheme
+import com.geecee.escape.utils.ChallengesManager
+import com.geecee.escape.utils.FavoriteAppsManager
+import com.geecee.escape.utils.HiddenAppsManager
 
 @Suppress("DEPRECATION")
 class MainHomeScreen : ComponentActivity() {

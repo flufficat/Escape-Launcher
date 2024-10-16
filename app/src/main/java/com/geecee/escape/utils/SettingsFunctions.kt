@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.utils
 
 import android.app.Activity
 import android.app.ActivityOptions
@@ -6,42 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
-
-fun changeWidget(context: Context, goHome: () -> Unit) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    removeWidget(context)
-
-
-    if (sharedPreferences.getString("WidgetsToggle", "False") == "False") {
-        editor.putString("WidgetsToggle", "True")
-    }
-    editor.apply()
-
-    goHome()
-}
+import com.geecee.escape.MainHomeScreen
+import com.geecee.escape.R
 
 fun changeLauncher(context: Context) {
     val intent = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -96,30 +63,7 @@ fun getSearchBox(context: Context): Boolean {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return sharedPreferences.getString("showSearchBox", "False") == "True"
-}
-
-fun toggleWidgets(context: Context, shouldTurnOn: Boolean) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("WidgetsToggle", "True")
-    } else {
-        editor.putString("WidgetsToggle", "False")
-    }
-
-    editor.apply()
-}
-
-fun getWidgetEnabled(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("WidgetsToggle", "False") == "True"
+    return sharedPreferences.getString("showSearchBox", "True") == "True"
 }
 
 fun changeHomeAlignment(context: Context, alignment: Int) {
@@ -222,12 +166,7 @@ fun changeFont(context: Context, activity: Activity, font: String) {
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     editor.putString(
-        "font", when (font) {
-            "lora" -> "lora"
-            "josefin" -> "josefin"
-            "jost" -> "jost"
-            else -> "jost"
-        }
+        "font",font
     )
 
     editor.apply()
@@ -289,63 +228,6 @@ fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean, activity: Activ
     activity.finish()
 }
 
-fun setWidgetOffset(context: Context, sliderPosition: Float) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    editor.putFloat("WidgetOffset", sliderPosition)
-
-    editor.apply()
-}
-
-fun getWidgetOffset(context: Context): Float {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getFloat("WidgetOffset", 0f)
-}
-
-fun setWidgetHeight(context: Context, sliderPosition: Float) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    editor.putFloat("WidgetHeight", sliderPosition)
-
-    editor.apply()
-}
-
-fun getWidgetWidth(context: Context): Float {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getFloat("WidgetWidth", 150f)
-}
-
-fun setWidgetWidth(context: Context, sliderPosition: Float) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    editor.putFloat("WidgetWidth", sliderPosition)
-
-    editor.apply()
-}
-
-fun getWidgetHeight(context: Context): Float {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getFloat("WidgetHeight", 125f)
-}
-
 fun getClock(context: Context): Boolean {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
@@ -369,49 +251,28 @@ fun toggleClock(context: Context, shouldTurnOn: Boolean) {
     editor.apply()
 }
 
-@Composable
-fun SegmentedButtonGroup(
-    buttons: List<String>,
-    selectedButtonIndex: Int,
-    onButtonClick: (Int) -> Unit
-) {
-    // Use the provided `selectedButtonIndex` directly for displaying the selected state
-    var selectedIndex by remember { mutableIntStateOf(selectedButtonIndex) }
 
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50.dp))
-    ) {
-        buttons.forEachIndexed { index, title ->
-            val isSelected = selectedIndex == index
-            val shape = when (index) {
-                0 -> RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp)
-                buttons.size - 1 -> RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp)
-                else -> RoundedCornerShape(0.dp)
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
-                        shape = shape
-                    )
-                    .clickable {
-                        selectedIndex = index
-                        onButtonClick(index)
-                    }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = title,
-                    color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+fun getBigClock(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getString("BigClock", "False") == "True"
+}
+
+fun toggleBigClock(context: Context, shouldTurnOn: Boolean) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (shouldTurnOn) {
+        editor.putString("BigClock", "True")
+    } else {
+        editor.putString("BigClock", "False")
     }
+
+    editor.apply()
 }
 
 
