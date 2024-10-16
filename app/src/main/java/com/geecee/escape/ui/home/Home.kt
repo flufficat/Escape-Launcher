@@ -11,14 +11,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +33,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -65,20 +66,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.ExperimentalWearMaterialApi
-import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.SwipeableState
-import androidx.wear.compose.material.rememberSwipeableState
-import androidx.wear.compose.material.swipeable
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
@@ -90,11 +84,10 @@ import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBigClock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 
 @OptIn(
-    ExperimentalWearMaterialApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class
 )
 @Composable
@@ -106,12 +99,6 @@ fun SwipeableHome(
     challengesManager: ChallengesManager,
     onOpenSettings: () -> Unit
 ) {
-    // Swipeable stuff
-    val width = 1000.dp
-    val squareSize = 1000.dp
-    val swipeableState = rememberSwipeableState(1)
-    val sizePx = with(LocalDensity.current) { squareSize.toPx() }
-    val anchors = mapOf(0f to 0, sizePx to 1) // Maps anchor points (in px) to states
 
     //BottomSheet
     val showBottomSheet = remember { mutableStateOf(false) }
@@ -135,69 +122,66 @@ fun SwipeableHome(
     //Challenge stuff
     val showOpenChallenge = remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .width(width)
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(01f) },
-                orientation = Orientation.Horizontal,
-                velocityThreshold = 100.dp,
-                resistance = null
-            )
-            .combinedClickable(onClick = {}, onLongClickLabel = {}.toString(), onLongClick = {
-                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                onOpenSettings()
+    val pagerState = rememberPagerState(0, 0f) { 2 }
+    HorizontalPager(
+        state = pagerState,
+        Modifier
+            .fillMaxSize()
+            .combinedClickable(
+                onClick = {}, onLongClickLabel = {}.toString(),
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onOpenSettings()
 
-                val editor = sharedPreferencesSettings.edit()
-                editor.putString("FirstTimeAppDrawHelp", "False")
-                editor.apply()
-            },
+                    val editor = sharedPreferencesSettings.edit()
+                    editor.putString("FirstTimeAppDrawHelp", "False")
+                    editor.apply()
+                },
                 indication = null, interactionSource = interactionSource
             )
 
-    ) {
+    ) { page ->
+        when (page) {
+            0 -> HomeScreen(
+                context = context,
+                packageManager = packageManager,
+                currentAppName = currentSelectedApp,
+                currentPackageName = currentPackageName,
+                isCurrentAppFavorite = isCurrentAppFavorite,
+                isCurrentAppHidden = isCurrentAppHidden,
+                isCurrentAppChallenged = isCurrentAppChallenge,
+                showBottomSheet = showBottomSheet,
+                favoriteAppsManager = favoriteAppsManager,
+                hiddenAppsManager = hiddenAppsManager,
+                challengesManager = challengesManager,
+                showOpenChallenge = showOpenChallenge,
+                sharedPreferencesSettings = sharedPreferencesSettings,
+                favouriteApps = favoriteApps,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(30.dp, 90.dp),
+                pagerState = pagerState
+            )
 
-        HomeScreen(
-            context = context,
-            packageManager = packageManager,
-            currentAppName = currentSelectedApp,
-            currentPackageName = currentPackageName,
-            isCurrentAppFavorite = isCurrentAppFavorite,
-            isCurrentAppHidden = isCurrentAppHidden,
-            isCurrentAppChallenged = isCurrentAppChallenge,
-            showBottomSheet = showBottomSheet,
-            favoriteAppsManager = favoriteAppsManager,
-            hiddenAppsManager = hiddenAppsManager,
-            challengesManager = challengesManager,
-            showOpenChallenge = showOpenChallenge,
-            sharedPreferencesSettings = sharedPreferencesSettings,
-            favouriteApps = favoriteApps,
-            swipeableState = swipeableState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(30.dp, 90.dp)
-        )
-
-
-        AppsList(
-            context = context,
-            packageManager = packageManager,
-            swipeableState = swipeableState,
-            currentAppName = currentSelectedApp,
-            currentPackageName = currentPackageName,
-            isCurrentAppFavorite = isCurrentAppFavorite,
-            isCurrentAppHidden = isCurrentAppHidden,
-            isCurrentAppChallenged = isCurrentAppChallenge,
-            showBottomSheet = showBottomSheet,
-            favoriteAppsManager = favoriteAppsManager,
-            hiddenAppsManager = hiddenAppsManager,
-            challengesManager = challengesManager,
-            showOpenChallenge = showOpenChallenge,
-            sharedPreferencesSettings = sharedPreferencesSettings
-        )
+            1 -> AppsList(
+                context = context,
+                packageManager = packageManager,
+                currentAppName = currentSelectedApp,
+                currentPackageName = currentPackageName,
+                isCurrentAppFavorite = isCurrentAppFavorite,
+                isCurrentAppHidden = isCurrentAppHidden,
+                isCurrentAppChallenged = isCurrentAppChallenge,
+                showBottomSheet = showBottomSheet,
+                favoriteAppsManager = favoriteAppsManager,
+                hiddenAppsManager = hiddenAppsManager,
+                challengesManager = challengesManager,
+                showOpenChallenge = showOpenChallenge,
+                sharedPreferencesSettings = sharedPreferencesSettings,
+                pagerState = pagerState
+            )
+        }
     }
+
 
     //Bottom Sheet
     if (showBottomSheet.value) {
@@ -240,7 +224,7 @@ fun SwipeableHome(
                                 context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     if (!isCurrentAppHidden.value) {
                         Text(
@@ -330,7 +314,6 @@ fun SwipeableHome(
     }
 }
 
-@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun HomeScreen(
     context: Context,
@@ -347,8 +330,8 @@ fun HomeScreen(
     showOpenChallenge: MutableState<Boolean>,
     sharedPreferencesSettings: SharedPreferences,
     favouriteApps: SnapshotStateList<String>,
-    swipeableState: SwipeableState<Int>,
-    modifier: Modifier
+    modifier: Modifier,
+    pagerState: PagerState
 ) {
     val scrollState = rememberLazyListState()
     val noApps = remember { mutableStateOf(true) }
@@ -373,7 +356,7 @@ fun HomeScreen(
     ) {
         item {
             if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
-                Clock(sharedPreferencesSettings,context,noApps)
+                Clock(sharedPreferencesSettings, context, noApps)
             }
         }
 
@@ -392,22 +375,20 @@ fun HomeScreen(
                 challengesManager,
                 favoriteAppsManager,
                 hiddenAppsManager,
-                swipeableState,
                 null,
                 null,
-                null
+                null,
+                pagerState
             )
         }
     }
 
 }
 
-@OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun AppsList(
     context: Context,
     packageManager: PackageManager,
-    swipeableState: SwipeableState<Int>,
     currentAppName: MutableState<String>,
     currentPackageName: MutableState<String>,
     isCurrentAppFavorite: MutableState<Boolean>,
@@ -418,7 +399,8 @@ fun AppsList(
     favoriteAppsManager: FavoriteAppsManager,
     challengesManager: ChallengesManager,
     showOpenChallenge: MutableState<Boolean>,
-    sharedPreferencesSettings: SharedPreferences
+    sharedPreferencesSettings: SharedPreferences,
+    pagerState: PagerState
 ) {
     val coroutineScope = rememberCoroutineScope()
     val installedApps = AppUtils.getAllInstalledApps(packageManager = packageManager)
@@ -435,7 +417,6 @@ fun AppsList(
 
     Box(
         Modifier
-            .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize(),
     ) {
@@ -499,8 +480,7 @@ fun AppsList(
 
                                     coroutineScope.launch {
                                         delay(200)
-                                        swipeableState.animateTo(1, tween(1))
-
+                                        pagerState.animateScrollToPage(0)
                                         scrollState.scrollToItem(0)
                                         expanded.value = false
                                         searchText.value = ""
@@ -536,8 +516,7 @@ fun AppsList(
 
                                 coroutineScope.launch {
                                     delay(200)
-                                    swipeableState.animateTo(1, tween(1))
-
+                                    pagerState.animateScrollToPage(0)
                                     scrollState.scrollToItem(0)
                                     expanded.value = false
                                     searchText.value = ""
@@ -572,10 +551,10 @@ fun AppsList(
                         hiddenAppsManager = hiddenAppsManager,
                         favoriteAppsManager = favoriteAppsManager,
                         showOpenChallenge = showOpenChallenge,
-                        swipeableState = swipeableState,
                         lazyListState = scrollState,
                         searchExpanded = expanded,
-                        searchText = searchText
+                        searchText = searchText,
+                        pagerState = pagerState
                     )
             }
 
@@ -587,7 +566,7 @@ fun AppsList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalWearMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppsListItem(
     app: ResolveInfo?,
@@ -603,10 +582,10 @@ fun AppsListItem(
     challengesManager: ChallengesManager,
     favoriteAppsManager: FavoriteAppsManager,
     hiddenAppsManager: HiddenAppsManager,
-    swipeableState: SwipeableState<Int>,
     lazyListState: LazyListState?,
     searchExpanded: MutableState<Boolean>?,
-    searchText: MutableState<String>?
+    searchText: MutableState<String>?,
+    pagerState: PagerState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -632,8 +611,7 @@ fun AppsListItem(
 
                         coroutineScope.launch {
                             delay(200)
-                            swipeableState.animateTo(1, tween(1))
-
+                            pagerState.animateScrollToPage(0)
                             lazyListState?.scrollToItem(0)
                             searchExpanded?.value = false
                             searchText?.value = ""
@@ -771,7 +749,11 @@ fun AnimatedPillSearchBar(
 }
 
 @Composable
-fun Clock(sharedPreferencesSettings: SharedPreferences, context: Context, noApps: MutableState<Boolean>) {
+fun Clock(
+    sharedPreferencesSettings: SharedPreferences,
+    context: Context,
+    noApps: MutableState<Boolean>
+) {
     var time by remember { mutableStateOf(getCurrentTime()) }
     val parts = time.split(":")
     val hours = parts[0]
@@ -799,12 +781,20 @@ fun Clock(sharedPreferencesSettings: SharedPreferences, context: Context, noApps
                     ) == "Right"
                 ) Modifier.offset(0.dp) else Modifier.offset(0.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = if(!noApps.value){ MaterialTheme.typography.titleMedium} else { MaterialTheme.typography.titleLarge}
+                style = if (!noApps.value) {
+                    MaterialTheme.typography.titleMedium
+                } else {
+                    MaterialTheme.typography.titleLarge
+                }
             )
             Text(
                 text = minutes,
                 color = MaterialTheme.colorScheme.primary,
-                style =if(!noApps.value){ MaterialTheme.typography.titleMedium} else { MaterialTheme.typography.titleLarge},
+                style = if (!noApps.value) {
+                    MaterialTheme.typography.titleMedium
+                } else {
+                    MaterialTheme.typography.titleLarge
+                },
                 modifier = if (sharedPreferencesSettings.getString(
                         "HomeAlignment",
                         "Center"
