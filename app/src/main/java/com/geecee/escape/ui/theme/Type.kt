@@ -12,15 +12,22 @@ val Jost = FontFamily(
     Font(R.font.jost)
 )
 
+val WorkSans = FontFamily(
+    Font(R.font.worksans)
+)
+
+val Inter = FontFamily(
+    Font(R.font.inter)
+)
+
+val Lexend = FontFamily(
+    Font(R.font.lexend)
+)
+
 val Josefin = FontFamily(
     Font(R.font.josefinnormal)
 )
 
-val Lora = FontFamily(
-    Font(R.font.lora)
-)
-
-// Set of Material typography styles to start with
 val JostTypography = Typography(
     bodyLarge = TextStyle(
         fontFamily = Jost,
@@ -59,6 +66,97 @@ val JostTypography = Typography(
     ),
     titleSmall = TextStyle(
         fontFamily = Jost,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 44.sp,
+        lineHeight = 45.sp,
+        letterSpacing = 0.6.sp
+    )
+)
+
+val InterTypography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 29.sp,
+        letterSpacing = 0.6.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 25.sp,
+        letterSpacing = 0.6.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+        lineHeight = 21.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 52.sp,
+        lineHeight = 53.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 48.sp,
+        lineHeight = 49.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = Inter,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 44.sp,
+        lineHeight = 45.sp,
+        letterSpacing = 0.6.sp
+    )
+)
+
+
+val LexendTypography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 29.sp,
+        letterSpacing = 0.6.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 25.sp,
+        letterSpacing = 0.6.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+        lineHeight = 21.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 52.sp,
+        lineHeight = 53.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 48.sp,
+        lineHeight = 49.sp,
+        letterSpacing = 0.6.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = Lexend,
         fontWeight = FontWeight.SemiBold,
         fontSize = 44.sp,
         lineHeight = 45.sp,
@@ -111,48 +209,47 @@ val JosefinTypography = Typography(
     )
 )
 
-val LoraTypography = Typography(
+val WorkTypography = Typography(
     bodyLarge = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.Normal,
         fontSize = 28.sp,
         lineHeight = 29.sp,
         letterSpacing = 0.6.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
         lineHeight = 25.sp,
         letterSpacing = 0.6.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp,
         lineHeight = 21.sp,
         letterSpacing = 0.6.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.SemiBold,
         fontSize = 52.sp,
         lineHeight = 53.sp,
         letterSpacing = 0.6.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
         lineHeight = 49.sp,
         letterSpacing = 0.6.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = Lora,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.SemiBold,
         fontSize = 44.sp,
         lineHeight = 45.sp,
         letterSpacing = 0.6.sp
     )
 )
-

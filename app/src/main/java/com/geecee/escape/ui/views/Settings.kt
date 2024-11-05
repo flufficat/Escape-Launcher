@@ -1,10 +1,10 @@
-package com.geecee.escape
+package com.geecee.escape.ui.views
 
 import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,17 +26,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,22 +48,46 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.ui.theme.JosefinTypography
+import com.geecee.escape.MainAppModel
+import com.geecee.escape.R
+import com.geecee.escape.ui.theme.InterTypography
 import com.geecee.escape.ui.theme.JostTypography
-import com.geecee.escape.ui.theme.LoraTypography
+import com.geecee.escape.ui.theme.LexendTypography
+import com.geecee.escape.ui.theme.WorkTypography
+import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.changeAppsAlignment
+import com.geecee.escape.utils.changeFont
+import com.geecee.escape.utils.changeHomeAlignment
+import com.geecee.escape.utils.changeHomeVAlignment
+import com.geecee.escape.utils.changeLauncher
+import com.geecee.escape.utils.getAppsAlignment
+import com.geecee.escape.utils.getAutoOpen
+import com.geecee.escape.utils.getBigClock
+import com.geecee.escape.utils.getClock
+import com.geecee.escape.utils.getDynamicColour
+import com.geecee.escape.utils.getFirstTime
+import com.geecee.escape.utils.getHomeAlignment
+import com.geecee.escape.utils.getHomeVAlignment
+import com.geecee.escape.utils.getLightTheme
+import com.geecee.escape.utils.getSearchBox
+import com.geecee.escape.utils.resetFirstTime
+import com.geecee.escape.utils.toggleAutoOpen
+import com.geecee.escape.utils.toggleBigClock
+import com.geecee.escape.utils.toggleClock
+import com.geecee.escape.utils.toggleDynamicColour
+import com.geecee.escape.utils.toggleLightTheme
+import com.geecee.escape.utils.toggleSearchBox
 
 @Composable
 fun Settings(
-    context: Context,
+    mainAppModel: MainAppModel,
     goHome: () -> Unit,
     activity: Activity,
-    packageManager: PackageManager,
-    hiddenAppsManager: HiddenAppsManager,
-    challengesManager: ChallengesManager
 ) {
     Box(
         modifier = Modifier
@@ -78,45 +102,36 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() }, navController, context, activity)
-            }
-            composable("widgetOptions",
-                enterTransition = { fadeIn(tween(300)) },
-                exitTransition = { fadeOut(tween(300)) }) {
-                WidgetOptions(context, { navController.popBackStack() }, { goHome() })
+                MainSettingsPage({ goHome() }, navController, mainAppModel, activity)
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                AlignmentOptions(context) { navController.popBackStack() }
+                AlignmentOptions(mainAppModel.context) { navController.popBackStack() }
             }
             composable("hiddenApps",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 HiddenApps(
-                    hiddenAppsManager = hiddenAppsManager,
-                    packageManager = packageManager,
-                    context = context
+                    mainAppModel
                 ) { navController.popBackStack() }
             }
             composable("openChallenges",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 OpenChallenges(
-                    context,
-                    challengesManager = challengesManager,
-                    packageManager
+                    mainAppModel
                 ) { navController.popBackStack() }
             }
             composable("chooseFont",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                ChooseFont(context, activity) { navController.popBackStack() }
+                ChooseFont(mainAppModel.context, activity) { navController.popBackStack() }
             }
             composable("devOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                DevOptions(context = context) { navController.popBackStack() }
+                DevOptions(context = mainAppModel.context) { navController.popBackStack() }
             }
         }
     }
@@ -127,7 +142,7 @@ fun Settings(
 fun MainSettingsPage(
     goHome: () -> Unit,
     navController: NavController,
-    context: Context,
+    mainAppModel: MainAppModel,
     activity: Activity
 ) {
     Column(
@@ -167,17 +182,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.light_theme),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getLightTheme(context)
+            checked = getLightTheme(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleLightTheme(checked, context, activity)
+                    toggleLightTheme(checked, mainAppModel.context, activity)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -187,17 +202,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.search_box),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getSearchBox(context)
+            checked = getSearchBox(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleSearchBox(checked, context)
+                    toggleSearchBox(checked, mainAppModel.context)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -207,39 +222,41 @@ fun MainSettingsPage(
                 stringResource(id = R.string.auto_open),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getAutoOpen(context)
+            checked = getAutoOpen(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleAutoOpen(context, checked)
+                    toggleAutoOpen(mainAppModel.context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.dynamic_colour),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Box(Modifier.fillMaxWidth()) {
+                Text(
+                    stringResource(id = R.string.dynamic_colour),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
 
-            var checked by remember { mutableStateOf(true) }
-            checked = getDynamicColour(context)
+                var checked by remember { mutableStateOf(true) }
+                checked = getDynamicColour(mainAppModel.context)
 
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleDynamicColour(context, checked, activity)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
+                Switch(
+                    checked = checked, onCheckedChange = {
+                        checked = it
+                        toggleDynamicColour(mainAppModel.context, checked, activity)
+                    }, Modifier.align(Alignment.CenterEnd)
+                )
+            }
         }
 
         Box(Modifier.fillMaxWidth()) {
@@ -247,44 +264,38 @@ fun MainSettingsPage(
                 stringResource(id = R.string.show_clock),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getClock(context)
+            checked = getClock(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleClock(context, checked)
+                    toggleClock(mainAppModel.context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("widgetOptions")
-                })
-        ) {
+        Box(Modifier.fillMaxWidth()) {
             Text(
-                stringResource(id = R.string.widget_options),
+                stringResource(id = R.string.big_clock),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
+            var checked by remember { mutableStateOf(true) }
+            checked = getBigClock(mainAppModel.context)
+
+            Switch(
+                checked = checked, onCheckedChange = {
+                    checked = it
+                    toggleBigClock(mainAppModel.context, checked)
+                }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
@@ -299,7 +310,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.alignments),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -325,7 +336,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_hidden_apps),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -351,7 +362,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_open_challenges),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -378,7 +389,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.choose_font),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -397,14 +408,14 @@ fun MainSettingsPage(
             Modifier
                 .fillMaxWidth()
                 .combinedClickable(onClick = {
-                    changeLauncher(context)
+                    changeLauncher(mainAppModel.context)
                 })
         ) {
             Text(
                 stringResource(id = R.string.make_default_launcher),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -430,234 +441,9 @@ fun MainSettingsPage(
                     navController.navigate("devOptions")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium,
+            style = JostTypography.bodyMedium,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun WidgetOptions(context: Context, goBack: () -> Unit, goHome: () -> Unit) {
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(0.dp, 120.dp, 0.dp, 0.dp)
-    ) {
-        Row(
-            modifier = Modifier.combinedClickable(onClick = {
-                goBack()
-            })
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.widget_options),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall
-            )
-        }
-
-        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.enable_widget),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getWidgetEnabled(context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleWidgets(context, checked)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable {
-                    changeWidget(context) {
-                        goHome()
-                    }
-                }) {
-            Text(
-                stringResource(id = R.string.select_widget),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.offset),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetOffset(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetOffset(context, sliderPosition)
-                    },
-                    valueRange = -20f..20f,
-                    steps = 40,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 0F
-                        setWidgetOffset(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.height),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetHeight(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetHeight(context, sliderPosition)
-                    },
-                    valueRange = 100f..500f,
-                    steps = 10,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 125F
-                        setWidgetHeight(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
-
-        Box(
-            Modifier.fillMaxWidth()
-        )
-        {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
-            Row {
-                Text(
-                    stringResource(id = R.string.width),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                sliderPosition = getWidgetWidth(context)
-
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        setWidgetWidth(context, sliderPosition)
-                    },
-                    valueRange = 150f..1000f,
-                    steps = 10,
-                    modifier = Modifier
-                        .fillMaxWidth(0.85F)
-                        .align(Alignment.CenterVertically)
-                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
-                )
-            }
-            Icon(
-                Icons.Rounded.Refresh,
-                "",
-                Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterEnd)
-                    .combinedClickable {
-                        sliderPosition = 150F
-                        setWidgetWidth(context, sliderPosition)
-                    }
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-
-        }
     }
 }
 
@@ -697,70 +483,115 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Box(Modifier.fillMaxWidth()) {
-            Column(Modifier.align(Alignment.CenterStart)) {
-                Text(
-                    stringResource(id = R.string.align_home),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            Text(
+                stringResource(id = R.string.home),
+                Modifier
+                    .padding(0.dp, 5.dp)
+                    .align(Alignment.CenterStart),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
 
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.left),
-                        stringResource(id = R.string.center),
-                        stringResource(id = R.string.right)
-                    ), getHomeAlignment(context)
-                ) { index ->
-                    changeHomeAlignment(context, index)
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getHomeAlignment(context)
+                )
+            }
+            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeHomeAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Column {
-                Text(
-                    stringResource(id = R.string.vertically_align_home),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getHomeVAlignment(context)
                 )
-
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.top),
-                        stringResource(id = R.string.center),
-                        stringResource(
-                            id = R.string.bottom
-                        )
-                    ), getHomeVAlignment(context)
-                ) { index ->
-                    changeHomeVAlignment(context, index)
+            }
+            val options = listOf(stringResource(R.string.top), stringResource(R.string.center), stringResource(R.string.bottom))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeHomeVAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Column {
-                Text(
-                    stringResource(id = R.string.align_apps_list),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
+        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+            Text(
+                stringResource(id = R.string.apps),
+                Modifier
+                    .padding(0.dp, 5.dp)
+                    .align(Alignment.CenterStart),
+                color = MaterialTheme.colorScheme.primary,
+                style = JostTypography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
 
-                SegmentedButtonGroup(
-                    listOf(
-                        stringResource(id = R.string.left),
-                        stringResource(id = R.string.center),
-                        stringResource(id = R.string.right)
-                    ), selectedButtonIndex = getAppsAlignment(context)
-                ) { index ->
-                    changeAppsAlignment(context, index)
+            var selectedIndex by remember {
+                androidx.compose.runtime.mutableIntStateOf(
+                    getAppsAlignment(context)
+                )
+            }
+            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            SingleChoiceSegmentedButtonRow(
+                Modifier
+                    .padding(0.dp, 0.dp)
+                    .align(Alignment.CenterEnd)
+                    .width(275.dp)
+            ) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            selectedIndex = index
+                            changeAppsAlignment(context, selectedIndex)
+                        },
+                        selected = index == selectedIndex
+                    ) {
+                        Text(label)
+                    }
                 }
             }
         }
@@ -770,9 +601,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HiddenApps(
-    hiddenAppsManager: HiddenAppsManager,
-    context: Context,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     goBack: () -> Unit
 ) {
     Column(
@@ -800,7 +629,7 @@ fun HiddenApps(
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = stringResource(id = R.string.manage_hidden_apps),
+                text = stringResource(id = R.string.hidden_apps),
                 color = MaterialTheme.colorScheme.primary,
                 style = JostTypography.titleSmall,
             )
@@ -809,30 +638,30 @@ fun HiddenApps(
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
         val haptics = LocalHapticFeedback.current
-        val hiddenApps = remember { mutableStateOf(hiddenAppsManager.getHiddenApps()) }
+        val hiddenApps = remember { mutableStateOf(mainAppModel.hiddenAppsManager.getHiddenApps()) }
 
         for (app in hiddenApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
                                 )
-                                context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
-                            hiddenAppsManager.removeHiddenApp(app)
+                            mainAppModel.hiddenAppsManager.removeHiddenApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                            hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = JostTypography.bodyMedium
                 )
 
                 Icon(
@@ -843,9 +672,9 @@ fun HiddenApps(
                         .size(30.dp)
                         .fillMaxSize()
                         .combinedClickable(onClick = {
-                            hiddenAppsManager.removeHiddenApp(app)
+                            mainAppModel.hiddenAppsManager.removeHiddenApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                            hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
                     tint = MaterialTheme.colorScheme.primary,
                 )
@@ -857,12 +686,10 @@ fun HiddenApps(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OpenChallenges(
-    context: Context,
-    challengesManager: ChallengesManager,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     goBack: () -> Unit
 ) {
-    val challengeApps = remember { mutableStateOf(challengesManager.getChallengeApps()) }
+    val challengeApps = remember { mutableStateOf(mainAppModel.challengesManager.getChallengeApps()) }
     val haptics = LocalHapticFeedback.current
 
     Column(
@@ -890,9 +717,10 @@ fun OpenChallenges(
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = stringResource(id = R.string.manage_open_challenges),
+                text = stringResource(id = R.string.open_challenges),
                 color = MaterialTheme.colorScheme.primary,
                 style = JostTypography.titleSmall,
+                fontSize = 40.sp
             )
         }
 
@@ -901,25 +729,25 @@ fun OpenChallenges(
         for (app in challengeApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
                                 )
-                                context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
-                            challengesManager.removeChallengeApp(app)
+                            mainAppModel.challengesManager.removeChallengeApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            challengeApps.value = challengesManager.getChallengeApps()
+                            challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = JostTypography.bodyMedium
                 )
 
                 Icon(
@@ -930,9 +758,9 @@ fun OpenChallenges(
                         .size(30.dp)
                         .fillMaxSize()
                         .combinedClickable(onClick = {
-                            challengesManager.removeChallengeApp(app)
+                            mainAppModel.challengesManager.removeChallengeApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            challengeApps.value = challengesManager.getChallengeApps()
+                            challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
                     tint = MaterialTheme.colorScheme.primary,
                 )
@@ -988,24 +816,34 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             style = JostTypography.bodyMedium
         )
         Text(
-            "Josefin",
+            "Inter",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "josefin")
+                    changeFont(context, activity, "inter")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = JosefinTypography.bodyMedium
+            style = InterTypography.bodyMedium
         )
         Text(
-            "Lora",
+            "Lexend",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "lora")
+                    changeFont(context, activity, "lexend")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = LoraTypography.bodyMedium
+            style = LexendTypography.bodyMedium
+        )
+        Text(
+            "Work Sans",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    changeFont(context, activity, "work")
+                }),
+            color = MaterialTheme.colorScheme.primary,
+            style = WorkTypography.bodyMedium
         )
     }
 }
@@ -1050,7 +888,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                 "First time",
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 

@@ -40,6 +40,9 @@
     <string name="show_clock">Show Clock</string>
     <string name="height">Height</string>
     <string name="width">Width</string>
+    <string name="big_clock">Big Clock</string>
+    <string name="home">Home</string>
+    <string name="apps">Apps</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

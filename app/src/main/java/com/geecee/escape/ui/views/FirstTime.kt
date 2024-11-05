@@ -1,4 +1,4 @@
-package com.geecee.escape
+package com.geecee.escape.ui.views
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.geecee.escape.R
 import com.geecee.escape.ui.theme.JosefinTypography
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
