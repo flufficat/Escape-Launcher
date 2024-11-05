@@ -31,7 +31,7 @@ fun toggleLightTheme(shouldTurnOn: Boolean, context: Context, activity: Activity
 
     val intent = Intent(context, MainHomeScreen::class.java)
     val options = ActivityOptions.makeBasic()
-    startActivity(context, intent, options.toBundle())
+    context.startActivity(intent, options.toBundle())
     activity.finish()
 }
 
@@ -173,7 +173,7 @@ fun changeFont(context: Context, activity: Activity, font: String) {
 
     val intent = Intent(context, MainHomeScreen::class.java)
     val options = ActivityOptions.makeBasic()
-    startActivity(context, intent, options.toBundle())
+    context.startActivity(intent, options.toBundle())
     activity.finish()
 }
 
@@ -224,7 +224,7 @@ fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean, activity: Activ
 
     val intent = Intent(context, MainHomeScreen::class.java)
     val options = ActivityOptions.makeBasic()
-    startActivity(context, intent, options.toBundle())
+    context.startActivity(intent, options.toBundle())
     activity.finish()
 }
 

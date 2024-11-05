@@ -1,10 +1,10 @@
-package com.geecee.escape.ui.settings
+package com.geecee.escape.ui.views
 
 import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,18 +48,18 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.InterTypography
 import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.ui.theme.LexendTypography
 import com.geecee.escape.ui.theme.WorkTypography
 import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.ChallengesManager
-import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.changeAppsAlignment
 import com.geecee.escape.utils.changeFont
 import com.geecee.escape.utils.changeHomeAlignment
@@ -85,12 +85,9 @@ import com.geecee.escape.utils.toggleSearchBox
 
 @Composable
 fun Settings(
-    context: Context,
+    mainAppModel: MainAppModel,
     goHome: () -> Unit,
     activity: Activity,
-    packageManager: PackageManager,
-    hiddenAppsManager: HiddenAppsManager,
-    challengesManager: ChallengesManager
 ) {
     Box(
         modifier = Modifier
@@ -105,40 +102,36 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() }, navController, context, activity)
+                MainSettingsPage({ goHome() }, navController, mainAppModel, activity)
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                AlignmentOptions(context) { navController.popBackStack() }
+                AlignmentOptions(mainAppModel.context) { navController.popBackStack() }
             }
             composable("hiddenApps",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 HiddenApps(
-                    hiddenAppsManager = hiddenAppsManager,
-                    packageManager = packageManager,
-                    context = context
+                    mainAppModel
                 ) { navController.popBackStack() }
             }
             composable("openChallenges",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 OpenChallenges(
-                    context,
-                    challengesManager = challengesManager,
-                    packageManager
+                    mainAppModel
                 ) { navController.popBackStack() }
             }
             composable("chooseFont",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                ChooseFont(context, activity) { navController.popBackStack() }
+                ChooseFont(mainAppModel.context, activity) { navController.popBackStack() }
             }
             composable("devOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                DevOptions(context = context) { navController.popBackStack() }
+                DevOptions(context = mainAppModel.context) { navController.popBackStack() }
             }
         }
     }
@@ -149,7 +142,7 @@ fun Settings(
 fun MainSettingsPage(
     goHome: () -> Unit,
     navController: NavController,
-    context: Context,
+    mainAppModel: MainAppModel,
     activity: Activity
 ) {
     Column(
@@ -189,17 +182,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.light_theme),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getLightTheme(context)
+            checked = getLightTheme(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleLightTheme(checked, context, activity)
+                    toggleLightTheme(checked, mainAppModel.context, activity)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -209,17 +202,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.search_box),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getSearchBox(context)
+            checked = getSearchBox(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleSearchBox(checked, context)
+                    toggleSearchBox(checked, mainAppModel.context)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -229,39 +222,41 @@ fun MainSettingsPage(
                 stringResource(id = R.string.auto_open),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getAutoOpen(context)
+            checked = getAutoOpen(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleAutoOpen(context, checked)
+                    toggleAutoOpen(mainAppModel.context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
 
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.dynamic_colour),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Box(Modifier.fillMaxWidth()) {
+                Text(
+                    stringResource(id = R.string.dynamic_colour),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = JostTypography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
 
-            var checked by remember { mutableStateOf(true) }
-            checked = getDynamicColour(context)
+                var checked by remember { mutableStateOf(true) }
+                checked = getDynamicColour(mainAppModel.context)
 
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleDynamicColour(context, checked, activity)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
+                Switch(
+                    checked = checked, onCheckedChange = {
+                        checked = it
+                        toggleDynamicColour(mainAppModel.context, checked, activity)
+                    }, Modifier.align(Alignment.CenterEnd)
+                )
+            }
         }
 
         Box(Modifier.fillMaxWidth()) {
@@ -269,17 +264,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.show_clock),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getClock(context)
+            checked = getClock(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleClock(context, checked)
+                    toggleClock(mainAppModel.context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -289,17 +284,17 @@ fun MainSettingsPage(
                 stringResource(id = R.string.big_clock),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getBigClock(context)
+            checked = getBigClock(mainAppModel.context)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    toggleBigClock(context, checked)
+                    toggleBigClock(mainAppModel.context, checked)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }
@@ -315,7 +310,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.alignments),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -341,7 +336,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_hidden_apps),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -367,7 +362,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.manage_open_challenges),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -394,7 +389,7 @@ fun MainSettingsPage(
                 stringResource(id = R.string.choose_font),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -413,14 +408,14 @@ fun MainSettingsPage(
             Modifier
                 .fillMaxWidth()
                 .combinedClickable(onClick = {
-                    changeLauncher(context)
+                    changeLauncher(mainAppModel.context)
                 })
         ) {
             Text(
                 stringResource(id = R.string.make_default_launcher),
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -446,7 +441,7 @@ fun MainSettingsPage(
                     navController.navigate("devOptions")
                 }),
             color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium,
+            style = JostTypography.bodyMedium,
             textAlign = TextAlign.Center,
         )
     }
@@ -495,7 +490,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -567,7 +562,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -606,9 +601,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HiddenApps(
-    hiddenAppsManager: HiddenAppsManager,
-    context: Context,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     goBack: () -> Unit
 ) {
     Column(
@@ -636,7 +629,7 @@ fun HiddenApps(
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = stringResource(id = R.string.manage_hidden_apps),
+                text = stringResource(id = R.string.hidden_apps),
                 color = MaterialTheme.colorScheme.primary,
                 style = JostTypography.titleSmall,
             )
@@ -645,30 +638,30 @@ fun HiddenApps(
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
         val haptics = LocalHapticFeedback.current
-        val hiddenApps = remember { mutableStateOf(hiddenAppsManager.getHiddenApps()) }
+        val hiddenApps = remember { mutableStateOf(mainAppModel.hiddenAppsManager.getHiddenApps()) }
 
         for (app in hiddenApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    AppUtils.getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
                                 )
-                                context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
-                            hiddenAppsManager.removeHiddenApp(app)
+                            mainAppModel.hiddenAppsManager.removeHiddenApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                            hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = JostTypography.bodyMedium
                 )
 
                 Icon(
@@ -679,9 +672,9 @@ fun HiddenApps(
                         .size(30.dp)
                         .fillMaxSize()
                         .combinedClickable(onClick = {
-                            hiddenAppsManager.removeHiddenApp(app)
+                            mainAppModel.hiddenAppsManager.removeHiddenApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            hiddenApps.value = hiddenAppsManager.getHiddenApps()
+                            hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
                     tint = MaterialTheme.colorScheme.primary,
                 )
@@ -693,12 +686,10 @@ fun HiddenApps(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OpenChallenges(
-    context: Context,
-    challengesManager: ChallengesManager,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     goBack: () -> Unit
 ) {
-    val challengeApps = remember { mutableStateOf(challengesManager.getChallengeApps()) }
+    val challengeApps = remember { mutableStateOf(mainAppModel.challengesManager.getChallengeApps()) }
     val haptics = LocalHapticFeedback.current
 
     Column(
@@ -726,9 +717,10 @@ fun OpenChallenges(
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = stringResource(id = R.string.manage_open_challenges),
+                text = stringResource(id = R.string.open_challenges),
                 color = MaterialTheme.colorScheme.primary,
                 style = JostTypography.titleSmall,
+                fontSize = 40.sp
             )
         }
 
@@ -737,25 +729,25 @@ fun OpenChallenges(
         for (app in challengeApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    AppUtils.getAppNameFromPackageName(context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
                                 )
-                                context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
-                            challengesManager.removeChallengeApp(app)
+                            mainAppModel.challengesManager.removeChallengeApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            challengeApps.value = challengesManager.getChallengeApps()
+                            challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = JostTypography.bodyMedium
                 )
 
                 Icon(
@@ -766,9 +758,9 @@ fun OpenChallenges(
                         .size(30.dp)
                         .fillMaxSize()
                         .combinedClickable(onClick = {
-                            challengesManager.removeChallengeApp(app)
+                            mainAppModel.challengesManager.removeChallengeApp(app)
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
-                            challengeApps.value = challengesManager.getChallengeApps()
+                            challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
                     tint = MaterialTheme.colorScheme.primary,
                 )
@@ -896,7 +888,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                 "First time",
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 

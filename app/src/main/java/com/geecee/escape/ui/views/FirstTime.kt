@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.setup
+package com.geecee.escape.ui.views
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween

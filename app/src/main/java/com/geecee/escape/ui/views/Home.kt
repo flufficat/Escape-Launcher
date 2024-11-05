@@ -1,9 +1,8 @@
-package com.geecee.escape.ui.home
+package com.geecee.escape.ui.views
 
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.provider.Settings
@@ -73,13 +72,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
-import com.geecee.escape.utils.ChallengesManager
-import com.geecee.escape.utils.FavoriteAppsManager
-import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBigClock
 import kotlinx.coroutines.delay
@@ -92,11 +89,7 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun SwipeableHome(
-    context: Context,
-    packageManager: PackageManager,
-    hiddenAppsManager: HiddenAppsManager,
-    favoriteAppsManager: FavoriteAppsManager,
-    challengesManager: ChallengesManager,
+    mainAppModel: MainAppModel,
     onOpenSettings: () -> Unit
 ) {
 
@@ -111,12 +104,12 @@ fun SwipeableHome(
 
     //Other
     val haptics = LocalHapticFeedback.current
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+    val sharedPreferencesSettings: SharedPreferences = mainAppModel.context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(),
         Context.MODE_PRIVATE
     )
     val favoriteApps =
-        remember { mutableStateListOf<String>().apply { addAll(favoriteAppsManager.getFavoriteApps()) } }
+        remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } }
     val interactionSource = remember { MutableInteractionSource() }
 
     //Challenge stuff
@@ -143,17 +136,13 @@ fun SwipeableHome(
     ) { page ->
         when (page) {
             0 -> HomeScreen(
-                context = context,
-                packageManager = packageManager,
+                mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
                 isCurrentAppFavorite = isCurrentAppFavorite,
                 isCurrentAppHidden = isCurrentAppHidden,
                 isCurrentAppChallenged = isCurrentAppChallenge,
                 showBottomSheet = showBottomSheet,
-                favoriteAppsManager = favoriteAppsManager,
-                hiddenAppsManager = hiddenAppsManager,
-                challengesManager = challengesManager,
                 showOpenChallenge = showOpenChallenge,
                 sharedPreferencesSettings = sharedPreferencesSettings,
                 favouriteApps = favoriteApps,
@@ -164,17 +153,13 @@ fun SwipeableHome(
             )
 
             1 -> AppsList(
-                context = context,
-                packageManager = packageManager,
+                mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
                 isCurrentAppFavorite = isCurrentAppFavorite,
                 isCurrentAppHidden = isCurrentAppHidden,
                 isCurrentAppChallenged = isCurrentAppChallenge,
                 showBottomSheet = showBottomSheet,
-                favoriteAppsManager = favoriteAppsManager,
-                hiddenAppsManager = hiddenAppsManager,
-                challengesManager = challengesManager,
                 showOpenChallenge = showOpenChallenge,
                 sharedPreferencesSettings = sharedPreferencesSettings,
                 pagerState = pagerState
@@ -221,10 +206,10 @@ fun SwipeableHome(
                                     Uri.parse("package:${currentPackageName.value}")
                                 )
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
+                                mainAppModel.context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = JostTypography.bodyMedium
                     )
                     if (!isCurrentAppHidden.value) {
                         Text(
@@ -232,11 +217,11 @@ fun SwipeableHome(
                             Modifier
                                 .padding(0.dp, 10.dp)
                                 .combinedClickable(onClick = {
-                                    hiddenAppsManager.addHiddenApp(currentPackageName.value)
+                                    mainAppModel.hiddenAppsManager.addHiddenApp(currentPackageName.value)
                                     showBottomSheet.value = false
                                 }),
                             MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = JostTypography.bodyMedium
                         )
                     }
                     Text(
@@ -247,16 +232,16 @@ fun SwipeableHome(
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
                                 if (isCurrentAppFavorite.value) {
-                                    favoriteAppsManager.removeFavoriteApp(currentPackageName.value)
+                                    mainAppModel.favoriteAppsManager.removeFavoriteApp(currentPackageName.value)
                                     isCurrentAppFavorite.value = false
                                 } else {
-                                    favoriteAppsManager.addFavoriteApp(currentPackageName.value)
+                                    mainAppModel.favoriteAppsManager.addFavoriteApp(currentPackageName.value)
                                     isCurrentAppFavorite.value = true
                                 }
-                                updateFavorites(favoriteAppsManager, favoriteApps)
+                                updateFavorites(mainAppModel, favoriteApps)
                             }),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = JostTypography.bodyMedium
                     )
                     if (!isCurrentAppChallenge.value) {
                         Text(
@@ -264,12 +249,12 @@ fun SwipeableHome(
                             Modifier
                                 .padding(0.dp, 10.dp)
                                 .combinedClickable(onClick = {
-                                    challengesManager.addChallengeApp(currentPackageName.value)
+                                    mainAppModel.challengesManager.addChallengeApp(currentPackageName.value)
                                     showBottomSheet.value = false
                                     isCurrentAppChallenge.value = true
                                 }),
                             MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = JostTypography.bodyMedium
                         )
                     }
                     Text(
@@ -282,11 +267,11 @@ fun SwipeableHome(
                                         data =
                                             Uri.parse("package:${currentPackageName.value}")
                                     }
-                                context.startActivity(intent)
+                                mainAppModel.context.startActivity(intent)
                                 showBottomSheet.value = false
                             }),
                         MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = JostTypography.bodyMedium
                     )
                 }
             }
@@ -300,10 +285,10 @@ fun SwipeableHome(
     ) {
         OpenChallenge({
             AppUtils.openApp(
-                packageManager,
-                context,
+                mainAppModel.packageManager,
+                mainAppModel.context,
                 currentPackageName.value,
-                challengesManager,
+                mainAppModel.challengesManager,
                 true,
                 null
             )
@@ -316,17 +301,13 @@ fun SwipeableHome(
 
 @Composable
 fun HomeScreen(
-    context: Context,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     currentAppName: MutableState<String>,
     currentPackageName: MutableState<String>,
     isCurrentAppFavorite: MutableState<Boolean>,
     isCurrentAppHidden: MutableState<Boolean>,
     isCurrentAppChallenged: MutableState<Boolean>,
     showBottomSheet: MutableState<Boolean>,
-    hiddenAppsManager: HiddenAppsManager,
-    favoriteAppsManager: FavoriteAppsManager,
-    challengesManager: ChallengesManager,
     showOpenChallenge: MutableState<Boolean>,
     sharedPreferencesSettings: SharedPreferences,
     favouriteApps: SnapshotStateList<String>,
@@ -356,15 +337,14 @@ fun HomeScreen(
     ) {
         item {
             if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
-                Clock(sharedPreferencesSettings, context, noApps)
+                Clock(sharedPreferencesSettings, mainAppModel, noApps)
             }
         }
 
         items(favouriteApps) { app ->
             AppsListItem(
-                AppUtils.getResolveInfoFromPackageName(app, packageManager),
-                packageManager,
-                context,
+                AppUtils.getResolveInfoFromPackageName(app, mainAppModel.packageManager),
+                mainAppModel = mainAppModel,
                 showBottomSheet,
                 currentAppName,
                 currentPackageName,
@@ -372,9 +352,6 @@ fun HomeScreen(
                 isCurrentAppHidden,
                 isCurrentAppChallenged,
                 showOpenChallenge,
-                challengesManager,
-                favoriteAppsManager,
-                hiddenAppsManager,
                 null,
                 null,
                 null,
@@ -387,33 +364,45 @@ fun HomeScreen(
 
 @Composable
 fun AppsList(
-    context: Context,
-    packageManager: PackageManager,
+    mainAppModel: MainAppModel,
     currentAppName: MutableState<String>,
     currentPackageName: MutableState<String>,
     isCurrentAppFavorite: MutableState<Boolean>,
     isCurrentAppHidden: MutableState<Boolean>,
     isCurrentAppChallenged: MutableState<Boolean>,
     showBottomSheet: MutableState<Boolean>,
-    hiddenAppsManager: HiddenAppsManager,
-    favoriteAppsManager: FavoriteAppsManager,
-    challengesManager: ChallengesManager,
     showOpenChallenge: MutableState<Boolean>,
     sharedPreferencesSettings: SharedPreferences,
     pagerState: PagerState
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val installedApps = AppUtils.getAllInstalledApps(packageManager = packageManager)
+    val installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
     val sortedInstalledApps =
         installedApps.sortedBy {
             AppUtils.getAppNameFromPackageName(
-                context,
+                mainAppModel.context,
                 it.activityInfo.packageName
             )
         }
     val scrollState = rememberLazyListState()
     val searchText = remember { mutableStateOf("") }
     val expanded = remember { mutableStateOf(false) }
+
+//    var isPrivateSpaceVisible by remember { mutableStateOf(false) }
+//
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//        Button(onClick = {
+//            val privateUserHandle = getPrivateUserHandle(context)
+//            if (isPrivateSpaceVisible) {
+//                unlockPrivateSpace(context, privateUserHandle!!)
+//            } else {
+//                lockPrivateSpace(context, privateUserHandle!!)
+//            }
+//            isPrivateSpaceVisible = !isPrivateSpaceVisible
+//        }) {
+//            Text(if (isPrivateSpaceVisible) "Hide Private Space" else "Show Private Space")
+//        }
+//    }
 
     Box(
         Modifier
@@ -458,22 +447,22 @@ fun AppsList(
                                 if (AppUtils.filterAndSortApps(
                                         installedApps,
                                         searchText.value,
-                                        packageManager
+                                        mainAppModel.packageManager
                                     ).size == 1
                                 ) {
                                     val appInfo = AppUtils.filterAndSortApps(
                                         installedApps,
                                         searchText.value,
-                                        packageManager
+                                        mainAppModel.packageManager
                                     ).first()
                                     currentPackageName.value =
                                         appInfo.activityInfo.packageName
 
                                     AppUtils.openApp(
-                                        packageManager = packageManager,
-                                        context = context,
+                                        packageManager = mainAppModel.packageManager,
+                                        context = mainAppModel.context,
                                         currentPackageName.value,
-                                        challengesManager,
+                                        mainAppModel.challengesManager,
                                         false,
                                         showOpenChallenge
                                     )
@@ -493,23 +482,23 @@ fun AppsList(
                             if (AppUtils.filterAndSortApps(
                                     installedApps,
                                     searchBoxText,
-                                    packageManager
+                                    mainAppModel.packageManager
                                 ).isNotEmpty()
                             ) {
                                 val firstAppInfo = AppUtils.filterAndSortApps(
                                     installedApps,
                                     searchBoxText,
-                                    packageManager
+                                    mainAppModel.packageManager
                                 ).first()
 
                                 val packageName = firstAppInfo.activityInfo.packageName
                                 currentPackageName.value = packageName
 
                                 AppUtils.openApp(
-                                    packageManager = packageManager,
-                                    context = context,
+                                    packageManager = mainAppModel.packageManager,
+                                    context = mainAppModel.context,
                                     currentPackageName.value,
-                                    challengesManager,
+                                    mainAppModel.challengesManager,
                                     false,
                                     showOpenChallenge
                                 )
@@ -530,26 +519,22 @@ fun AppsList(
             }
 
             items(sortedInstalledApps.filter { appInfo ->
-                val appName = appInfo.loadLabel(packageManager).toString()
+                val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
                 appName.contains(searchText.value, ignoreCase = true)
             }) { app ->
-                if (app.activityInfo.packageName != "com.geecee.escape" && !hiddenAppsManager.isAppHidden(
+                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
                 )
                     AppsListItem(
                         app,
-                        context = context,
-                        packageManager = packageManager,
+                        mainAppModel = mainAppModel,
                         currentAppName = currentAppName,
                         currentPackageName = currentPackageName,
                         isCurrentAppHidden = isCurrentAppHidden,
                         isCurrentAppChallenged = isCurrentAppChallenged,
                         isCurrentAppFavorite = isCurrentAppFavorite,
                         showBottomSheet = showBottomSheet,
-                        challengesManager = challengesManager,
-                        hiddenAppsManager = hiddenAppsManager,
-                        favoriteAppsManager = favoriteAppsManager,
                         showOpenChallenge = showOpenChallenge,
                         lazyListState = scrollState,
                         searchExpanded = expanded,
@@ -570,8 +555,7 @@ fun AppsList(
 @Composable
 fun AppsListItem(
     app: ResolveInfo?,
-    packageManager: PackageManager,
-    context: Context,
+    mainAppModel: MainAppModel,
     showBottomSheet: MutableState<Boolean>,
     currentAppName: MutableState<String>,
     currentPackageName: MutableState<String>,
@@ -579,9 +563,6 @@ fun AppsListItem(
     isCurrentAppHidden: MutableState<Boolean>,
     isCurrentAppChallenged: MutableState<Boolean>,
     showOpenChallenge: MutableState<Boolean>,
-    challengesManager: ChallengesManager,
-    favoriteAppsManager: FavoriteAppsManager,
-    hiddenAppsManager: HiddenAppsManager,
     lazyListState: LazyListState?,
     searchExpanded: MutableState<Boolean>?,
     searchText: MutableState<String>?,
@@ -592,7 +573,7 @@ fun AppsListItem(
     if (app != null) {
 
         Text(
-            AppUtils.getAppNameFromPackageName(context, app.activityInfo.packageName),
+            AppUtils.getAppNameFromPackageName(mainAppModel.context, app.activityInfo.packageName),
             modifier = Modifier
                 .padding(vertical = 15.dp)
                 .combinedClickable(
@@ -601,10 +582,10 @@ fun AppsListItem(
                         currentPackageName.value = packageName
 
                         AppUtils.openApp(
-                            packageManager = packageManager,
-                            context = context,
+                            packageManager = mainAppModel.packageManager,
+                            context = mainAppModel.context,
                             packageName,
-                            challengesManager,
+                            mainAppModel.challengesManager,
                             false,
                             showOpenChallenge
                         )
@@ -621,21 +602,21 @@ fun AppsListItem(
                         showBottomSheet.value = true
                         currentAppName.value =
                             AppUtils.getAppNameFromPackageName(
-                                context,
+                                mainAppModel.context,
                                 app.activityInfo.packageName
                             )
                         currentPackageName.value = app.activityInfo.packageName
-                        isCurrentAppChallenged.value = challengesManager.doesAppHaveChallenge(
+                        isCurrentAppChallenged.value = mainAppModel.challengesManager.doesAppHaveChallenge(
 
                             app.activityInfo.packageName
 
                         )
-                        isCurrentAppHidden.value = hiddenAppsManager.isAppHidden(
+                        isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
 
                             app.activityInfo.packageName
 
                         )
-                        isCurrentAppFavorite.value = favoriteAppsManager.isAppFavorite(
+                        isCurrentAppFavorite.value = mainAppModel.favoriteAppsManager.isAppFavorite(
                             app.activityInfo.packageName
                         )
 
@@ -751,7 +732,7 @@ fun AnimatedPillSearchBar(
 @Composable
 fun Clock(
     sharedPreferencesSettings: SharedPreferences,
-    context: Context,
+    mainAppModel: MainAppModel,
     noApps: MutableState<Boolean>
 ) {
     var time by remember { mutableStateOf(getCurrentTime()) }
@@ -766,20 +747,12 @@ fun Clock(
         }
     }
 
-    if (getBigClock(context = context)) {
+    if (getBigClock(context = mainAppModel.context)) {
 
         Column {
             Text(
                 text = hours,
-                modifier = if (sharedPreferencesSettings.getString(
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Left"
-                ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Right"
-                ) Modifier.offset(0.dp) else Modifier.offset(0.dp),
+                modifier = Modifier.offset(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = if (!noApps.value) {
                     MaterialTheme.typography.titleMedium
@@ -795,15 +768,7 @@ fun Clock(
                 } else {
                     MaterialTheme.typography.titleLarge
                 },
-                modifier = if (sharedPreferencesSettings.getString(
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Left"
-                ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Right"
-                ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+                modifier = Modifier.offset(0.dp)
             )
         }
     } else {
@@ -833,9 +798,9 @@ fun PreviewSearchBar() {
 }
 
 fun updateFavorites(
-    favoriteAppsManager: FavoriteAppsManager,
+    mainAppModel: MainAppModel,
     favoriteApps: SnapshotStateList<String>
 ) {
     favoriteApps.clear()
-    favoriteApps.addAll(favoriteAppsManager.getFavoriteApps())
+    favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
 }
