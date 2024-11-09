@@ -1,18 +1,15 @@
+@file:Suppress("unused")
+
 package com.geecee.escape.utils
 
 import android.app.ActivityOptions
 import android.app.usage.UsageStatsManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
-import android.os.Build
-import android.os.UserHandle
-import android.os.UserManager
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import java.time.LocalTime

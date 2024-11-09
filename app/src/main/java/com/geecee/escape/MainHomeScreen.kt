@@ -125,11 +125,7 @@ class MainHomeScreen : ComponentActivity() {
                 composable("setup",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Setup(
-                        packageManager,
-                        mainAppModel.context,
-                        mainAppModel.favoriteAppsManager
-                    ) { navController.navigate("home") }
+                    Setup(mainAppModel) { navController.navigate("home") }
                 }
             }
         }

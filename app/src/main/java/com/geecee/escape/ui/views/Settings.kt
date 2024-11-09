@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -82,6 +83,105 @@ import com.geecee.escape.utils.toggleClock
 import com.geecee.escape.utils.toggleDynamicColour
 import com.geecee.escape.utils.toggleLightTheme
 import com.geecee.escape.utils.toggleSearchBox
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SettingsHeader(goHome: () -> Unit, title: String) {
+    Row(
+        modifier = Modifier
+            .combinedClickable(onClick = { goHome() })
+            .padding(0.dp, 120.dp, 0.dp, 0.dp)
+            .height(70.dp) // Set a fixed height for the header
+    ) {
+        Icon(
+            Icons.AutoMirrored.Rounded.ArrowBack,
+            contentDescription = "Go Back",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(48.dp)
+                .align(Alignment.CenterVertically)
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.primary,
+            style = JostTypography.titleMedium,
+            fontSize = if (title.length > 11) 35.sp else JostTypography.titleMedium.fontSize,
+            modifier = Modifier.align(Alignment.CenterVertically)
+        )
+    }
+}
+
+@Composable
+fun SettingsSwitch(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    var isChecked by remember { mutableStateOf(checked) }
+
+    Box(Modifier.fillMaxWidth()) {
+        Text(
+            label,
+            Modifier.padding(0.dp, 15.dp),
+            color = MaterialTheme.colorScheme.primary,
+            style = JostTypography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        Switch(
+            checked = isChecked,
+            onCheckedChange = {
+                isChecked = !isChecked
+                onCheckedChange(isChecked)
+            },
+            Modifier.align(Alignment.CenterEnd)
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SettingsNavigationItem(
+    label: String,
+    diagonalArrow: Boolean?,
+    onClick: () -> Unit
+) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick)
+    ) {
+        Text(
+            label,
+            Modifier.padding(0.dp, 15.dp),
+            color = MaterialTheme.colorScheme.primary,
+            style = JostTypography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        if (!diagonalArrow!!) {
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize(),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        } else {
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                "",
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .rotate(-45f),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
 
 @Composable
 fun Settings(
@@ -152,287 +252,65 @@ fun MainSettingsPage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .combinedClickable(onClick = {
-                    goHome()
-                })
-                .padding(0.dp, 120.dp, 0.dp, 0.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.settings),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium,
-            )
-        }
-
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.light_theme),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getLightTheme(mainAppModel.context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleLightTheme(checked, mainAppModel.context, activity)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.search_box),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getSearchBox(mainAppModel.context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleSearchBox(checked, mainAppModel.context)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.auto_open),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getAutoOpen(mainAppModel.context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleAutoOpen(mainAppModel.context, checked)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
+        SettingsHeader(goHome, stringResource(R.string.settings))
+        SettingsSwitch(
+            label = stringResource(id = R.string.light_theme),
+            checked = getLightTheme(mainAppModel.context),
+            onCheckedChange = { toggleLightTheme(it, mainAppModel.context, activity) }
+        )
+        SettingsSwitch(
+            label = stringResource(id = R.string.search_box),
+            checked = getSearchBox(mainAppModel.context),
+            onCheckedChange = { toggleSearchBox(it, mainAppModel.context) }
+        )
+        SettingsSwitch(
+            label = stringResource(id = R.string.auto_open),
+            checked = getAutoOpen(mainAppModel.context),
+            onCheckedChange = { toggleAutoOpen(mainAppModel.context, it) }
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Box(Modifier.fillMaxWidth()) {
-                Text(
-                    stringResource(id = R.string.dynamic_colour),
-                    Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                var checked by remember { mutableStateOf(true) }
-                checked = getDynamicColour(mainAppModel.context)
-
-                Switch(
-                    checked = checked, onCheckedChange = {
-                        checked = it
-                        toggleDynamicColour(mainAppModel.context, checked, activity)
-                    }, Modifier.align(Alignment.CenterEnd)
-                )
-            }
-        }
-
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.show_clock),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getClock(mainAppModel.context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleClock(mainAppModel.context, checked)
-                }, Modifier.align(Alignment.CenterEnd)
+            SettingsSwitch(
+                label = stringResource(id = R.string.dynamic_colour),
+                checked = getDynamicColour(mainAppModel.context),
+                onCheckedChange = { toggleDynamicColour(mainAppModel.context, it, activity) }
             )
         }
+        SettingsSwitch(
+            label = stringResource(id = R.string.show_clock),
+            checked = getClock(mainAppModel.context),
+            onCheckedChange = { toggleClock(mainAppModel.context, it) }
+        )
+        SettingsSwitch(
+            label = stringResource(id = R.string.big_clock),
+            checked = getBigClock(mainAppModel.context),
+            onCheckedChange = { toggleBigClock(mainAppModel.context, it) }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.alignments),
+            false,
+            onClick = { navController.navigate("alignmentOptions") }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.manage_hidden_apps),
+            false,
+            onClick = { navController.navigate("hiddenApps") }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.manage_open_challenges),
+            false,
+            onClick = { navController.navigate("openChallenges") }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.choose_font),     false,
 
-        Box(Modifier.fillMaxWidth()) {
-            Text(
-                stringResource(id = R.string.big_clock),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            var checked by remember { mutableStateOf(true) }
-            checked = getBigClock(mainAppModel.context)
-
-            Switch(
-                checked = checked, onCheckedChange = {
-                    checked = it
-                    toggleBigClock(mainAppModel.context, checked)
-                }, Modifier.align(Alignment.CenterEnd)
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("alignmentOptions")
-                })
-        ) {
-            Text(
-                stringResource(id = R.string.alignments),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("hiddenApps")
-                })
-        ) {
-            Text(
-                stringResource(id = R.string.manage_hidden_apps),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("openChallenges")
-                })
-        ) {
-            Text(
-                stringResource(id = R.string.manage_open_challenges),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    navController.navigate("chooseFont")
-                })
-        ) {
-            Text(
-                stringResource(id = R.string.choose_font),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {
-                    changeLauncher(mainAppModel.context)
-                })
-        ) {
-            Text(
-                stringResource(id = R.string.make_default_launcher),
-                Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-
-            Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                "",
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .rotate(-45f),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-
+            onClick = { navController.navigate("chooseFont") }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.make_default_launcher),
+            true,
+            onClick = { changeLauncher(mainAppModel.context) }
+        )
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
-
         Text(
             stringResource(id = R.string.escape_launcher) + " " + stringResource(id = R.string.app_version),
             Modifier
@@ -447,7 +325,6 @@ fun MainSettingsPage(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlignmentOptions(context: Context, goBack: () -> Unit) {
     Column(
@@ -457,33 +334,15 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .combinedClickable(onClick = {
-                    goBack()
-                })
-                .padding(0.dp, 120.dp, 0.dp, 0.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.alignments),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall,
-            )
-        }
+        SettingsHeader(goBack, stringResource(R.string.alignments))
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 15.dp)
+        ) {
             Text(
                 stringResource(id = R.string.home),
                 Modifier
@@ -499,7 +358,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     getHomeAlignment(context)
                 )
             }
-            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            val options = listOf(
+                stringResource(R.string.left),
+                stringResource(R.string.center),
+                stringResource(R.string.right)
+            )
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
@@ -524,13 +387,21 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             }
         }
 
-        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 15.dp)
+        ) {
             var selectedIndex by remember {
                 androidx.compose.runtime.mutableIntStateOf(
                     getHomeVAlignment(context)
                 )
             }
-            val options = listOf(stringResource(R.string.top), stringResource(R.string.center), stringResource(R.string.bottom))
+            val options = listOf(
+                stringResource(R.string.top),
+                stringResource(R.string.center),
+                stringResource(R.string.bottom)
+            )
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
@@ -555,7 +426,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             }
         }
 
-        Box(Modifier.fillMaxWidth().padding(0.dp, 15.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 15.dp)
+        ) {
             Text(
                 stringResource(id = R.string.apps),
                 Modifier
@@ -571,7 +446,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     getAppsAlignment(context)
                 )
             }
-            val options = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+            val options = listOf(
+                stringResource(R.string.left),
+                stringResource(R.string.center),
+                stringResource(R.string.right)
+            )
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
@@ -611,29 +490,7 @@ fun HiddenApps(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .combinedClickable(onClick = {
-                    goBack()
-                })
-                .padding(0.dp, 120.dp, 0.dp, 0.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.hidden_apps),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall,
-            )
-        }
+        SettingsHeader(goBack, stringResource(R.string.hidden_apps))
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
@@ -647,11 +504,14 @@ fun HiddenApps(
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent =
+                                mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context,
+                                    R.anim.slide_in_bottom,
+                                    R.anim.slide_out_top
                                 )
                                 mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
@@ -689,7 +549,8 @@ fun OpenChallenges(
     mainAppModel: MainAppModel,
     goBack: () -> Unit
 ) {
-    val challengeApps = remember { mutableStateOf(mainAppModel.challengesManager.getChallengeApps()) }
+    val challengeApps =
+        remember { mutableStateOf(mainAppModel.challengesManager.getChallengeApps()) }
     val haptics = LocalHapticFeedback.current
 
     Column(
@@ -699,30 +560,7 @@ fun OpenChallenges(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .combinedClickable(onClick = {
-                    goBack()
-                })
-                .padding(0.dp, 120.dp, 0.dp, 0.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.open_challenges),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall,
-                fontSize = 40.sp
-            )
-        }
+        SettingsHeader(goBack, stringResource(R.string.open_challenges))
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
@@ -733,11 +571,14 @@ fun OpenChallenges(
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
-                            val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(app)
+                            val launchIntent =
+                                mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeCustomAnimation(
-                                    mainAppModel.context, R.anim.slide_in_bottom, R.anim.slide_out_top
+                                    mainAppModel.context,
+                                    R.anim.slide_in_bottom,
+                                    R.anim.slide_out_top
                                 )
                                 mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
@@ -779,29 +620,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .combinedClickable(onClick = {
-                    goBack()
-                })
-                .padding(0.dp, 120.dp, 0.dp, 0.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = stringResource(id = R.string.choose_font),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall,
-            )
-        }
+        SettingsHeader(goBack, stringResource(R.string.font))
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
@@ -848,7 +667,6 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DevOptions(context: Context, goBack: () -> Unit) {
     Column(
@@ -859,27 +677,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .padding(0.dp, 120.dp, 0.dp, 0.dp)
     ) {
-        Row(
-            modifier = Modifier.combinedClickable(onClick = {
-                goBack()
-            })
-        ) {
-            Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Go Back",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(48.dp)
-                    .fillMaxSize()
-                    .align(Alignment.CenterVertically)
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = "Dev Options",
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleSmall
-            )
-        }
+        SettingsHeader(goBack, "Developer Options")
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 

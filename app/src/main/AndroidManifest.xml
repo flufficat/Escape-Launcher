@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES"/>
     <uses-permission android:name="android.permission.MANAGE_USERS"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.MODIFY_QUIET_MODE"
+        tools:ignore="ProtectedPermissions" />
 
 
 
@@ -28,7 +30,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.Escape"
         android:enableOnBackInvokedCallback="true"
-        tools:targetApi="31">
+        tools:targetApi="tiramisu">
 
         <activity
             android:name=".MainHomeScreen"

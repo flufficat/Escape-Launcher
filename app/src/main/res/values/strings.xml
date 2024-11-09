@@ -43,6 +43,7 @@
     <string name="big_clock">Big Clock</string>
     <string name="home">Home</string>
     <string name="apps">Apps</string>
+    <string name="font">Font</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

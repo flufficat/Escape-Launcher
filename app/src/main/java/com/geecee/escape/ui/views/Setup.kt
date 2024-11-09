@@ -36,21 +36,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.utils.FavoriteAppsManager
+import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Setup(
-    packageManager: PackageManager,
-    context: Context,
-    favoriteAppsManager: FavoriteAppsManager,
+    mainAppModel: MainAppModel,
     goHome: () -> Unit
 ) {
     val navController = rememberNavController()
     fun getInstalledApps(): List<android.content.pm.ResolveInfo> {
-        return packageManager.queryIntentActivities(
+        return mainAppModel.packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
             PackageManager.GET_ACTIVITIES
         )
@@ -60,21 +58,21 @@ fun Setup(
     fun updateFavoriteStatus(packageName: String, isFavorite: Boolean) {
         installedApps.value = getInstalledApps() // Refresh the list
         if (isFavorite) {
-            favoriteAppsManager.addFavoriteApp(packageName)
+            mainAppModel.favoriteAppsManager.addFavoriteApp(packageName)
         } else {
-            favoriteAppsManager.removeFavoriteApp(packageName)
+            mainAppModel.favoriteAppsManager.removeFavoriteApp(packageName)
         }
     }
 
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
+    val sharedPreferencesSettings: SharedPreferences = mainAppModel.context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val favoritedApps = installedApps.value.filter { appInfo ->
-        favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName)
-    }.sortedBy { it.loadLabel(packageManager).toString() }
+        mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName)
+    }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
     val nonFavoritedApps = installedApps.value.filter { appInfo ->
-        !favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
-    }.sortedBy { it.loadLabel(packageManager).toString() }
+        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
+    }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
 
     val startDestination: String =
         if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True") {
@@ -135,11 +133,11 @@ fun Setup(
                     Column {
                         favoritedApps.forEach { appInfo ->
                             Text(
-                                appInfo.loadLabel(packageManager).toString(),
+                                appInfo.loadLabel(mainAppModel.packageManager).toString(),
                                 modifier = Modifier
                                     .padding(0.dp, 15.dp)
                                     .combinedClickable(onClick = {
-                                        favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
+                                        mainAppModel.favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
                                         updateFavoriteStatus(
                                             appInfo.activityInfo.packageName, false
                                         )
@@ -158,11 +156,11 @@ fun Setup(
                     Column {
                         nonFavoritedApps.forEach { appInfo ->
                             Text(
-                                appInfo.loadLabel(packageManager).toString(),
+                                appInfo.loadLabel(mainAppModel.packageManager).toString(),
                                 modifier = Modifier
                                     .padding(0.dp, 15.dp)
                                     .combinedClickable(onClick = {
-                                        favoriteAppsManager.addFavoriteApp(appInfo.activityInfo.packageName)
+                                        mainAppModel.favoriteAppsManager.addFavoriteApp(appInfo.activityInfo.packageName)
                                         updateFavoriteStatus(appInfo.activityInfo.packageName, true)
                                     }),
                                 color = MaterialTheme.colorScheme.primary,
@@ -208,7 +206,7 @@ fun Setup(
                     Button(
                         onClick = {
                             val intent = Intent(android.provider.Settings.ACTION_HOME_SETTINGS)
-                            context.startActivity(intent)
+                            mainAppModel.context.startActivity(intent)
                         },
                         modifier = Modifier.padding(0.dp, 16.dp)
                     ) {
@@ -221,7 +219,7 @@ fun Setup(
                     Button(
                         onClick = {
                             val intent = Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS)
-                            context.startActivity(intent)
+                            mainAppModel.context.startActivity(intent)
                         },
                         modifier = Modifier.padding(0.dp, 16.dp)
                     ) {

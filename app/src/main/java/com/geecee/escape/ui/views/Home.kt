@@ -232,10 +232,14 @@ fun SwipeableHome(
                             .padding(0.dp, 10.dp)
                             .combinedClickable(onClick = {
                                 if (isCurrentAppFavorite.value) {
-                                    mainAppModel.favoriteAppsManager.removeFavoriteApp(currentPackageName.value)
+                                    mainAppModel.favoriteAppsManager.removeFavoriteApp(
+                                        currentPackageName.value
+                                    )
                                     isCurrentAppFavorite.value = false
                                 } else {
-                                    mainAppModel.favoriteAppsManager.addFavoriteApp(currentPackageName.value)
+                                    mainAppModel.favoriteAppsManager.addFavoriteApp(
+                                        currentPackageName.value
+                                    )
                                     isCurrentAppFavorite.value = true
                                 }
                                 updateFavorites(mainAppModel, favoriteApps)
@@ -249,7 +253,9 @@ fun SwipeableHome(
                             Modifier
                                 .padding(0.dp, 10.dp)
                                 .combinedClickable(onClick = {
-                                    mainAppModel.challengesManager.addChallengeApp(currentPackageName.value)
+                                    mainAppModel.challengesManager.addChallengeApp(
+                                        currentPackageName.value
+                                    )
                                     showBottomSheet.value = false
                                     isCurrentAppChallenge.value = true
                                 }),
@@ -386,23 +392,7 @@ fun AppsList(
         }
     val scrollState = rememberLazyListState()
     val searchText = remember { mutableStateOf("") }
-    val expanded = remember { mutableStateOf(false) }
-
-//    var isPrivateSpaceVisible by remember { mutableStateOf(false) }
-//
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//        Button(onClick = {
-//            val privateUserHandle = getPrivateUserHandle(context)
-//            if (isPrivateSpaceVisible) {
-//                unlockPrivateSpace(context, privateUserHandle!!)
-//            } else {
-//                lockPrivateSpace(context, privateUserHandle!!)
-//            }
-//            isPrivateSpaceVisible = !isPrivateSpaceVisible
-//        }) {
-//            Text(if (isPrivateSpaceVisible) "Hide Private Space" else "Show Private Space")
-//        }
-//    }
+    val searchExpanded = remember { mutableStateOf(false) }
 
     Box(
         Modifier
@@ -471,7 +461,7 @@ fun AppsList(
                                         delay(200)
                                         pagerState.animateScrollToPage(0)
                                         scrollState.scrollToItem(0)
-                                        expanded.value = false
+                                        searchExpanded.value = false
                                         searchText.value = ""
                                     }
 
@@ -507,12 +497,12 @@ fun AppsList(
                                     delay(200)
                                     pagerState.animateScrollToPage(0)
                                     scrollState.scrollToItem(0)
-                                    expanded.value = false
+                                    searchExpanded.value = false
                                     searchText.value = ""
                                 }
                             }
                         },
-                        expanded
+                        searchExpanded
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
@@ -521,7 +511,8 @@ fun AppsList(
             items(sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
                 appName.contains(searchText.value, ignoreCase = true)
-            }) { app ->
+            })
+            { app ->
                 if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
@@ -537,7 +528,7 @@ fun AppsList(
                         showBottomSheet = showBottomSheet,
                         showOpenChallenge = showOpenChallenge,
                         lazyListState = scrollState,
-                        searchExpanded = expanded,
+                        searchExpanded = searchExpanded,
                         searchText = searchText,
                         pagerState = pagerState
                     )
@@ -547,6 +538,25 @@ fun AppsList(
             item {
                 Spacer(modifier = Modifier.height(90.dp))
             }
+
+            //TODO: Private space
+//            item {
+//                val isPrivateSpaceVisible by remember { mutableStateOf(false) }
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                    Button(onClick = {
+//                        if(isPrivateSpace(mainAppModel.context)) {
+//                            // Hide private space
+//                            lockPrivateSpace(mainAppModel.context)
+//                        } else {
+//                            // Show private space
+//                            unlockPrivateSpace(mainAppModel.context)
+//                        }
+//                    }) {
+//                        Text(if (isPrivateSpaceVisible) "Hide Private Space" else "Show Private Space")
+//                    }
+//                }
+//            }
         }
     }
 }
@@ -606,11 +616,12 @@ fun AppsListItem(
                                 app.activityInfo.packageName
                             )
                         currentPackageName.value = app.activityInfo.packageName
-                        isCurrentAppChallenged.value = mainAppModel.challengesManager.doesAppHaveChallenge(
+                        isCurrentAppChallenged.value =
+                            mainAppModel.challengesManager.doesAppHaveChallenge(
 
-                            app.activityInfo.packageName
+                                app.activityInfo.packageName
 
-                        )
+                            )
                         isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
 
                             app.activityInfo.packageName
