@@ -1,3 +1,5 @@
+![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/newBanner.png)
+
 <div align="center">
   
 <h1 align="center">
