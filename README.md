@@ -22,6 +22,8 @@ To build escape just clone the repo, open it in android studio and run with shif
   Contributing
 </h3>
 
-If you would like to contribute clone the repo and make your changes and then create a pull request, we'll get on it as fast as we can! In the projects section you can see a a roadmap with plans for the launcher.
+If you would like to contribute clone the repo and make your changes and then create a pull request, we'll get on it as fast as we can! In the projects section you can see a a roadmap with plans for the launcher.  
+
+To build the project you will need to create a local.propeties in the project route with the sdk location in it. You will also need to add the google-services.json file or remove firebase manually.
 
 </div>
