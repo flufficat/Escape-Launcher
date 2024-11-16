@@ -1,4 +1,10 @@
 ![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/banner.png)
 
-## What is escape?
-Escape is a minimalist android launcher for android 8.1 and higher. It's features include a simple list of apps that can be pinned to the main home screen, a customisable widget spot, customisable fonts and more.
+<div align="center">
+  
+<h1 align="center">
+  Welcome to Escape
+</h1>
+
+Escape is a minimalist android launcher for android 8.1 and higher. It has a simple list of apps on the home screen 
+</div>
