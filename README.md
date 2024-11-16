@@ -1,5 +1,3 @@
-![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/banner.png)
-
 <div align="center">
   
 <h1 align="center">
