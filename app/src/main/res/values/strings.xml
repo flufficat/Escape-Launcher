@@ -44,6 +44,12 @@
     <string name="home">Home</string>
     <string name="apps">Apps</string>
     <string name="font">Font</string>
+    <string name="pitch_black">Pitch black</string>
+    <string name="theme">Theme</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="material_dark">Material Dark</string>
+    <string name="material_light">Material Light</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

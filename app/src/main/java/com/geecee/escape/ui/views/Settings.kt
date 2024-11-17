@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -36,6 +40,8 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -56,9 +63,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
+import com.geecee.escape.ui.theme.DarkColorScheme
 import com.geecee.escape.ui.theme.InterTypography
 import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.ui.theme.LexendTypography
+import com.geecee.escape.ui.theme.LightColorScheme
+import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.WorkTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.changeAppsAlignment
@@ -66,22 +76,19 @@ import com.geecee.escape.utils.changeFont
 import com.geecee.escape.utils.changeHomeAlignment
 import com.geecee.escape.utils.changeHomeVAlignment
 import com.geecee.escape.utils.changeLauncher
+import com.geecee.escape.utils.changeTheme
 import com.geecee.escape.utils.getAppsAlignment
 import com.geecee.escape.utils.getAutoOpen
 import com.geecee.escape.utils.getBigClock
 import com.geecee.escape.utils.getClock
-import com.geecee.escape.utils.getDynamicColour
 import com.geecee.escape.utils.getFirstTime
 import com.geecee.escape.utils.getHomeAlignment
 import com.geecee.escape.utils.getHomeVAlignment
-import com.geecee.escape.utils.getLightTheme
 import com.geecee.escape.utils.getSearchBox
 import com.geecee.escape.utils.resetFirstTime
 import com.geecee.escape.utils.toggleAutoOpen
 import com.geecee.escape.utils.toggleBigClock
 import com.geecee.escape.utils.toggleClock
-import com.geecee.escape.utils.toggleDynamicColour
-import com.geecee.escape.utils.toggleLightTheme
 import com.geecee.escape.utils.toggleSearchBox
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -202,7 +209,7 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() }, navController, mainAppModel, activity)
+                MainSettingsPage({ goHome() }, navController, mainAppModel)
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
@@ -233,6 +240,11 @@ fun Settings(
                 exitTransition = { fadeOut(tween(300)) }) {
                 DevOptions(context = mainAppModel.context) { navController.popBackStack() }
             }
+            composable("theme",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                ThemeOptions(mainAppModel.context, activity) { navController.popBackStack() }
+            }
         }
     }
 }
@@ -242,8 +254,7 @@ fun Settings(
 fun MainSettingsPage(
     goHome: () -> Unit,
     navController: NavController,
-    mainAppModel: MainAppModel,
-    activity: Activity
+    mainAppModel: MainAppModel
 ) {
     Column(
         verticalArrangement = Arrangement.Top,
@@ -254,11 +265,6 @@ fun MainSettingsPage(
     ) {
         SettingsHeader(goHome, stringResource(R.string.settings))
         SettingsSwitch(
-            label = stringResource(id = R.string.light_theme),
-            checked = getLightTheme(mainAppModel.context),
-            onCheckedChange = { toggleLightTheme(it, mainAppModel.context, activity) }
-        )
-        SettingsSwitch(
             label = stringResource(id = R.string.search_box),
             checked = getSearchBox(mainAppModel.context),
             onCheckedChange = { toggleSearchBox(it, mainAppModel.context) }
@@ -268,13 +274,6 @@ fun MainSettingsPage(
             checked = getAutoOpen(mainAppModel.context),
             onCheckedChange = { toggleAutoOpen(mainAppModel.context, it) }
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            SettingsSwitch(
-                label = stringResource(id = R.string.dynamic_colour),
-                checked = getDynamicColour(mainAppModel.context),
-                onCheckedChange = { toggleDynamicColour(mainAppModel.context, it, activity) }
-            )
-        }
         SettingsSwitch(
             label = stringResource(id = R.string.show_clock),
             checked = getClock(mainAppModel.context),
@@ -284,6 +283,11 @@ fun MainSettingsPage(
             label = stringResource(id = R.string.big_clock),
             checked = getBigClock(mainAppModel.context),
             onCheckedChange = { toggleBigClock(mainAppModel.context, it) }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.theme),
+            false,
+            onClick = { navController.navigate("theme") }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.alignments),
@@ -301,7 +305,7 @@ fun MainSettingsPage(
             onClick = { navController.navigate("openChallenges") }
         )
         SettingsNavigationItem(
-            label = stringResource(id = R.string.choose_font),     false,
+            label = stringResource(id = R.string.choose_font), false,
 
             onClick = { navController.navigate("chooseFont") }
         )
@@ -471,6 +475,154 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     ) {
                         Text(label)
                     }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ThemeCard(
+    theme: Int, context: Context,
+    activity: Activity
+) {
+    Box(
+        Modifier
+            .size(120.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondary)
+            .clickable {
+                changeTheme(theme, context, activity)
+            }
+    ) {
+        Box(
+            Modifier
+                .padding(10.dp)
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp))
+                .background(
+                    when (theme) {
+                        0 ->
+                            DarkColorScheme.background
+
+                        1 ->
+                            LightColorScheme.background
+
+                        2 ->
+                            PitchDarkColorScheme.background
+
+                        3 ->
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                dynamicDarkColorScheme(context).background
+                            } else {
+                                DarkColorScheme.background
+                            }
+
+                        4 ->
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                dynamicLightColorScheme(context).background
+                            } else {
+                                LightColorScheme.background
+                            }
+
+                        else ->
+                            DarkColorScheme.background
+                    }
+                )
+        ) {
+            Text(
+                when (theme) {
+                    0 ->
+                        stringResource(R.string.dark)
+
+                    1 ->
+                        stringResource(R.string.light)
+
+                    2 ->
+                        stringResource(R.string.pitch_black)
+
+                    3 ->
+                        stringResource(R.string.material_dark)
+
+                    4 ->
+                        stringResource(R.string.material_light)
+
+                    else ->
+                        stringResource(R.string.theme)
+                },
+                Modifier
+                    .align(Alignment.Center)
+                    .padding(5.dp),
+                when (theme) {
+                    0 ->
+                        DarkColorScheme.primary
+
+                    1 ->
+                        LightColorScheme.primary
+
+                    2 ->
+                        PitchDarkColorScheme.primary
+
+                    3 ->
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            dynamicDarkColorScheme(context).primary
+                        } else {
+                            DarkColorScheme.primary
+                        }
+
+                    4 ->
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            dynamicLightColorScheme(context).primary
+                        } else {
+                            LightColorScheme.primary
+                        }
+
+                    else ->
+                        DarkColorScheme.primary
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun ThemeOptions(
+    context: Context,
+    activity: Activity,
+    goBack: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        SettingsHeader(goBack, stringResource(R.string.theme))
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        LazyVerticalGrid(
+            GridCells.Adaptive(minSize = 128.dp)
+        ) {
+            item {
+                ThemeCard(0, context, activity)
+            }
+            item {
+                ThemeCard(1, context, activity)
+            }
+            item {
+                ThemeCard(2, context, activity)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                item {
+                    ThemeCard(3, context, activity)
+                }
+                item {
+                    ThemeCard(4, context, activity)
                 }
             }
         }
@@ -675,7 +827,6 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(0.dp, 120.dp, 0.dp, 0.dp)
     ) {
         SettingsHeader(goBack, "Developer Options")
 

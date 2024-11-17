@@ -3,6 +3,7 @@ package com.geecee.escape.ui.theme
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -14,14 +15,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.intl.Locale
 import com.geecee.escape.R
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     primary = primary,
     secondary = secondary,
     background = background,
     onPrimary = secondary,
 )
 
-private val LightColorScheme = lightColorScheme(
+val PitchDarkColorScheme = darkColorScheme(
+    primary = primary,
+    secondary = secondary,
+    background = pitchBlackBackground,
+    onPrimary = secondary,
+)
+
+val LightColorScheme = lightColorScheme(
     primary = lightPrimary,
     secondary = lightSecondary,
     background = lightBackground,
@@ -35,7 +43,7 @@ fun EscapeTheme(
     val type: Typography
     Locale.current
     val context = LocalContext.current
-    var colorScheme = DarkColorScheme
+    val colorScheme: ColorScheme
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -45,30 +53,47 @@ fun EscapeTheme(
     } else if (sharedPreferencesSettings.getString("font", "jost") == "lexend") {
         LexendTypography
     } else if (sharedPreferencesSettings.getString("font", "jost") == "inter") {
-        InterTypography }
-    else if (sharedPreferencesSettings.getString("font", "jost") == "work") {
+        InterTypography
+    } else if (sharedPreferencesSettings.getString("font", "jost") == "work") {
         WorkTypography
     } else {
         JostTypography
     }
 
+    when (sharedPreferencesSettings.getInt("Theme", 0)) {
+        0 -> {
+            colorScheme = DarkColorScheme
+        }
 
-    if (sharedPreferencesSettings.getString("LightMode", "False") == "True") {
-        colorScheme = LightColorScheme
-    }
-    if (sharedPreferencesSettings.getString("DynamicColour", "False") == "True") {
-        colorScheme = if (sharedPreferencesSettings.getString("LightMode", "False") == "True") {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicLightColorScheme(context)
-            } else {
-                LightColorScheme
-            }
-        } else {
+        1 -> {
+            colorScheme = LightColorScheme
+        }
+
+        2 -> {
+            colorScheme = PitchDarkColorScheme
+        }
+
+        3 -> {
+            colorScheme =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 dynamicDarkColorScheme(context)
             } else {
                 DarkColorScheme
             }
+        }
+
+        4 -> {
+            colorScheme =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                dynamicLightColorScheme(context)
+            } else {
+                lightColorScheme()
+            }
+
+        }
+
+        else -> {
+            colorScheme = DarkColorScheme
         }
     }
 

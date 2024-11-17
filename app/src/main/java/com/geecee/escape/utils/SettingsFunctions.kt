@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
-import androidx.core.content.ContextCompat.startActivity
 import com.geecee.escape.MainHomeScreen
 import com.geecee.escape.R
 
@@ -15,17 +14,13 @@ fun changeLauncher(context: Context) {
     context.startActivity(intent)
 }
 
-fun toggleLightTheme(shouldTurnOn: Boolean, context: Context, activity: Activity) {
+fun changeTheme(theme: Int, context: Context, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    if (shouldTurnOn) {
-        editor.putString("LightMode", "True")
-    } else {
-        editor.putString("LightMode", "False")
-    }
+    editor.putInt("Theme", theme)
 
     editor.apply()
 
@@ -35,13 +30,6 @@ fun toggleLightTheme(shouldTurnOn: Boolean, context: Context, activity: Activity
     activity.finish()
 }
 
-fun getLightTheme(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("LightMode", "False") == "True"
-}
 
 fun toggleSearchBox(shouldTurnOn: Boolean, context: Context) {
     val sharedPreferences = context.getSharedPreferences(
@@ -166,7 +154,7 @@ fun changeFont(context: Context, activity: Activity, font: String) {
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     editor.putString(
-        "font",font
+        "font", font
     )
 
     editor.apply()
@@ -198,34 +186,6 @@ fun toggleAutoOpen(context: Context, shouldTurnOn: Boolean) {
     }
 
     editor.apply()
-}
-
-fun getDynamicColour(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("DynamicColour", "False") == "True"
-}
-
-fun toggleDynamicColour(context: Context, shouldTurnOn: Boolean, activity: Activity) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("DynamicColour", "True")
-    } else {
-        editor.putString("DynamicColour", "False")
-    }
-
-    editor.apply()
-
-    val intent = Intent(context, MainHomeScreen::class.java)
-    val options = ActivityOptions.makeBasic()
-    context.startActivity(intent, options.toBundle())
-    activity.finish()
 }
 
 fun getClock(context: Context): Boolean {
