@@ -581,61 +581,74 @@ fun AppsListItem(
     val coroutineScope = rememberCoroutineScope()
 
     if (app != null) {
-
-        Text(
-            AppUtils.getAppNameFromPackageName(mainAppModel.context, app.activityInfo.packageName),
-            modifier = Modifier
-                .padding(vertical = 15.dp)
-                .combinedClickable(
-                    onClick = {
-                        val packageName = app.activityInfo.packageName
-                        currentPackageName.value = packageName
-
-                        AppUtils.openApp(
-                            packageManager = mainAppModel.packageManager,
-                            context = mainAppModel.context,
-                            packageName,
-                            mainAppModel.challengesManager,
-                            false,
-                            showOpenChallenge
-                        )
-
-                        coroutineScope.launch {
-                            delay(200)
-                            pagerState.animateScrollToPage(0)
-                            lazyListState?.scrollToItem(0)
-                            searchExpanded?.value = false
-                            searchText?.value = ""
-                        }
-                    },
-                    onLongClick = {
-                        showBottomSheet.value = true
-                        currentAppName.value =
-                            AppUtils.getAppNameFromPackageName(
-                                mainAppModel.context,
-                                app.activityInfo.packageName
-                            )
-                        currentPackageName.value = app.activityInfo.packageName
-                        isCurrentAppChallenged.value =
-                            mainAppModel.challengesManager.doesAppHaveChallenge(
-
-                                app.activityInfo.packageName
-
-                            )
-                        isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
-
-                            app.activityInfo.packageName
-
-                        )
-                        isCurrentAppFavorite.value = mainAppModel.favoriteAppsManager.isAppFavorite(
-                            app.activityInfo.packageName
-                        )
-
-                    }
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                AppUtils.getAppNameFromPackageName(
+                    mainAppModel.context,
+                    app.activityInfo.packageName
                 ),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium
-        )
+                modifier = Modifier
+                    .padding(vertical = 15.dp)
+                    .combinedClickable(
+                        onClick = {
+                            val packageName = app.activityInfo.packageName
+                            currentPackageName.value = packageName
+
+                            AppUtils.openApp(
+                                packageManager = mainAppModel.packageManager,
+                                context = mainAppModel.context,
+                                packageName,
+                                mainAppModel.challengesManager,
+                                false,
+                                showOpenChallenge
+                            )
+
+                            coroutineScope.launch {
+                                delay(200)
+                                pagerState.animateScrollToPage(0)
+                                lazyListState?.scrollToItem(0)
+                                searchExpanded?.value = false
+                                searchText?.value = ""
+                            }
+                        },
+                        onLongClick = {
+                            showBottomSheet.value = true
+                            currentAppName.value =
+                                AppUtils.getAppNameFromPackageName(
+                                    mainAppModel.context,
+                                    app.activityInfo.packageName
+                                )
+                            currentPackageName.value = app.activityInfo.packageName
+                            isCurrentAppChallenged.value =
+                                mainAppModel.challengesManager.doesAppHaveChallenge(
+
+                                    app.activityInfo.packageName
+
+                                )
+                            isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
+
+                                app.activityInfo.packageName
+
+                            )
+                            isCurrentAppFavorite.value =
+                                mainAppModel.favoriteAppsManager.isAppFavorite(
+                                    app.activityInfo.packageName
+                                )
+
+                        }
+                    ),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+
+            Text(
+                AppUtils.formatScreenTime(AppUtils.getScreenTimeForPackage(mainAppModel.context,app.activityInfo.packageName)),
+                modifier = Modifier.padding(vertical = 15.dp, horizontal = 5.dp).alpha(0.5f),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
 

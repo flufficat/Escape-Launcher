@@ -61,6 +61,16 @@ object AppUtils {
         return totalUsageTime // Return total usage time in milliseconds
     }
 
+    fun formatScreenTime(milliseconds: Long): String {
+        val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
+        return if (hours > 0) {
+            "${hours}h ${minutes}m"
+        } else {
+            "${minutes}m"
+        }
+    }
+
     fun getAllInstalledApps(packageManager: PackageManager): MutableList<ResolveInfo> {
         return packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
