@@ -123,7 +123,7 @@ class MainHomeScreen : ComponentActivity() {
                     FirstTime { navController.navigate("setup") }
                 }
                 composable("setup",
-                    enterTransition = { fadeIn(tween(300)) },
+                    enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Setup(mainAppModel) { navController.navigate("home") }
                 }

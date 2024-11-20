@@ -4,8 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -82,15 +83,9 @@ fun Setup(
         }
 
     NavHost(navController = navController, startDestination = startDestination) {
-        composable("choose_apps", enterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right, tween(300)
-            )
-        }, exitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left, tween(300)
-            )
-        }) {
+        composable("choose_apps",
+            enterTransition = { fadeIn(tween(300)) },
+            exitTransition = { fadeOut(tween(300)) }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -151,7 +146,8 @@ fun Setup(
                     HorizontalDivider(
                         Modifier
                             .fillMaxWidth()
-                            .padding(0.dp, 15.dp))
+                            .padding(0.dp, 15.dp)
+                    )
 
                     Column {
                         nonFavoritedApps.forEach { appInfo ->
@@ -171,15 +167,9 @@ fun Setup(
                 }
             }
         }
-        composable("launcher", enterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right, tween(300)
-            )
-        }, exitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left, tween(300)
-            )
-        }) {
+        composable("launcher",
+            enterTransition = { fadeIn(tween(300)) },
+            exitTransition = { fadeOut(tween(300)) }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -218,13 +208,14 @@ fun Setup(
                     }
                     Button(
                         onClick = {
-                            val intent = Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                            val intent =
+                                Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS)
                             mainAppModel.context.startActivity(intent)
                         },
                         modifier = Modifier.padding(0.dp, 16.dp)
                     ) {
                         Text(
-                            stringResource(id = R.string.set_launcher_button),
+                            stringResource(id = R.string.allow_screen_time),
                             Modifier,
                             color = MaterialTheme.colorScheme.background
                         )
@@ -332,7 +323,8 @@ fun SetupPrev() {
             HorizontalDivider(
                 Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 15.dp))
+                    .padding(0.dp, 15.dp)
+            )
 
             Column {
                 Text(

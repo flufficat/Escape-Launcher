@@ -80,7 +80,6 @@ object AppUtils {
         }
     }
 
-
     fun filterAndSortApps(
         apps: List<ResolveInfo>,
         searchText: String,
