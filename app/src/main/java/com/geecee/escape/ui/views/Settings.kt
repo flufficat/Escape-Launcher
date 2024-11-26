@@ -80,6 +80,7 @@ import com.geecee.escape.utils.changeTheme
 import com.geecee.escape.utils.getAppsAlignment
 import com.geecee.escape.utils.getAutoOpen
 import com.geecee.escape.utils.getBigClock
+import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getClock
 import com.geecee.escape.utils.getFirstTime
 import com.geecee.escape.utils.getHomeAlignment
@@ -88,6 +89,7 @@ import com.geecee.escape.utils.getSearchBox
 import com.geecee.escape.utils.resetFirstTime
 import com.geecee.escape.utils.toggleAutoOpen
 import com.geecee.escape.utils.toggleBigClock
+import com.geecee.escape.utils.toggleBooleanSetting
 import com.geecee.escape.utils.toggleClock
 import com.geecee.escape.utils.toggleSearchBox
 
@@ -283,6 +285,11 @@ fun MainSettingsPage(
             label = stringResource(id = R.string.big_clock),
             checked = getBigClock(mainAppModel.context),
             onCheckedChange = { toggleBigClock(mainAppModel.context, it) }
+        )
+        SettingsSwitch(
+            label = stringResource(id = R.string.screen_time_on_app),
+            checked = getBooleanSetting(mainAppModel.context, "screenTimeOnApp"),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "screenTimeOnApp") }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.theme),

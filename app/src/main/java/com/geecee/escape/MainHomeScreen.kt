@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -30,13 +32,20 @@ import com.geecee.escape.ui.views.SwipeableHome
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.ScreenTimeManager
+import com.geecee.escape.utils.saveAppUsageToDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 data class MainAppModel(
     var context: Context,
     var packageManager: PackageManager,
     var favoriteAppsManager: FavoriteAppsManager,
     var hiddenAppsManager: HiddenAppsManager,
-    var challengesManager: ChallengesManager
+    var challengesManager: ChallengesManager,
+    var isAppOpened: Boolean,
+    var appOpenedTime: Long = 0,
+    var currentPackageName: String? = null
 )
 
 @Suppress("DEPRECATION")
@@ -47,7 +56,35 @@ class MainHomeScreen : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         configureFullScreenMode()
+        ScreenTimeManager.initialize(this)
         setContent { SetUpContent() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        try {
+            if (mainAppModel.isAppOpened) {
+                if (mainAppModel.currentPackageName != null && mainAppModel.appOpenedTime > 0) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val closeTime = System.currentTimeMillis()
+                        val usageTime = closeTime - mainAppModel.appOpenedTime
+
+                        saveAppUsageToDatabase(
+                            mainAppModel.currentPackageName!!,
+                            usageTime,
+                            mainAppModel.context
+                        )
+
+                        mainAppModel.appOpenedTime = 0
+                        mainAppModel.currentPackageName = null
+                    }
+                }
+                mainAppModel.isAppOpened = false
+            }
+        } catch (ex: Exception) {
+            Log.e("ERROR", ex.toString())
+        }
     }
 
     private fun configureFullScreenMode() {
@@ -78,7 +115,8 @@ class MainHomeScreen : ComponentActivity() {
             packageManager = packageManager,
             favoriteAppsManager = FavoriteAppsManager(context),
             hiddenAppsManager = HiddenAppsManager(context),
-            challengesManager = ChallengesManager(context)
+            challengesManager = ChallengesManager(context),
+            false
         )
     }
 

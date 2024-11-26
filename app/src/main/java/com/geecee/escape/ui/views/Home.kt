@@ -79,6 +79,7 @@ import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBigClock
+import com.geecee.escape.utils.getBooleanSetting
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -291,12 +292,10 @@ fun SwipeableHome(
     ) {
         OpenChallenge({
             AppUtils.openApp(
-                mainAppModel.packageManager,
-                mainAppModel.context,
                 currentPackageName.value,
-                mainAppModel.challengesManager,
                 true,
-                null
+                null,
+                mainAppModel
             )
             showOpenChallenge.value = false
         }, {
@@ -449,12 +448,10 @@ fun AppsList(
                                         appInfo.activityInfo.packageName
 
                                     AppUtils.openApp(
-                                        packageManager = mainAppModel.packageManager,
-                                        context = mainAppModel.context,
                                         currentPackageName.value,
-                                        mainAppModel.challengesManager,
                                         false,
-                                        showOpenChallenge
+                                        showOpenChallenge,
+                                        mainAppModel
                                     )
 
                                     coroutineScope.launch {
@@ -485,12 +482,10 @@ fun AppsList(
                                 currentPackageName.value = packageName
 
                                 AppUtils.openApp(
-                                    packageManager = mainAppModel.packageManager,
-                                    context = mainAppModel.context,
                                     currentPackageName.value,
-                                    mainAppModel.challengesManager,
                                     false,
-                                    showOpenChallenge
+                                    showOpenChallenge,
+                                    mainAppModel
                                 )
 
                                 coroutineScope.launch {
@@ -595,12 +590,10 @@ fun AppsListItem(
                             currentPackageName.value = packageName
 
                             AppUtils.openApp(
-                                packageManager = mainAppModel.packageManager,
-                                context = mainAppModel.context,
                                 packageName,
-                                mainAppModel.challengesManager,
                                 false,
-                                showOpenChallenge
+                                showOpenChallenge,
+                                mainAppModel
                             )
 
                             coroutineScope.launch {
@@ -641,13 +634,21 @@ fun AppsListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-
-            Text(
-                AppUtils.formatScreenTime(AppUtils.getScreenTimeForPackage(mainAppModel.context,app.activityInfo.packageName)),
-                modifier = Modifier.padding(vertical = 15.dp, horizontal = 5.dp).alpha(0.5f),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodySmall
-            )
+            if (getBooleanSetting(mainAppModel.context, "screenTimeOnApp")) {
+                Text(
+                    AppUtils.formatScreenTime(
+                        AppUtils.getScreenTimeForPackage(
+                            mainAppModel.context,
+                            app.activityInfo.packageName
+                        )
+                    ),
+                    modifier = Modifier
+                        .padding(vertical = 15.dp, horizontal = 5.dp)
+                        .alpha(0.5f),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

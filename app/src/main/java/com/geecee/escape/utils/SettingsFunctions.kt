@@ -235,6 +235,29 @@ fun toggleBigClock(context: Context, shouldTurnOn: Boolean) {
     editor.apply()
 }
 
+// Generic function for switching any shared preference, todo migrate to this
+fun toggleBooleanSetting(context: Context, shouldTurnOn: Boolean, setting: String) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+
+    if (shouldTurnOn) {
+        editor.putBoolean(setting, true)
+    } else {
+        editor.putBoolean(setting, false)
+    }
+
+    editor.apply()
+}
+
+fun getBooleanSetting(context: Context,setting:String): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return sharedPreferences.getBoolean(setting,false)
+}
 
 // DevOptions
 
