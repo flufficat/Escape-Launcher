@@ -80,8 +80,14 @@ import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBigClock
 import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.getUsageForApp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @OptIn(
@@ -635,13 +641,20 @@ fun AppsListItem(
             )
 
             if (getBooleanSetting(mainAppModel.context, "screenTimeOnApp")) {
-                Text(
-                    AppUtils.formatScreenTime(
-                        AppUtils.getScreenTimeForPackage(
-                            mainAppModel.context,
-                            app.activityInfo.packageName
+                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+
+                // Fetch screen time in a coroutine
+                LaunchedEffect(app.activityInfo.packageName) {
+                    withContext(Dispatchers.IO) {
+                        appScreenTime.longValue = getUsageForApp(
+                            app.activityInfo.packageName,
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         )
-                    ),
+                    }
+                }
+
+                Text(
+                    AppUtils.formatScreenTime(appScreenTime.longValue),
                     modifier = Modifier
                         .padding(vertical = 15.dp, horizontal = 5.dp)
                         .alpha(0.5f),

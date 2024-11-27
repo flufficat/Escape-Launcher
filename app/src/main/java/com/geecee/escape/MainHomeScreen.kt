@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +35,7 @@ import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.ScreenTimeManager
 import com.geecee.escape.utils.saveAppUsageToDatabase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -45,7 +47,8 @@ data class MainAppModel(
     var challengesManager: ChallengesManager,
     var isAppOpened: Boolean,
     var appOpenedTime: Long = 0,
-    var currentPackageName: String? = null
+    var currentPackageName: String? = null,
+    var coroutineScope: CoroutineScope
 )
 
 @Suppress("DEPRECATION")
@@ -57,7 +60,9 @@ class MainHomeScreen : ComponentActivity() {
         enableEdgeToEdge()
         configureFullScreenMode()
         ScreenTimeManager.initialize(this)
+        //ScreenTimeManager.clearOldData()
         setContent { SetUpContent() }
+
     }
 
     override fun onResume() {
@@ -116,7 +121,8 @@ class MainHomeScreen : ComponentActivity() {
             favoriteAppsManager = FavoriteAppsManager(context),
             hiddenAppsManager = HiddenAppsManager(context),
             challengesManager = ChallengesManager(context),
-            false
+            false,
+            coroutineScope = rememberCoroutineScope()
         )
     }
 

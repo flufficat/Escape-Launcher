@@ -13,12 +13,18 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 object ScreenTimeManager {
     private val appSessions = mutableMapOf<String, Long>() // In-memory tracking of app open times
@@ -28,6 +34,10 @@ object ScreenTimeManager {
 
     fun initialize(context: Context) {
         database = AppDatabase.getDatabase(context)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            clearOldData()
+        }
     }
 
     // Called when an app is opened
@@ -47,21 +57,34 @@ object ScreenTimeManager {
         val updatedTime = (existingUsage?.totalTime ?: 0L) + usageTime
 
         // Update or insert the usage data
-        dao.insertOrUpdate(AppUsageEntity(packageName = packageName, totalTime = updatedTime, date = currentDate))
+        dao.insertOrUpdate(
+            AppUsageEntity(
+                packageName = packageName,
+                totalTime = updatedTime,
+                date = currentDate
+            )
+        )
 
         // Remove the app from in-memory tracking
         appSessions.remove(packageName)
     }
 
-    // Clear old data (e.g., at midnight)
-    fun clearOldData() {
-        val currentDate = getCurrentDate()
-        database.appUsageDao().clearOldData(currentDate)
-    }
-
     private fun getCurrentDate(): String {
         return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     }
+
+    fun clearOldData() {
+        val currentDate = getCurrentDate()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                database.appUsageDao().clearOldData(currentDate)
+            } catch (e: Exception) {
+                Log.e("ScreenTimeManager", "Error clearing old data: ${e.message}")
+            }
+        }
+    }
+
 }
 
 @Entity(tableName = "app_usage")
@@ -94,7 +117,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appUsageDao(): AppUsageDao
 
     companion object {
-        @Volatile private var INSTANCE: AppDatabase? = null
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -126,7 +150,6 @@ fun getUsageForAppWithoutDate(packageName: String): Long {
     return dao.getAppUsageWithoutDate(packageName)?.totalTime ?: 0L
 }
 
-
 fun saveAppUsageToDatabase(packageName: String, usageTime: Long, context: Context) {
     val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     val dao = AppDatabase.getDatabase(context).appUsageDao()
@@ -140,9 +163,49 @@ fun saveAppUsageToDatabase(packageName: String, usageTime: Long, context: Contex
             val updatedTime = (existingUsage?.totalTime ?: 0L) + usageTime
 
             // Create or update the usage data in the database
-            dao.insertOrUpdate(AppUsageEntity(packageName = packageName, totalTime = updatedTime, date = date))
+            dao.insertOrUpdate(
+                AppUsageEntity(
+                    packageName = packageName,
+                    totalTime = updatedTime,
+                    date = date
+                )
+            )
         } catch (e: Exception) {
             Log.e("ScreenTimeManager", "Error saving app usage: ${e.message}")
         }
     }
+}
+
+class ClearOldDataWorker(appContext: Context, workerParams: WorkerParameters) :
+    CoroutineWorker(appContext, workerParams) {
+    override suspend fun doWork(): Result {
+        return try {
+            ScreenTimeManager.clearOldData() // Clear old data using a coroutine-friendly method
+            Result.success()
+        } catch (e: Exception) {
+            Log.e("ClearOldDataWorker", "Error clearing old data: ${e.message}")
+            Result.failure()
+        }
+    }
+}
+
+private fun calculateMidnightDelay(): Long {
+    val now = System.currentTimeMillis()
+    val tomorrowMidnight = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        .parse(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now + 24 * 60 * 60 * 1000)))!!
+        .time
+    return tomorrowMidnight - now
+}
+
+
+fun scheduleDailyCleanup(context: Context) {
+    val workRequest = PeriodicWorkRequestBuilder<ClearOldDataWorker>(1, TimeUnit.DAYS)
+        .setInitialDelay(calculateMidnightDelay(), TimeUnit.MILLISECONDS)
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "ClearOldDataWorker",
+        ExistingPeriodicWorkPolicy.UPDATE,
+        workRequest
+    )
 }
