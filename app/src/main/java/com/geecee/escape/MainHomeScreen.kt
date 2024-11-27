@@ -34,11 +34,11 @@ import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.ScreenTimeManager
-import com.geecee.escape.utils.saveAppUsageToDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+// A class to send data around the app more easily
 data class MainAppModel(
     var context: Context,
     var packageManager: PackageManager,
@@ -46,7 +46,6 @@ data class MainAppModel(
     var hiddenAppsManager: HiddenAppsManager,
     var challengesManager: ChallengesManager,
     var isAppOpened: Boolean,
-    var appOpenedTime: Long = 0,
     var currentPackageName: String? = null,
     var coroutineScope: CoroutineScope
 )
@@ -60,38 +59,37 @@ class MainHomeScreen : ComponentActivity() {
         enableEdgeToEdge()
         configureFullScreenMode()
         ScreenTimeManager.initialize(this)
-        //ScreenTimeManager.clearOldData()
         setContent { SetUpContent() }
-
     }
 
     override fun onResume() {
         super.onResume()
 
         try {
+
+            // Update screen time on app when you come home
             if (mainAppModel.isAppOpened) {
-                if (mainAppModel.currentPackageName != null && mainAppModel.appOpenedTime > 0) {
+                if (mainAppModel.currentPackageName != null) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        val closeTime = System.currentTimeMillis()
-                        val usageTime = closeTime - mainAppModel.appOpenedTime
+                        ScreenTimeManager.onAppClosed(mainAppModel.currentPackageName!!)
 
-                        saveAppUsageToDatabase(
-                            mainAppModel.currentPackageName!!,
-                            usageTime,
-                            mainAppModel.context
-                        )
-
-                        mainAppModel.appOpenedTime = 0
                         mainAppModel.currentPackageName = null
                     }
                 }
                 mainAppModel.isAppOpened = false
             }
+
+
         } catch (ex: Exception) {
+
+
             Log.e("ERROR", ex.toString())
+
+
         }
     }
 
+    // Makes it fullscreen
     private fun configureFullScreenMode() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
             window.decorView.systemUiVisibility =
@@ -103,6 +101,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Set content
     @Composable
     private fun SetUpContent() {
         EscapeTheme {
@@ -112,6 +111,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Sets properties to initialize MainAppModel
     @Composable
     private fun InitializeMainAppModel() {
         val context = LocalContext.current
@@ -126,6 +126,7 @@ class MainHomeScreen : ComponentActivity() {
         )
     }
 
+    // Finds which screen to start on
     private fun determineStartDestination(): String {
         val sharedPreferencesSettings: SharedPreferences =
             mainAppModel.context.getSharedPreferences(
@@ -138,6 +139,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Navigation host
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()

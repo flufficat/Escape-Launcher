@@ -69,7 +69,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geecee.escape.MainAppModel
@@ -88,7 +87,6 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -657,7 +655,53 @@ fun AppsListItem(
                     AppUtils.formatScreenTime(appScreenTime.longValue),
                     modifier = Modifier
                         .padding(vertical = 15.dp, horizontal = 5.dp)
-                        .alpha(0.5f),
+                        .alpha(0.5f)
+                        .combinedClickable(
+                            onClick = {
+                                val packageName = app.activityInfo.packageName
+                                currentPackageName.value = packageName
+
+                                AppUtils.openApp(
+                                    packageName,
+                                    false,
+                                    showOpenChallenge,
+                                    mainAppModel
+                                )
+
+                                coroutineScope.launch {
+                                    delay(200)
+                                    pagerState.animateScrollToPage(0)
+                                    lazyListState?.scrollToItem(0)
+                                    searchExpanded?.value = false
+                                    searchText?.value = ""
+                                }
+                            },
+                            onLongClick = {
+                                showBottomSheet.value = true
+                                currentAppName.value =
+                                    AppUtils.getAppNameFromPackageName(
+                                        mainAppModel.context,
+                                        app.activityInfo.packageName
+                                    )
+                                currentPackageName.value = app.activityInfo.packageName
+                                isCurrentAppChallenged.value =
+                                    mainAppModel.challengesManager.doesAppHaveChallenge(
+
+                                        app.activityInfo.packageName
+
+                                    )
+                                isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
+
+                                    app.activityInfo.packageName
+
+                                )
+                                isCurrentAppFavorite.value =
+                                    mainAppModel.favoriteAppsManager.isAppFavorite(
+                                        app.activityInfo.packageName
+                                    )
+
+                            }
+                        ),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -665,7 +709,6 @@ fun AppsListItem(
         }
     }
 }
-
 
 @Composable
 fun AnimatedPillSearchBar(
@@ -827,14 +870,7 @@ fun Clock(
     }
 }
 
-
-@Preview
-@Composable
-fun PreviewSearchBar() {
-    val expanded = remember { mutableStateOf(false) }
-    AnimatedPillSearchBar({}, {}, expanded)
-}
-
+// Reloads favourite apps
 fun updateFavorites(
     mainAppModel: MainAppModel,
     favoriteApps: SnapshotStateList<String>

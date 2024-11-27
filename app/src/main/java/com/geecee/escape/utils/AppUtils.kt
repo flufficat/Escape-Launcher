@@ -35,8 +35,9 @@ object AppUtils {
                 val options = ActivityOptions.makeBasic()
                 mainAppModel.context.startActivity(launchIntent, options.toBundle())
 
+                ScreenTimeManager.onAppOpened(packageName)
+
                 mainAppModel.isAppOpened = true
-                mainAppModel.appOpenedTime = System.currentTimeMillis()
                 mainAppModel.currentPackageName = packageName
             } else {
                 if (openChallengeShow != null) {
