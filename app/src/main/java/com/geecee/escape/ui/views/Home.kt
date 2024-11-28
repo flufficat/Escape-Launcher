@@ -119,7 +119,7 @@ fun SwipeableHome(
     //Challenge stuff
     val showOpenChallenge = remember { mutableStateOf(false) }
 
-    val pagerState = rememberPagerState(0, 0f) { 2 }
+    val pagerState = rememberPagerState(1, 0f) { 3 }
     HorizontalPager(
         state = pagerState,
         Modifier
@@ -139,7 +139,9 @@ fun SwipeableHome(
 
     ) { page ->
         when (page) {
-            0 -> HomeScreen(
+            0 -> ScreenTimeDashboard(mainAppModel)
+
+            1 -> HomeScreen(
                 mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
@@ -156,7 +158,7 @@ fun SwipeableHome(
                 pagerState = pagerState
             )
 
-            1 -> AppsList(
+            2 -> AppsList(
                 mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
@@ -344,7 +346,7 @@ fun HomeScreen(
         modifier = modifier
     ) {
         item {
-            if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
+            if (getBooleanSetting(mainAppModel.context, "ShowClock", true)) {
                 Clock(sharedPreferencesSettings, mainAppModel, noApps)
             }
         }
@@ -459,7 +461,7 @@ fun AppsList(
 
                                     coroutineScope.launch {
                                         delay(200)
-                                        pagerState.animateScrollToPage(0)
+                                        pagerState.animateScrollToPage(1)
                                         scrollState.scrollToItem(0)
                                         searchExpanded.value = false
                                         searchText.value = ""
@@ -493,7 +495,7 @@ fun AppsList(
 
                                 coroutineScope.launch {
                                     delay(200)
-                                    pagerState.animateScrollToPage(0)
+                                    pagerState.animateScrollToPage(1)
                                     scrollState.scrollToItem(0)
                                     searchExpanded.value = false
                                     searchText.value = ""
@@ -601,7 +603,7 @@ fun AppsListItem(
 
                             coroutineScope.launch {
                                 delay(200)
-                                pagerState.animateScrollToPage(0)
+                                pagerState.animateScrollToPage(1)
                                 lazyListState?.scrollToItem(0)
                                 searchExpanded?.value = false
                                 searchText?.value = ""
@@ -669,7 +671,7 @@ fun AppsListItem(
 
                                 coroutineScope.launch {
                                     delay(200)
-                                    pagerState.animateScrollToPage(0)
+                                    pagerState.animateScrollToPage(1)
                                     lazyListState?.scrollToItem(0)
                                     searchExpanded?.value = false
                                     searchText?.value = ""
