@@ -77,7 +77,6 @@ import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.OpenChallenge
-import com.geecee.escape.utils.getBigClock
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getUsageForApp
 import kotlinx.coroutines.Dispatchers
@@ -421,17 +420,17 @@ fun AppsList(
             }
 
             item {
-                if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
+                if (sharedPreferencesSettings.getBoolean("showSearchBox", true)) {
                     Spacer(modifier = Modifier.height(15.dp))
                     AnimatedPillSearchBar(
                         { searchBoxText ->
                             searchText.value = searchBoxText
                             var autoOpen = false
 
-                            if (sharedPreferencesSettings.getString(
+                            if (sharedPreferencesSettings.getBoolean(
                                     "searchAutoOpen",
-                                    "False"
-                                ) == "True"
+                                    false
+                                )
                             ) {
                                 autoOpen = true
                             }
@@ -828,7 +827,7 @@ fun Clock(
         }
     }
 
-    if (getBigClock(context = mainAppModel.context)) {
+    if (getBooleanSetting(context = mainAppModel.context,"BigClock",false)) {
 
         Column {
             Text(

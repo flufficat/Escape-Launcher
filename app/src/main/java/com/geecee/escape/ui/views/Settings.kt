@@ -72,26 +72,18 @@ import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.WorkTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.changeAppsAlignment
-import com.geecee.escape.utils.changeFont
 import com.geecee.escape.utils.changeHomeAlignment
 import com.geecee.escape.utils.changeHomeVAlignment
 import com.geecee.escape.utils.changeLauncher
 import com.geecee.escape.utils.changeTheme
 import com.geecee.escape.utils.getAppsAlignment
-import com.geecee.escape.utils.getAutoOpen
-import com.geecee.escape.utils.getBigClock
 import com.geecee.escape.utils.getBooleanSetting
-import com.geecee.escape.utils.getClock
-import com.geecee.escape.utils.getFirstTime
 import com.geecee.escape.utils.getHomeAlignment
 import com.geecee.escape.utils.getHomeVAlignment
-import com.geecee.escape.utils.getSearchBox
-import com.geecee.escape.utils.resetFirstTime
-import com.geecee.escape.utils.toggleAutoOpen
-import com.geecee.escape.utils.toggleBigClock
+import com.geecee.escape.utils.resetActivity
+import com.geecee.escape.utils.setBooleanSetting
+import com.geecee.escape.utils.setStringSetting
 import com.geecee.escape.utils.toggleBooleanSetting
-import com.geecee.escape.utils.toggleClock
-import com.geecee.escape.utils.toggleSearchBox
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -268,23 +260,23 @@ fun MainSettingsPage(
         SettingsHeader(goHome, stringResource(R.string.settings))
         SettingsSwitch(
             label = stringResource(id = R.string.search_box),
-            checked = getSearchBox(mainAppModel.context),
-            onCheckedChange = { toggleSearchBox(it, mainAppModel.context) }
+            checked = getBooleanSetting(mainAppModel.context, "showSearchBox", true),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "showSearchBox") }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.auto_open),
-            checked = getAutoOpen(mainAppModel.context),
-            onCheckedChange = { toggleAutoOpen(mainAppModel.context, it) }
+            checked = getBooleanSetting(mainAppModel.context, "searchAutoOpen"),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "searchAutoOpen") }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.show_clock),
-            checked = getClock(mainAppModel.context),
-            onCheckedChange = { toggleClock(mainAppModel.context, it) }
+            checked = getBooleanSetting(mainAppModel.context, "ShowClock", true),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "ShowClock") }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.big_clock),
-            checked = getBigClock(mainAppModel.context),
-            onCheckedChange = { toggleBigClock(mainAppModel.context, it) }
+            checked = getBooleanSetting(mainAppModel.context, "BigClock"),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "BigClock") }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.screen_time_on_app),
@@ -313,7 +305,6 @@ fun MainSettingsPage(
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.choose_font), false,
-
             onClick = { navController.navigate("chooseFont") }
         )
         SettingsNavigationItem(
@@ -788,7 +779,8 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "jost")
+                    setStringSetting(context, "font", "jost")
+                    resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.primary,
             style = JostTypography.bodyMedium
@@ -798,7 +790,8 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "inter")
+                    setStringSetting(context, "font", "inter")
+                    resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.primary,
             style = InterTypography.bodyMedium
@@ -808,7 +801,8 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "lexend")
+                    setStringSetting(context, "font", "lexend")
+                    resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.primary,
             style = LexendTypography.bodyMedium
@@ -818,7 +812,8 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    changeFont(context, activity, "work")
+                    setStringSetting(context, "font", "work")
+                    resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.primary,
             style = WorkTypography.bodyMedium
@@ -849,12 +844,13 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getFirstTime(context)
+            checked = getBooleanSetting(context,"FirstTime", false)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    resetFirstTime(context)
+                    setBooleanSetting(context,"FirstTime", true)
+                    setBooleanSetting(context,"hasDoneSetupPageOne", false)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }

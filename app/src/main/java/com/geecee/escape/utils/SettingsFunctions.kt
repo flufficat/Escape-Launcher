@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.geecee.escape.utils
 
 import android.app.Activity
@@ -28,30 +30,6 @@ fun changeTheme(theme: Int, context: Context, activity: Activity) {
     val options = ActivityOptions.makeBasic()
     context.startActivity(intent, options.toBundle())
     activity.finish()
-}
-
-
-fun toggleSearchBox(shouldTurnOn: Boolean, context: Context) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("showSearchBox", "True")
-    } else {
-        editor.putString("showSearchBox", "False")
-    }
-
-    editor.apply()
-}
-
-fun getSearchBox(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("showSearchBox", "True") == "True"
 }
 
 fun changeHomeAlignment(context: Context, alignment: Int) {
@@ -147,95 +125,8 @@ fun getAppsAlignment(context: Context): Int {
     }
 }
 
-fun changeFont(context: Context, activity: Activity, font: String) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+// Generic functions
 
-    editor.putString(
-        "font", font
-    )
-
-    editor.apply()
-
-    val intent = Intent(context, MainHomeScreen::class.java)
-    val options = ActivityOptions.makeBasic()
-    context.startActivity(intent, options.toBundle())
-    activity.finish()
-}
-
-fun getAutoOpen(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("searchAutoOpen", "False") == "True"
-}
-
-fun toggleAutoOpen(context: Context, shouldTurnOn: Boolean) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("searchAutoOpen", "True")
-    } else {
-        editor.putString("searchAutoOpen", "False")
-    }
-
-    editor.apply()
-}
-
-fun getClock(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("ShowClock", "True") == "True"
-}
-
-fun toggleClock(context: Context, shouldTurnOn: Boolean) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("ShowClock", "True")
-    } else {
-        editor.putString("ShowClock", "False")
-    }
-
-    editor.apply()
-}
-
-
-fun getBigClock(context: Context): Boolean {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    return sharedPreferences.getString("BigClock", "False") == "True"
-}
-
-fun toggleBigClock(context: Context, shouldTurnOn: Boolean) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-    if (shouldTurnOn) {
-        editor.putString("BigClock", "True")
-    } else {
-        editor.putString("BigClock", "False")
-    }
-
-    editor.apply()
-}
-
-// Generic function for switching any shared preference, todo migrate to this
 fun toggleBooleanSetting(context: Context, shouldTurnOn: Boolean, setting: String) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
@@ -259,24 +150,57 @@ fun getBooleanSetting(context: Context,setting:String): Boolean {
     return sharedPreferences.getBoolean(setting,false)
 }
 
-// DevOptions
-
-fun getFirstTime(context: Context): Boolean {
+fun getStringSetting(context: Context, setting: String, defaultValue: String): String {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-
-    return sharedPreferences.getString("FirstTime", "False") == "True"
+    return sharedPreferences.getString(setting, defaultValue) ?: defaultValue
 }
 
-fun resetFirstTime(context: Context) {
+fun setStringSetting(context: Context, setting: String, value: String) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor = sharedPreferences.edit()
-
-    editor.putString("FirstTime", "True")
-    editor.putString("hasDoneSetupPageOne", "False")
-
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    editor.putString(setting, value)
     editor.apply()
+}
+
+fun getIntSetting(context: Context, setting: String, defaultValue: Int): Int {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    return sharedPreferences.getInt(setting, defaultValue)
+}
+
+fun setIntSetting(context: Context, setting: String, value: Int) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    editor.putInt(setting, value)
+    editor.apply()
+}
+
+fun getBooleanSetting(context: Context, setting: String, defaultValue: Boolean): Boolean {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    return sharedPreferences.getBoolean(setting, defaultValue)
+}
+
+fun setBooleanSetting(context: Context, setting: String, value: Boolean) {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    editor.putBoolean(setting, value)
+    editor.apply()
+}
+
+fun resetActivity(context: Context, activity: Activity){
+    val intent = Intent(context, MainHomeScreen::class.java)
+    val options = ActivityOptions.makeBasic()
+    context.startActivity(intent, options.toBundle())
+    activity.finish()
 }
