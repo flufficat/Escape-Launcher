@@ -69,7 +69,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geecee.escape.MainAppModel
@@ -78,10 +77,15 @@ import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.OpenChallenge
-import com.geecee.escape.utils.getBigClock
+import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.getUsageForApp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -115,7 +119,7 @@ fun SwipeableHome(
     //Challenge stuff
     val showOpenChallenge = remember { mutableStateOf(false) }
 
-    val pagerState = rememberPagerState(0, 0f) { 2 }
+    val pagerState = rememberPagerState(1, 0f) { 3 }
     HorizontalPager(
         state = pagerState,
         Modifier
@@ -135,7 +139,9 @@ fun SwipeableHome(
 
     ) { page ->
         when (page) {
-            0 -> HomeScreen(
+            0 -> ScreenTimeDashboard(mainAppModel)
+
+            1 -> HomeScreen(
                 mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
@@ -152,7 +158,7 @@ fun SwipeableHome(
                 pagerState = pagerState
             )
 
-            1 -> AppsList(
+            2 -> AppsList(
                 mainAppModel = mainAppModel,
                 currentAppName = currentSelectedApp,
                 currentPackageName = currentPackageName,
@@ -291,12 +297,10 @@ fun SwipeableHome(
     ) {
         OpenChallenge({
             AppUtils.openApp(
-                mainAppModel.packageManager,
-                mainAppModel.context,
                 currentPackageName.value,
-                mainAppModel.challengesManager,
                 true,
-                null
+                null,
+                mainAppModel
             )
             showOpenChallenge.value = false
         }, {
@@ -342,7 +346,7 @@ fun HomeScreen(
         modifier = modifier
     ) {
         item {
-            if (sharedPreferencesSettings.getString("ShowClock", "True") == "True") {
+            if (getBooleanSetting(mainAppModel.context, "ShowClock", true)) {
                 Clock(sharedPreferencesSettings, mainAppModel, noApps)
             }
         }
@@ -418,17 +422,17 @@ fun AppsList(
             }
 
             item {
-                if (sharedPreferencesSettings.getString("showSearchBox", "True") == "True") {
+                if (sharedPreferencesSettings.getBoolean("showSearchBox", true)) {
                     Spacer(modifier = Modifier.height(15.dp))
                     AnimatedPillSearchBar(
                         { searchBoxText ->
                             searchText.value = searchBoxText
                             var autoOpen = false
 
-                            if (sharedPreferencesSettings.getString(
+                            if (sharedPreferencesSettings.getBoolean(
                                     "searchAutoOpen",
-                                    "False"
-                                ) == "True"
+                                    false
+                                )
                             ) {
                                 autoOpen = true
                             }
@@ -449,17 +453,15 @@ fun AppsList(
                                         appInfo.activityInfo.packageName
 
                                     AppUtils.openApp(
-                                        packageManager = mainAppModel.packageManager,
-                                        context = mainAppModel.context,
                                         currentPackageName.value,
-                                        mainAppModel.challengesManager,
                                         false,
-                                        showOpenChallenge
+                                        showOpenChallenge,
+                                        mainAppModel
                                     )
 
                                     coroutineScope.launch {
                                         delay(200)
-                                        pagerState.animateScrollToPage(0)
+                                        pagerState.animateScrollToPage(1)
                                         scrollState.scrollToItem(0)
                                         searchExpanded.value = false
                                         searchText.value = ""
@@ -485,17 +487,15 @@ fun AppsList(
                                 currentPackageName.value = packageName
 
                                 AppUtils.openApp(
-                                    packageManager = mainAppModel.packageManager,
-                                    context = mainAppModel.context,
                                     currentPackageName.value,
-                                    mainAppModel.challengesManager,
                                     false,
-                                    showOpenChallenge
+                                    showOpenChallenge,
+                                    mainAppModel
                                 )
 
                                 coroutineScope.launch {
                                     delay(200)
-                                    pagerState.animateScrollToPage(0)
+                                    pagerState.animateScrollToPage(1)
                                     scrollState.scrollToItem(0)
                                     searchExpanded.value = false
                                     searchText.value = ""
@@ -581,64 +581,135 @@ fun AppsListItem(
     val coroutineScope = rememberCoroutineScope()
 
     if (app != null) {
-
-        Text(
-            AppUtils.getAppNameFromPackageName(mainAppModel.context, app.activityInfo.packageName),
-            modifier = Modifier
-                .padding(vertical = 15.dp)
-                .combinedClickable(
-                    onClick = {
-                        val packageName = app.activityInfo.packageName
-                        currentPackageName.value = packageName
-
-                        AppUtils.openApp(
-                            packageManager = mainAppModel.packageManager,
-                            context = mainAppModel.context,
-                            packageName,
-                            mainAppModel.challengesManager,
-                            false,
-                            showOpenChallenge
-                        )
-
-                        coroutineScope.launch {
-                            delay(200)
-                            pagerState.animateScrollToPage(0)
-                            lazyListState?.scrollToItem(0)
-                            searchExpanded?.value = false
-                            searchText?.value = ""
-                        }
-                    },
-                    onLongClick = {
-                        showBottomSheet.value = true
-                        currentAppName.value =
-                            AppUtils.getAppNameFromPackageName(
-                                mainAppModel.context,
-                                app.activityInfo.packageName
-                            )
-                        currentPackageName.value = app.activityInfo.packageName
-                        isCurrentAppChallenged.value =
-                            mainAppModel.challengesManager.doesAppHaveChallenge(
-
-                                app.activityInfo.packageName
-
-                            )
-                        isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
-
-                            app.activityInfo.packageName
-
-                        )
-                        isCurrentAppFavorite.value = mainAppModel.favoriteAppsManager.isAppFavorite(
-                            app.activityInfo.packageName
-                        )
-
-                    }
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                AppUtils.getAppNameFromPackageName(
+                    mainAppModel.context,
+                    app.activityInfo.packageName
                 ),
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium
-        )
+                modifier = Modifier
+                    .padding(vertical = 15.dp)
+                    .combinedClickable(
+                        onClick = {
+                            val packageName = app.activityInfo.packageName
+                            currentPackageName.value = packageName
+
+                            AppUtils.openApp(
+                                packageName,
+                                false,
+                                showOpenChallenge,
+                                mainAppModel
+                            )
+
+                            coroutineScope.launch {
+                                delay(200)
+                                pagerState.animateScrollToPage(1)
+                                lazyListState?.scrollToItem(0)
+                                searchExpanded?.value = false
+                                searchText?.value = ""
+                            }
+                        },
+                        onLongClick = {
+                            showBottomSheet.value = true
+                            currentAppName.value =
+                                AppUtils.getAppNameFromPackageName(
+                                    mainAppModel.context,
+                                    app.activityInfo.packageName
+                                )
+                            currentPackageName.value = app.activityInfo.packageName
+                            isCurrentAppChallenged.value =
+                                mainAppModel.challengesManager.doesAppHaveChallenge(
+
+                                    app.activityInfo.packageName
+
+                                )
+                            isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
+
+                                app.activityInfo.packageName
+
+                            )
+                            isCurrentAppFavorite.value =
+                                mainAppModel.favoriteAppsManager.isAppFavorite(
+                                    app.activityInfo.packageName
+                                )
+
+                        }
+                    ),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            if (getBooleanSetting(mainAppModel.context, "screenTimeOnApp")) {
+                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+
+                // Fetch screen time in a coroutine
+                LaunchedEffect(app.activityInfo.packageName) {
+                    withContext(Dispatchers.IO) {
+                        appScreenTime.longValue = getUsageForApp(
+                            app.activityInfo.packageName,
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        )
+                    }
+                }
+
+                Text(
+                    AppUtils.formatScreenTime(appScreenTime.longValue),
+                    modifier = Modifier
+                        .padding(vertical = 15.dp, horizontal = 5.dp)
+                        .alpha(0.5f)
+                        .combinedClickable(
+                            onClick = {
+                                val packageName = app.activityInfo.packageName
+                                currentPackageName.value = packageName
+
+                                AppUtils.openApp(
+                                    packageName,
+                                    false,
+                                    showOpenChallenge,
+                                    mainAppModel
+                                )
+
+                                coroutineScope.launch {
+                                    delay(200)
+                                    pagerState.animateScrollToPage(1)
+                                    lazyListState?.scrollToItem(0)
+                                    searchExpanded?.value = false
+                                    searchText?.value = ""
+                                }
+                            },
+                            onLongClick = {
+                                showBottomSheet.value = true
+                                currentAppName.value =
+                                    AppUtils.getAppNameFromPackageName(
+                                        mainAppModel.context,
+                                        app.activityInfo.packageName
+                                    )
+                                currentPackageName.value = app.activityInfo.packageName
+                                isCurrentAppChallenged.value =
+                                    mainAppModel.challengesManager.doesAppHaveChallenge(
+
+                                        app.activityInfo.packageName
+
+                                    )
+                                isCurrentAppHidden.value = mainAppModel.hiddenAppsManager.isAppHidden(
+
+                                    app.activityInfo.packageName
+
+                                )
+                                isCurrentAppFavorite.value =
+                                    mainAppModel.favoriteAppsManager.isAppFavorite(
+                                        app.activityInfo.packageName
+                                    )
+
+                            }
+                        ),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }
-
 
 @Composable
 fun AnimatedPillSearchBar(
@@ -758,7 +829,7 @@ fun Clock(
         }
     }
 
-    if (getBigClock(context = mainAppModel.context)) {
+    if (getBooleanSetting(context = mainAppModel.context,"BigClock",false)) {
 
         Column {
             Text(
@@ -800,14 +871,7 @@ fun Clock(
     }
 }
 
-
-@Preview
-@Composable
-fun PreviewSearchBar() {
-    val expanded = remember { mutableStateOf(false) }
-    AnimatedPillSearchBar({}, {}, expanded)
-}
-
+// Reloads favourite apps
 fun updateFavorites(
     mainAppModel: MainAppModel,
     favoriteApps: SnapshotStateList<String>

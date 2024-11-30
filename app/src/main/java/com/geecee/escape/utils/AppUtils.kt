@@ -3,6 +3,7 @@
 package com.geecee.escape.utils
 
 import android.app.ActivityOptions
+import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -12,26 +13,32 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
+import com.geecee.escape.MainAppModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
+
 
 object AppUtils {
     fun openApp(
-        packageManager: PackageManager,
-        context: Context,
         packageName: String,
-        challengesManager: ChallengesManager,
         overrideOpenChallenge: Boolean,
-        openChallengeShow: MutableState<Boolean>?
+        openChallengeShow: MutableState<Boolean>?,
+        mainAppModel: MainAppModel
     ) {
         val launchIntent =
-            packageManager.getLaunchIntentForPackage(packageName)
+            mainAppModel.packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent != null) {
-            if (!challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge) {
+            if (!mainAppModel.challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 val options = ActivityOptions.makeBasic()
-                context.startActivity(launchIntent, options.toBundle())
+                mainAppModel.context.startActivity(launchIntent, options.toBundle())
+
+                ScreenTimeManager.onAppOpened(packageName)
+
+                mainAppModel.isAppOpened = true
+                mainAppModel.currentPackageName = packageName
             } else {
                 if (openChallengeShow != null) {
                     openChallengeShow.value = true
@@ -43,22 +50,25 @@ object AppUtils {
     fun getScreenTimeForPackage(context: Context, packageName: String): Long {
         val usageStatsManager =
             context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val endTime = System.currentTimeMillis()
-        val startTime = endTime - TimeUnit.DAYS.toMillis(1) // Last 24 hours
+        val calendar = Calendar.getInstance()
+        calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DATE),1,0,0)
+        val start = calendar.timeInMillis
+        val end = System.currentTimeMillis()
+        val stats: Map<String, UsageStats> =
+            usageStatsManager.queryAndAggregateUsageStats(start, end)
 
-        val usageStatsList = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY, startTime, endTime
-        )
+        val usageStats = stats[packageName]
+        return usageStats?.totalTimeInForeground ?: 0L
+    }
 
-        var totalUsageTime: Long = 0
-
-        usageStatsList?.forEach { usageStats ->
-            if (usageStats.packageName == packageName) {
-                totalUsageTime += usageStats.totalTimeInForeground
-            }
+    fun formatScreenTime(milliseconds: Long): String {
+        val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
+        return if (hours > 0) {
+            "${hours}h ${minutes}m"
+        } else {
+            "${minutes}m"
         }
-
-        return totalUsageTime // Return total usage time in milliseconds
     }
 
     fun getAllInstalledApps(packageManager: PackageManager): MutableList<ResolveInfo> {

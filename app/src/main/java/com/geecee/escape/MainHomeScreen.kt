@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -17,8 +18,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -30,13 +33,21 @@ import com.geecee.escape.ui.views.SwipeableHome
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.ScreenTimeManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
+// A class to send data around the app more easily
 data class MainAppModel(
     var context: Context,
     var packageManager: PackageManager,
     var favoriteAppsManager: FavoriteAppsManager,
     var hiddenAppsManager: HiddenAppsManager,
-    var challengesManager: ChallengesManager
+    var challengesManager: ChallengesManager,
+    var isAppOpened: Boolean,
+    var currentPackageName: String? = null,
+    var coroutineScope: CoroutineScope
 )
 
 @Suppress("DEPRECATION")
@@ -47,9 +58,38 @@ class MainHomeScreen : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         configureFullScreenMode()
+        ScreenTimeManager.initialize(this)
         setContent { SetUpContent() }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        try {
+
+            // Update screen time on app when you come home
+            if (mainAppModel.isAppOpened) {
+                if (mainAppModel.currentPackageName != null) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        ScreenTimeManager.onAppClosed(mainAppModel.currentPackageName!!)
+
+                        mainAppModel.currentPackageName = null
+                    }
+                }
+                mainAppModel.isAppOpened = false
+            }
+
+
+        } catch (ex: Exception) {
+
+
+            Log.e("ERROR", ex.toString())
+
+
+        }
+    }
+
+    // Makes it fullscreen
     private fun configureFullScreenMode() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
             window.decorView.systemUiVisibility =
@@ -61,6 +101,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Set content
     @Composable
     private fun SetUpContent() {
         EscapeTheme {
@@ -70,6 +111,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Sets properties to initialize MainAppModel
     @Composable
     private fun InitializeMainAppModel() {
         val context = LocalContext.current
@@ -78,10 +120,13 @@ class MainHomeScreen : ComponentActivity() {
             packageManager = packageManager,
             favoriteAppsManager = FavoriteAppsManager(context),
             hiddenAppsManager = HiddenAppsManager(context),
-            challengesManager = ChallengesManager(context)
+            challengesManager = ChallengesManager(context),
+            false,
+            coroutineScope = rememberCoroutineScope()
         )
     }
 
+    // Finds which screen to start on
     private fun determineStartDestination(): String {
         val sharedPreferencesSettings: SharedPreferences =
             mainAppModel.context.getSharedPreferences(
@@ -94,6 +139,7 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    // Navigation host
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()
