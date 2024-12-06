@@ -1,7 +1,6 @@
 package com.geecee.escape
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -27,13 +26,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.ui.theme.EscapeTheme
 import com.geecee.escape.ui.views.FirstTime
+import com.geecee.escape.ui.views.HomeScreenPageManager
 import com.geecee.escape.ui.views.Settings
 import com.geecee.escape.ui.views.Setup
-import com.geecee.escape.ui.views.SwipeableHome
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.ScreenTimeManager
+import com.geecee.escape.utils.getBooleanSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,11 +81,7 @@ class MainHomeScreen : ComponentActivity() {
 
 
         } catch (ex: Exception) {
-
-
             Log.e("ERROR", ex.toString())
-
-
         }
     }
 
@@ -128,13 +124,9 @@ class MainHomeScreen : ComponentActivity() {
 
     // Finds which screen to start on
     private fun determineStartDestination(): String {
-        val sharedPreferencesSettings: SharedPreferences =
-            mainAppModel.context.getSharedPreferences(
-                R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-            )
         return when {
-            sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True" -> "setup"
-            sharedPreferencesSettings.getString("FirstTime", "True") == "True" -> "first_time"
+            getBooleanSetting(mainAppModel.context,"hasDoneSetupPageOne", false) -> "setup"
+            getBooleanSetting(mainAppModel.context,"FirstTime", true) -> "first_time"
             else -> "home"
         }
     }
@@ -152,7 +144,7 @@ class MainHomeScreen : ComponentActivity() {
                 composable("home",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    SwipeableHome(mainAppModel) { navController.navigate("settings") }
+                    HomeScreenPageManager(mainAppModel) { navController.navigate("settings") }
                 }
                 composable("settings",
                     enterTransition = { fadeIn(tween(300)) },

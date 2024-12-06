@@ -97,7 +97,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
         Icon(
             Icons.AutoMirrored.Rounded.ArrowBack,
             contentDescription = "Go Back",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .size(48.dp)
                 .align(Alignment.CenterVertically)
@@ -105,7 +105,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = title,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = JostTypography.titleMedium,
             fontSize = if (title.length > 11) 35.sp else JostTypography.titleMedium.fontSize,
             modifier = Modifier.align(Alignment.CenterVertically)
@@ -125,7 +125,7 @@ fun SettingsSwitch(
         Text(
             label,
             Modifier.padding(0.dp, 15.dp),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = JostTypography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -155,7 +155,7 @@ fun SettingsNavigationItem(
         Text(
             label,
             Modifier.padding(0.dp, 15.dp),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = JostTypography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -167,7 +167,7 @@ fun SettingsNavigationItem(
                     .align(Alignment.CenterEnd)
                     .size(48.dp)
                     .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         } else {
             Icon(
@@ -178,7 +178,7 @@ fun SettingsNavigationItem(
                     .size(48.dp)
                     .fillMaxSize()
                     .rotate(-45f),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         }
     }
@@ -320,7 +320,7 @@ fun MainSettingsPage(
                 .combinedClickable(onClick = {}, onLongClick = {
                     navController.navigate("devOptions")
                 }),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = JostTypography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -350,7 +350,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 Modifier
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -438,7 +438,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 Modifier
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -490,7 +490,7 @@ fun ThemeCard(
             .size(120.dp)
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.secondary)
+            .background(MaterialTheme.colorScheme.primary)
             .clickable {
                 changeTheme(theme, context, activity)
             }
@@ -555,30 +555,30 @@ fun ThemeCard(
                     .padding(5.dp),
                 when (theme) {
                     0 ->
-                        DarkColorScheme.primary
+                        DarkColorScheme.onBackground
 
                     1 ->
-                        LightColorScheme.primary
+                        LightColorScheme.onBackground
 
                     2 ->
-                        PitchDarkColorScheme.primary
+                        PitchDarkColorScheme.onBackground
 
                     3 ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicDarkColorScheme(context).primary
+                            dynamicDarkColorScheme(context).onBackground
                         } else {
                             DarkColorScheme.primary
                         }
 
                     4 ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicLightColorScheme(context).primary
+                            dynamicLightColorScheme(context).onBackground
                         } else {
-                            LightColorScheme.primary
+                            LightColorScheme.onBackground
                         }
 
                     else ->
-                        DarkColorScheme.primary
+                        DarkColorScheme.onBackground
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
@@ -670,7 +670,7 @@ fun HiddenApps(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = JostTypography.bodyMedium
                 )
 
@@ -686,7 +686,7 @@ fun HiddenApps(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
         }
@@ -737,7 +737,7 @@ fun OpenChallenges(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = JostTypography.bodyMedium
                 )
 
@@ -753,7 +753,7 @@ fun OpenChallenges(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
         }
@@ -782,7 +782,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, "font", "jost")
                     resetActivity(context,activity)
                 }),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = JostTypography.bodyMedium
         )
         Text(
@@ -793,7 +793,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, "font", "inter")
                     resetActivity(context,activity)
                 }),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = InterTypography.bodyMedium
         )
         Text(
@@ -804,7 +804,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, "font", "lexend")
                     resetActivity(context,activity)
                 }),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = LexendTypography.bodyMedium
         )
         Text(
@@ -815,7 +815,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, "font", "work")
                     resetActivity(context,activity)
                 }),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = WorkTypography.bodyMedium
         )
     }
@@ -838,7 +838,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             Text(
                 "First time",
                 Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = JostTypography.bodyMedium,
                 textAlign = TextAlign.Center,
             )

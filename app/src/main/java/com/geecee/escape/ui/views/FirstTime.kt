@@ -134,14 +134,14 @@ fun SkipButton(onClick: () -> Unit) {
         Text(
             stringResource(R.string.skip),
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = Color.White,
             fontSize = 24.sp
         )
         Icon(
             Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             "",
             Modifier.size(35.dp),
-            MaterialTheme.colorScheme.primary
+            Color.White
         )
     }
 }

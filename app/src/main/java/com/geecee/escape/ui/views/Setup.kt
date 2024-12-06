@@ -32,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -76,7 +75,7 @@ fun Setup(
     }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
 
     val startDestination: String =
-        if (sharedPreferencesSettings.getString("hasDoneSetupPageOne", "False") == "True") {
+        if (sharedPreferencesSettings.getBoolean("hasDoneSetupPageOne", false)) {
             "launcher"
         } else {
             "choose_apps"
@@ -100,12 +99,12 @@ fun Setup(
 
                     Text(
                         text = stringResource(id = R.string.hi),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = JostTypography.titleMedium
                     )
                     Text(
                         text = stringResource(id = R.string.choose_apps),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = JostTypography.bodyMedium
                     )
 
@@ -113,7 +112,7 @@ fun Setup(
                         onClick = {
                             navController.navigate("launcher")
                             val editor = sharedPreferencesSettings.edit()
-                            editor.putString("hasDoneSetupPageOne", "True")
+                            editor.putBoolean("hasDoneSetupPageOne", true)
                             editor.apply()
                         },
                         modifier = Modifier.padding(0.dp, 16.dp)
@@ -137,7 +136,7 @@ fun Setup(
                                             appInfo.activityInfo.packageName, false
                                         )
                                     }),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 style = JostTypography.bodyMedium
                             )
                         }
@@ -159,7 +158,7 @@ fun Setup(
                                         mainAppModel.favoriteAppsManager.addFavoriteApp(appInfo.activityInfo.packageName)
                                         updateFavoriteStatus(appInfo.activityInfo.packageName, true)
                                     }),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 style = JostTypography.bodyMedium
                             )
                         }
@@ -184,12 +183,12 @@ fun Setup(
 
                     Text(
                         text = stringResource(id = R.string.set_launcher),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = JostTypography.titleMedium
                     )
                     Text(
                         text = stringResource(id = R.string.you_need_to_set_escape),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = JostTypography.bodyMedium
                     )
 
@@ -223,7 +222,7 @@ fun Setup(
 
                     Text(
                         text = stringResource(id = R.string.set_wallpaper),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = JostTypography.bodyMedium
                     )
 
@@ -232,8 +231,8 @@ fun Setup(
                             goHome()
 
                             val editor = sharedPreferencesSettings.edit()
-                            editor.putString("FirstTime", "False")
-                            editor.putString("hasDoneSetupPageOne", "False")
+                            editor.putBoolean("FirstTime", false)
+                            editor.putBoolean("hasDoneSetupPageOne", false)
                             editor.apply()
                         },
                         modifier = Modifier.padding(0.dp, 16.dp)
@@ -249,150 +248,3 @@ fun Setup(
         }
     }
 }
-
-@Preview
-@Composable
-fun SetupPrev() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(64.dp))
-
-            Text(
-                text = "Hi.",
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.titleMedium
-            )
-            Text(
-                text = stringResource(id = R.string.choose_apps),
-                color = MaterialTheme.colorScheme.primary,
-                style = JostTypography.bodyMedium
-            )
-
-            Button(
-                onClick = {
-
-                },
-                modifier = Modifier.padding(0.dp, 16.dp)
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    "Continue Home",
-                    tint = MaterialTheme.colorScheme.background
-                )
-            }
-
-            Column {
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-            }
-
-            HorizontalDivider(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(0.dp, 15.dp)
-            )
-
-            Column {
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-                Text(
-                    "App",
-                    modifier = Modifier
-                        .padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = JostTypography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-
