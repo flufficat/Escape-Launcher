@@ -64,12 +64,8 @@ import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.DarkColorScheme
-import com.geecee.escape.ui.theme.InterTypography
-import com.geecee.escape.ui.theme.JostTypography
-import com.geecee.escape.ui.theme.LexendTypography
 import com.geecee.escape.ui.theme.LightColorScheme
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
-import com.geecee.escape.ui.theme.WorkTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.changeAppsAlignment
 import com.geecee.escape.utils.changeHomeAlignment
@@ -106,8 +102,8 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
         Text(
             text = title,
             color = MaterialTheme.colorScheme.onBackground,
-            style = JostTypography.titleMedium,
-            fontSize = if (title.length > 11) 35.sp else JostTypography.titleMedium.fontSize,
+            style = MaterialTheme.typography.titleMedium,
+            fontSize = if (title.length > 11) 35.sp else MaterialTheme.typography.titleMedium.fontSize,
             modifier = Modifier.align(Alignment.CenterVertically)
         )
     }
@@ -126,7 +122,7 @@ fun SettingsSwitch(
             label,
             Modifier.padding(0.dp, 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
-            style = JostTypography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
         Switch(
@@ -156,7 +152,7 @@ fun SettingsNavigationItem(
             label,
             Modifier.padding(0.dp, 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
-            style = JostTypography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
         if (!diagonalArrow!!) {
@@ -321,7 +317,7 @@ fun MainSettingsPage(
                     navController.navigate("devOptions")
                 }),
             color = MaterialTheme.colorScheme.onBackground,
-            style = JostTypography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
     }
@@ -351,7 +347,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
                 color = MaterialTheme.colorScheme.onBackground,
-                style = JostTypography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -439,7 +435,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
                 color = MaterialTheme.colorScheme.onBackground,
-                style = JostTypography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 
@@ -671,7 +667,7 @@ fun HiddenApps(
                             hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
                     color = MaterialTheme.colorScheme.onBackground,
-                    style = JostTypography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Icon(
@@ -738,7 +734,7 @@ fun OpenChallenges(
                             challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
                     color = MaterialTheme.colorScheme.onBackground,
-                    style = JostTypography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Icon(
@@ -779,44 +775,44 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "jost")
+                    setStringSetting(context, "font", "Jost")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
-            style = JostTypography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             "Inter",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "inter")
+                    setStringSetting(context, "font", "Inter")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
-            style = InterTypography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             "Lexend",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "lexend")
+                    setStringSetting(context, "font", "Lexend")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
-            style = LexendTypography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             "Work Sans",
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "work")
+                    setStringSetting(context, "font", "Work Sans")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
-            style = WorkTypography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -839,7 +835,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                 "First time",
                 Modifier.padding(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.onBackground,
-                style = JostTypography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
 

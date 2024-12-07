@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.utils.AppUtils
@@ -99,6 +100,7 @@ fun Clock(
                 text = hours,
                 modifier = Modifier.offset(0.dp, 15.dp),
                 color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
                 style = if (!noApps.value) {
                     MaterialTheme.typography.titleMedium
                 } else {
@@ -108,6 +110,7 @@ fun Clock(
             Text(
                 text = minutes,
                 color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
                 style = if (!noApps.value) {
                     MaterialTheme.typography.titleMedium
                 } else {
@@ -121,6 +124,7 @@ fun Clock(
             text = time,
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
             modifier = if (sharedPreferencesSettings.getString(
                     "HomeAlignment",
                     "Center"

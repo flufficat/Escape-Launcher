@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
-import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBooleanSetting
@@ -109,7 +108,6 @@ fun HomeScreenPageManager(
     mainAppModel: MainAppModel,
     onOpenSettings: () -> Unit
 ) {
-
     //Set up variables
     val homeScreenModel = HomeScreenModel(
         //BottomSheet
@@ -205,7 +203,7 @@ fun HomeScreenPageManager(
                         Modifier,
                         MaterialTheme.colorScheme.onSurface,
                         fontSize = 32.sp,
-                        style = JostTypography.titleMedium
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
                 HorizontalDivider(Modifier.padding(0.dp, 15.dp))
@@ -224,7 +222,7 @@ fun HomeScreenPageManager(
                                 mainAppModel.context.startActivity(intent)
                             }),
                         MaterialTheme.colorScheme.onSurface,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     if (!homeScreenModel.isCurrentAppHidden.value) {
                         Text(
@@ -236,7 +234,7 @@ fun HomeScreenPageManager(
                                     homeScreenModel.showBottomSheet.value = false
                                 }),
                             MaterialTheme.colorScheme.onSurface,
-                            style = JostTypography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                     Text(
@@ -260,7 +258,7 @@ fun HomeScreenPageManager(
                                 updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
                             }),
                         color = MaterialTheme.colorScheme.onSurface,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     if (!homeScreenModel.isCurrentAppChallenged.value) {
                         Text(
@@ -275,7 +273,7 @@ fun HomeScreenPageManager(
                                     homeScreenModel.isCurrentAppChallenged.value = true
                                 }),
                             MaterialTheme.colorScheme.onSurface,
-                            style = JostTypography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                     Text(
@@ -292,7 +290,7 @@ fun HomeScreenPageManager(
                                 homeScreenModel.showBottomSheet.value = false
                             }),
                         MaterialTheme.colorScheme.onSurface,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

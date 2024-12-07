@@ -11,9 +11,17 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.unit.sp
 import com.geecee.escape.R
+import com.geecee.escape.utils.getStringSetting
 
 val DarkColorScheme = darkColorScheme(
     primary = primary,
@@ -113,31 +121,23 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
 
 @Composable
 fun EscapeTheme(
     content: @Composable () -> Unit
 ) {
-    val type: Typography
-    Locale.current
     val context = LocalContext.current
     val colorScheme: ColorScheme
     val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    type = if (sharedPreferencesSettings.getString("font", "jost") == "jost") {
-        JostTypography
-    } else if (sharedPreferencesSettings.getString("font", "jost") == "lexend") {
-        LexendTypography
-    } else if (sharedPreferencesSettings.getString("font", "jost") == "inter") {
-        InterTypography
-    } else if (sharedPreferencesSettings.getString("font", "jost") == "work") {
-        WorkTypography
-    } else {
-        JostTypography
-    }
-
+    // Set theme
     when (sharedPreferencesSettings.getInt("Theme", 0)) {
         0 -> {
             colorScheme = darkScheme
@@ -153,20 +153,20 @@ fun EscapeTheme(
 
         3 -> {
             colorScheme =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicDarkColorScheme(context)
-            } else {
-                darkScheme
-            }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    dynamicDarkColorScheme(context)
+                } else {
+                    darkScheme
+                }
         }
 
         4 -> {
             colorScheme =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicLightColorScheme(context)
-            } else {
-                lightScheme
-            }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    dynamicLightColorScheme(context)
+                } else {
+                    lightScheme
+                }
 
         }
 
@@ -175,9 +175,66 @@ fun EscapeTheme(
         }
     }
 
+    // Make the typography
+    val fontFamily = remember {
+        mutableStateOf(
+            FontFamily(
+                Font(
+                    googleFont = GoogleFont(getStringSetting(context,"font", "Jost"), true),
+                    fontProvider = provider
+                )
+            )
+        )
+    }
+
+    val typography = Typography(
+        bodyLarge = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 28.sp,
+            lineHeight = 29.sp,
+            letterSpacing = 0.6.sp
+        ),
+        bodyMedium = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 24.sp,
+            lineHeight = 25.sp,
+            letterSpacing = 0.6.sp
+        ),
+        bodySmall = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 20.sp,
+            lineHeight = 21.sp,
+            letterSpacing = 0.6.sp
+        ),
+        titleLarge = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Light,
+            fontSize = 52.sp,
+            lineHeight = 53.sp,
+            letterSpacing = 0.6.sp
+        ),
+        titleMedium = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Light,
+            fontSize = 48.sp,
+            lineHeight = 49.sp,
+            letterSpacing = 0.6.sp
+        ),
+        titleSmall = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Light,
+            fontSize = 44.sp,
+            lineHeight = 45.sp,
+            letterSpacing = 0.6.sp
+        )
+    )
+
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = type,
+        typography = typography,
         content = content
     )
 }

@@ -34,7 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geecee.escape.R
-import com.geecee.escape.ui.theme.JosefinTypography
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -109,7 +108,7 @@ fun FirstTime(onOpenSetup: () -> Unit) {
                 currentText,
                 Modifier.padding(32.dp),
                 Color.White,
-                style = JosefinTypography.titleSmall,
+                style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Center,
 
                 )

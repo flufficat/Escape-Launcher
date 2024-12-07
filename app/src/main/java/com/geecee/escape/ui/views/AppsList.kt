@@ -42,7 +42,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
-import com.geecee.escape.ui.theme.JostTypography
 import com.geecee.escape.utils.AppUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -268,7 +267,7 @@ fun AnimatedPillSearchBar(
                     stringResource(id = R.string.search),
                     modifier = Modifier.animateContentSize(),
                     color = MaterialTheme.colorScheme.background,
-                    style = JostTypography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 

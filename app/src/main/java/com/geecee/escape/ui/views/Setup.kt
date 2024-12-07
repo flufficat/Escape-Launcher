@@ -38,7 +38,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
-import com.geecee.escape.ui.theme.JostTypography
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -100,12 +99,12 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.hi),
                         color = MaterialTheme.colorScheme.onBackground,
-                        style = JostTypography.titleMedium
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = stringResource(id = R.string.choose_apps),
                         color = MaterialTheme.colorScheme.onBackground,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(
@@ -137,7 +136,7 @@ fun Setup(
                                         )
                                     }),
                                 color = MaterialTheme.colorScheme.onBackground,
-                                style = JostTypography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -159,7 +158,7 @@ fun Setup(
                                         updateFavoriteStatus(appInfo.activityInfo.packageName, true)
                                     }),
                                 color = MaterialTheme.colorScheme.onBackground,
-                                style = JostTypography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -184,12 +183,12 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.set_launcher),
                         color = MaterialTheme.colorScheme.onBackground,
-                        style = JostTypography.titleMedium
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = stringResource(id = R.string.you_need_to_set_escape),
                         color = MaterialTheme.colorScheme.onBackground,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(
@@ -223,7 +222,7 @@ fun Setup(
                     Text(
                         text = stringResource(id = R.string.set_wallpaper),
                         color = MaterialTheme.colorScheme.onBackground,
-                        style = JostTypography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Button(

@@ -32,7 +32,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.ui.theme.JosefinTypography
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
@@ -168,7 +167,7 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                         currentText,
                         Modifier.padding(32.dp),
                         Color.White,
-                        style = JosefinTypography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall,
                         textAlign = TextAlign.Center,
 
                         )
