@@ -654,11 +654,7 @@ fun HiddenApps(
                                 mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeCustomAnimation(
-                                    mainAppModel.context,
-                                    R.anim.slide_in_bottom,
-                                    R.anim.slide_out_top
-                                )
+                                val options = ActivityOptions.makeBasic()
                                 mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
@@ -721,11 +717,7 @@ fun OpenChallenges(
                                 mainAppModel.packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                val options = ActivityOptions.makeCustomAnimation(
-                                    mainAppModel.context,
-                                    R.anim.slide_in_bottom,
-                                    R.anim.slide_out_top
-                                )
+                                val options = ActivityOptions.makeBasic()
                                 mainAppModel.context.startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
