@@ -7,6 +7,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.view.animation.ScaleAnimation
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,10 +29,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.ui.theme.EscapeTheme
-import com.geecee.escape.ui.views.FirstTime
 import com.geecee.escape.ui.views.HomeScreenPageManager
 import com.geecee.escape.ui.views.Settings
-import com.geecee.escape.ui.views.Setup
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
@@ -37,8 +39,10 @@ import com.geecee.escape.utils.getBooleanSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.geecee.escape.ui.views.Onboarding
 
-// A class to send data around the app more easily
 data class MainAppModel(
     var context: Context,
     var packageManager: PackageManager,
@@ -55,7 +59,9 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var mainAppModel: MainAppModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        animateSplashScreen(splashScreen)
         enableEdgeToEdge()
         configureFullScreenMode()
         ScreenTimeManager.initialize(this)
@@ -97,13 +103,55 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    //Splash Animation
+    private fun animateSplashScreen(splashScreen: SplashScreen){
+        splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
+            // Create a scale animation (zoom effect)
+            val scaleAnimation = ScaleAnimation(
+                1f, 100f, // From normal size to 5x size
+                1f, 100f,
+                Animation.RELATIVE_TO_SELF, 0.5f, // Pivot at the center
+                Animation.RELATIVE_TO_SELF, 0.5f
+            ).apply {
+                duration = 1200 // Duration of the zoom animation in ms
+                fillAfter = true // Retain the final state
+            }
+
+            // Create a fade-out animation
+            val fadeOutAnimation = AlphaAnimation(1f, 0f).apply {
+                duration = 300 // Duration of the fade-out in ms
+                startOffset = 500 // Delay to start after zoom finishes
+                fillAfter = true // Retain the final state
+            }
+
+            // Combine the animations
+            val animationSet = AnimationSet(true).apply {
+                addAnimation(scaleAnimation)
+                addAnimation(fadeOutAnimation)
+            }
+
+            // Start the combined animation
+            splashScreenViewProvider.view.startAnimation(animationSet)
+
+            // Remove the splash screen view after the animation ends
+            animationSet.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {}
+
+                override fun onAnimationEnd(animation: Animation?) {
+                    splashScreenViewProvider.remove()
+                }
+
+                override fun onAnimationRepeat(animation: Animation?) {}
+            })
+        }
+    }
+
     // Set content
     @Composable
     private fun SetUpContent() {
         EscapeTheme {
             InitializeMainAppModel()
-            val startDestination = determineStartDestination()
-            SetupNavHost(startDestination)
+            SetupNavHost(determineStartDestination())
         }
     }
 
@@ -125,8 +173,7 @@ class MainHomeScreen : ComponentActivity() {
     // Finds which screen to start on
     private fun determineStartDestination(): String {
         return when {
-            getBooleanSetting(mainAppModel.context,"hasDoneSetupPageOne", false) -> "setup"
-            getBooleanSetting(mainAppModel.context,"FirstTime", true) -> "first_time"
+            getBooleanSetting(mainAppModel.context,"FirstTime", true) -> "onboarding"
             else -> "home"
         }
     }
@@ -155,15 +202,10 @@ class MainHomeScreen : ComponentActivity() {
                         this@MainHomeScreen,
                     )
                 }
-                composable("first_time",
-                    enterTransition = { fadeIn(tween(300)) },
-                    exitTransition = { fadeOut(tween(300)) }) {
-                    FirstTime { navController.navigate("setup") }
-                }
-                composable("setup",
+                composable ("onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Setup(mainAppModel) { navController.navigate("home") }
+                    Onboarding(navController, mainAppModel)
                 }
             }
         }

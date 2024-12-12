@@ -4,6 +4,16 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+    </style>
 
+    <style name="Theme.Escape.Splash" parent="Theme.SplashScreen">
+        <!-- Set the background color -->
+        <item name="windowSplashScreenBackground">@color/Teal1</item>
+        <!-- Set the logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <!-- Customize the icon animation duration -->
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <!-- Set the status bar color -->
+        <item name="postSplashScreenTheme">@style/Theme.Escape</item>
     </style>
 </resources>

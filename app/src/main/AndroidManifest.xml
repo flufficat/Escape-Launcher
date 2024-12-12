@@ -28,14 +28,14 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:roundIcon="@mipmap/ic_launcher"
-        android:theme="@style/Theme.Escape"
+        android:theme="@style/Theme.Escape.Splash"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu">
 
         <activity
             android:name=".MainHomeScreen"
             android:exported="true"
-            android:theme="@style/Theme.Escape">
+            android:theme="@style/Theme.Escape.Splash">
             <intent-filter>
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />

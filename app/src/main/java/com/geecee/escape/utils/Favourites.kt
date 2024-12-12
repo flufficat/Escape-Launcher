@@ -1,4 +1,4 @@
-//Thanks ChatGPT ;)
+@file:Suppress("unused")
 
 package com.geecee.escape.utils
 
@@ -50,8 +50,23 @@ class FavoriteAppsManager(context: Context) {
     }
 
     fun isAppFavorite(packageName: String): Boolean {
-        val favoriteApps = getFavoriteApps()
-        return packageName in favoriteApps
+        return packageName in getFavoriteApps()
+    }
+
+    fun getFavoriteIndex(packageName: String): Int {
+        return getFavoriteApps().indexOf(packageName)
+    }
+
+    fun reorderFavoriteApps(fromIndex: Int, toIndex: Int) {
+        val favoriteApps = getFavoriteApps().toMutableList()
+        if (fromIndex in favoriteApps.indices && toIndex in favoriteApps.indices) {
+            val item = favoriteApps.removeAt(fromIndex)
+            favoriteApps.add(toIndex, item)
+            saveFavoriteApps(favoriteApps)
+        }
+    }
+
+    fun getFavoriteAppsInOrder(): List<String> {
+        return getFavoriteApps()
     }
 }
-
