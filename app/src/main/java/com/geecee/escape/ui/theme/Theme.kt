@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -138,7 +139,7 @@ fun EscapeTheme(
     )
 
     // Set theme
-    when (sharedPreferencesSettings.getInt("Theme", 0)) {
+    when (sharedPreferencesSettings.getInt(stringResource(R.string.Theme), 0)) {
         0 -> {
             colorScheme = darkScheme
         }
@@ -180,7 +181,7 @@ fun EscapeTheme(
         mutableStateOf(
             FontFamily(
                 Font(
-                    googleFont = GoogleFont(getStringSetting(context,"font", "Jost"), true),
+                    googleFont = GoogleFont(getStringSetting(context, context.resources.getString(R.string.Font), "Jost"), true),
                     fontProvider = provider
                 )
             )

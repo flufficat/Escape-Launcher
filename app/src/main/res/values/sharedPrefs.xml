@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Theme">Theme</string>
+    <string name="HomeAlignment">HomeAlignment</string>
+    <string name="HomeVAlignment">HomeVAlignment</string>
+    <string name="AppsAlignment">AppsAlignment</string>
+    <string name="ShowSearchBox">showSearchBox</string>
+    <string name="SearchAutoOpen">searchAutoOpen</string>
+    <string name="ShowClock">ShowClock</string>
+    <string name="BigClock">BigClock</string>
+    <string name="ScreenTimeOnApp">screenTimeOnApp</string>
+    <string name="Font">font</string>
+    <string name="FirstTime">FirstTime</string>
+    <string name="FirstTimeAppDrawHelp">FirstTimeAppDrawHelp</string>
+</resources>

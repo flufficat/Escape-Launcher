@@ -22,7 +22,7 @@ fun changeTheme(theme: Int, context: Context, activity: Activity) {
     )
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    editor.putInt("Theme", theme)
+    editor.putInt(context.resources.getString(R.string.Theme), theme)
 
     editor.apply()
 
@@ -39,7 +39,7 @@ fun changeHomeAlignment(context: Context, alignment: Int) {
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     editor.putString(
-        "HomeAlignment", when (alignment) {
+        context.resources.getString(R.string.HomeAlignment), when (alignment) {
             1 -> "Center"
             0 -> "Left"
             else -> "Right"
@@ -54,9 +54,9 @@ fun getHomeAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString("HomeAlignment", "Center") == "Left") {
+    return if (sharedPreferences.getString(context.resources.getString(R.string.HomeAlignment), "Center") == "Left") {
         0
-    } else if (sharedPreferences.getString("HomeAlignment", "Center") == "Center") {
+    } else if (sharedPreferences.getString(context.resources.getString(R.string.HomeAlignment), "Center") == "Center") {
         1
     } else {
         2
@@ -70,7 +70,7 @@ fun changeHomeVAlignment(context: Context, alignment: Int) {
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     editor.putString(
-        "HomeVAlignment", when (alignment) {
+        context.resources.getString(R.string.HomeVAlignment), when (alignment) {
             1 -> "Center"
             0 -> "Top"
             else -> "Bottom"
@@ -85,9 +85,9 @@ fun getHomeVAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString("HomeVAlignment", "Center") == "Top") {
+    return if (sharedPreferences.getString(context.resources.getString(R.string.HomeVAlignment), "Center") == "Top") {
         0
-    } else if (sharedPreferences.getString("HomeVAlignment", "Center") == "Center") {
+    } else if (sharedPreferences.getString(context.resources.getString(R.string.HomeVAlignment), "Center") == "Center") {
         1
     } else {
         2
@@ -101,7 +101,7 @@ fun changeAppsAlignment(context: Context, alignment: Int) {
     val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     editor.putString(
-        "AppsAlignment", when (alignment) {
+        context.resources.getString(R.string.AppsAlignment), when (alignment) {
             1 -> "Center"
             0 -> "Left"
             else -> "Right"
@@ -116,9 +116,9 @@ fun getAppsAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString("AppsAlignment", "Center") == "Left") {
+    return if (sharedPreferences.getString(context.resources.getString(R.string.AppsAlignment), "Center") == "Left") {
         0
-    } else if (sharedPreferences.getString("AppsAlignment", "Center") == "Center") {
+    } else if (sharedPreferences.getString(context.resources.getString(R.string.AppsAlignment), "Center") == "Center") {
         1
     } else {
         2

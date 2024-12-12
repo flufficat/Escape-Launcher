@@ -408,7 +408,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
         Button(
             onClick = {
                 navController.navigate("home")
-                setBooleanSetting(mainAppModel.context,"FirstTime",false)
+                setBooleanSetting(mainAppModel.context,mainAppModel.context.resources.getString(R.string.FirstTime),false)
             },
             modifier = Modifier.align(Alignment.BottomEnd),
             colors = ButtonColors(

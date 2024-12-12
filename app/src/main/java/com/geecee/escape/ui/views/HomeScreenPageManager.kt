@@ -57,6 +57,7 @@ import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.OpenChallenge
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getUsageForApp
+import com.geecee.escape.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -153,10 +154,7 @@ fun HomeScreenPageManager(
                 onLongClick = {
                     homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onOpenSettings()
-
-                    val editor = homeScreenModel.sharedPreferences.edit()
-                    editor.putString("FirstTimeAppDrawHelp", "False")
-                    editor.apply()
+                    setBooleanSetting(mainAppModel.context,mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),false)
                 },
                 indication = null, interactionSource = homeScreenModel.interactionSource
             )

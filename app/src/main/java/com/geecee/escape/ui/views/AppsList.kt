@@ -63,7 +63,7 @@ fun AppsList(
                 .fillMaxSize()
                 .padding(30.dp, 0.dp),
             horizontalAlignment = AppUtils.getAppsListAlignmentFromPreferences(
-                homeScreenModel.sharedPreferences
+                homeScreenModel.sharedPreferences, mainAppModel.context
             )
         ) {
             item {
@@ -76,7 +76,7 @@ fun AppsList(
             }
 
             item {
-                if (homeScreenModel.sharedPreferences.getBoolean("showSearchBox", true)) {
+                if (homeScreenModel.sharedPreferences.getBoolean(stringResource(R.string.ShowSearchBox), true)) {
                     Spacer(modifier = Modifier.height(15.dp))
                     AnimatedPillSearchBar(
                         { searchBoxText ->
@@ -84,7 +84,7 @@ fun AppsList(
                             var autoOpen = false
 
                             if (homeScreenModel.sharedPreferences.getBoolean(
-                                    "searchAutoOpen",
+                                    mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
                                     false
                                 )
                             ) {

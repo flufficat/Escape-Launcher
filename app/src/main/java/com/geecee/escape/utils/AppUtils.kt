@@ -1,10 +1,6 @@
-@file:Suppress("unused")
-
 package com.geecee.escape.utils
 
 import android.app.ActivityOptions
-import android.app.usage.UsageStats
-import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -14,9 +10,9 @@ import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import com.geecee.escape.MainAppModel
+import com.geecee.escape.R
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 
@@ -45,20 +41,6 @@ object AppUtils {
                 }
             }
         }
-    }
-
-    fun getScreenTimeForPackage(context: Context, packageName: String): Long {
-        val usageStatsManager =
-            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val calendar = Calendar.getInstance()
-        calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DATE),1,0,0)
-        val start = calendar.timeInMillis
-        val end = System.currentTimeMillis()
-        val stats: Map<String, UsageStats> =
-            usageStatsManager.queryAndAggregateUsageStats(start, end)
-
-        val usageStats = stats[packageName]
-        return usageStats?.totalTimeInForeground ?: 0L
     }
 
     fun formatScreenTime(milliseconds: Long): String {
@@ -101,8 +83,8 @@ object AppUtils {
         }.sortedBy { it.loadLabel(packageManager).toString() }
     }
 
-    fun getAppsListAlignmentFromPreferences(preferences: SharedPreferences): Alignment.Horizontal {
-        return when (preferences.getString("AppsAlignment", "Center")) {
+    fun getAppsListAlignmentFromPreferences(preferences: SharedPreferences,context: Context): Alignment.Horizontal {
+        return when (preferences.getString(context.resources.getString(R.string.AppsAlignment), "Center")) {
             "Center" -> Alignment.CenterHorizontally
             "Left" -> Alignment.Start
             else -> Alignment.End

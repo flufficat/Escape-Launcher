@@ -256,28 +256,28 @@ fun MainSettingsPage(
         SettingsHeader(goHome, stringResource(R.string.settings))
         SettingsSwitch(
             label = stringResource(id = R.string.search_box),
-            checked = getBooleanSetting(mainAppModel.context, "showSearchBox", true),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "showSearchBox") }
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowSearchBox), true),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ShowSearchBox)) }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.auto_open),
-            checked = getBooleanSetting(mainAppModel.context, "searchAutoOpen"),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "searchAutoOpen") }
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.SearchAutoOpen)),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.SearchAutoOpen)) }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.show_clock),
-            checked = getBooleanSetting(mainAppModel.context, "ShowClock", true),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "ShowClock") }
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowClock), true),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ShowClock)) }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.big_clock),
-            checked = getBooleanSetting(mainAppModel.context, "BigClock"),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "BigClock") }
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.BigClock)),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.BigClock)) }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.screen_time_on_app),
-            checked = getBooleanSetting(mainAppModel.context, "screenTimeOnApp"),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, "screenTimeOnApp") }
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ScreenTimeOnApp)),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ScreenTimeOnApp)) }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.theme),
@@ -474,7 +474,6 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 fun ThemeCard(
@@ -767,7 +766,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "Jost")
+                    setStringSetting(context, context.resources.getString(R.string.Font), "Jost")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
@@ -778,7 +777,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "Inter")
+                    setStringSetting(context, context.resources.getString(R.string.Font), "Inter")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
@@ -789,7 +788,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "Lexend")
+                    setStringSetting(context, context.resources.getString(R.string.Font), "Lexend")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
@@ -800,7 +799,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, "font", "Work Sans")
+                    setStringSetting(context, context.resources.getString(R.string.Font), "Work Sans")
                     resetActivity(context,activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
@@ -832,13 +831,12 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             )
 
             var checked by remember { mutableStateOf(true) }
-            checked = getBooleanSetting(context,"FirstTime", false)
+            checked = getBooleanSetting(context, stringResource(R.string.FirstTime), false)
 
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    setBooleanSetting(context,"FirstTime", true)
-                    setBooleanSetting(context,"hasDoneSetupPageOne", false)
+                    setBooleanSetting(context,context.resources.getString(R.string.FirstTime), true)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }

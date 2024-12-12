@@ -19,9 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.geecee.escape.MainAppModel
+import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.getBooleanSetting
@@ -40,23 +42,23 @@ fun HomeScreen(
     LazyColumn(
         state = scrollState,
         verticalArrangement = if (homeScreenModel.sharedPreferences.getString(
-                "HomeVAlignment", "Center"
+                stringResource(R.string.HomeVAlignment), "Center"
             ) == "Center"
         ) Arrangement.Center else if (homeScreenModel.sharedPreferences.getString(
-                "HomeVAlignment", "Center"
+                stringResource(R.string.HomeVAlignment), "Center"
             ) == "Top"
         ) Arrangement.Top else Arrangement.Bottom,
         horizontalAlignment = if (homeScreenModel.sharedPreferences.getString(
-                "HomeAlignment", "Center"
+                stringResource(R.string.HomeAlignment), "Center"
             ) == "Center"
         ) Alignment.CenterHorizontally else if (homeScreenModel.sharedPreferences.getString(
-                "HomeAlignment", "Center"
+                stringResource(R.string.HomeAlignment), "Center"
             ) == "Left"
         ) Alignment.Start else Alignment.End,
         modifier = modifier
     ) {
         item {
-            if (getBooleanSetting(mainAppModel.context, "ShowClock", true)) {
+            if (getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowClock), true)) {
                 Clock(homeScreenModel.sharedPreferences, mainAppModel, noApps)
             }
         }
@@ -94,7 +96,7 @@ fun Clock(
         }
     }
 
-    if (getBooleanSetting(context = mainAppModel.context,"BigClock",false)) {
+    if (getBooleanSetting(context = mainAppModel.context,stringResource(R.string.BigClock),false)) {
         Column {
             Text(
                 text = hours,
@@ -126,11 +128,11 @@ fun Clock(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = if (sharedPreferencesSettings.getString(
-                    "HomeAlignment",
+                    stringResource(R.string.HomeAlignment),
                     "Center"
                 ) == "Left"
             ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                    "HomeAlignment",
+                    stringResource(R.string.HomeAlignment),
                     "Center"
                 ) == "Right"
             ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
