@@ -837,6 +837,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                 checked = checked, onCheckedChange = {
                     checked = it
                     setBooleanSetting(context,context.resources.getString(R.string.FirstTime), true)
+                    setBooleanSetting(context,context.resources.getString(R.string.FirstTimeAppDrawHelp), true)
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }

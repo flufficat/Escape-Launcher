@@ -1,12 +1,22 @@
 package com.geecee.escape.ui.views
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,6 +85,63 @@ fun HomeScreen(
                 null,
             )
         }
+
+        if (getBooleanSetting(
+                mainAppModel.context,
+                mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),
+                true
+            )
+        ) {
+            item {
+                Spacer(Modifier.height(15.dp))
+            }
+
+            item {
+                Box(
+                    Modifier
+                        .clip(
+                            MaterialTheme.shapes.extraLarge
+                        )
+                ) {
+                    Column(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Row(Modifier.padding(25.dp, 25.dp, 25.dp, 15.dp).align(Alignment.CenterHorizontally)) {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.ArrowForward,
+                                "",
+                                Modifier.align(Alignment.CenterVertically),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                stringResource(R.string.swipe_for_all_apps),
+                                modifier = Modifier,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        Row(Modifier.padding(25.dp, 0.dp, 25.dp, 25.dp).align(Alignment.CenterHorizontally)) {
+                            Icon(
+                                painterResource(R.drawable.radio_button_unchecked),
+                                "",
+                                Modifier.align(Alignment.CenterVertically),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                stringResource(R.string.hold_for_settings),
+                                modifier = Modifier,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
@@ -96,7 +165,12 @@ fun Clock(
         }
     }
 
-    if (getBooleanSetting(context = mainAppModel.context,stringResource(R.string.BigClock),false)) {
+    if (getBooleanSetting(
+            context = mainAppModel.context,
+            stringResource(R.string.BigClock),
+            false
+        )
+    ) {
         Column {
             Text(
                 text = hours,

@@ -283,6 +283,8 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                 lineHeight = 32.sp
             )
 
+            Spacer(Modifier.height(10.dp))
+
             Column {
                 favoritedApps.forEach { appInfo ->
                     Text(

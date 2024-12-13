@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Theme">Theme</string>
-    <string name="HomeAlignment">HomeAlignment</string>
-    <string name="HomeVAlignment">HomeVAlignment</string>
-    <string name="AppsAlignment">AppsAlignment</string>
-    <string name="ShowSearchBox">showSearchBox</string>
-    <string name="SearchAutoOpen">searchAutoOpen</string>
-    <string name="ShowClock">ShowClock</string>
-    <string name="BigClock">BigClock</string>
-    <string name="ScreenTimeOnApp">screenTimeOnApp</string>
-    <string name="Font">font</string>
-    <string name="FirstTime">FirstTime</string>
-    <string name="FirstTimeAppDrawHelp">FirstTimeAppDrawHelp</string>
+    <string name="Theme" translatable="false">Theme</string>
+    <string name="HomeAlignment" translatable="false">HomeAlignment</string>
+    <string name="HomeVAlignment" translatable="false">HomeVAlignment</string>
+    <string name="AppsAlignment" translatable="false">AppsAlignment</string>
+    <string name="ShowSearchBox" translatable="false">showSearchBox</string>
+    <string name="SearchAutoOpen" translatable="false">searchAutoOpen</string>
+    <string name="ShowClock" translatable="false">ShowClock</string>
+    <string name="BigClock" translatable="false">BigClock</string>
+    <string name="ScreenTimeOnApp" translatable="false">screenTimeOnApp</string>
+    <string name="Font" translatable="false">font</string>
+    <string name="FirstTime" translatable="false">FirstTime</string>
+    <string name="FirstTimeAppDrawHelp" translatable="false">FirstTimeAppDrawHelp</string>
 </resources>
