@@ -42,6 +42,9 @@ import kotlinx.coroutines.launch
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.geecee.escape.ui.views.Onboarding
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.perf.FirebasePerformance
 
 data class MainAppModel(
     var context: Context,
@@ -59,6 +62,19 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var mainAppModel: MainAppModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        //Disable or enable analytics based on user preference
+        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
+            getBooleanSetting(
+                this,
+                this.resources.getString(R.string.Analytics),
+                false
+            )
+        )
+        FirebasePerformance.getInstance().isPerformanceCollectionEnabled =
+            getBooleanSetting(this, this.resources.getString(R.string.Analytics), false)
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled =
+            getBooleanSetting(this, this.resources.getString(R.string.Analytics), false)
+
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         animateSplashScreen(splashScreen)
@@ -104,7 +120,7 @@ class MainHomeScreen : ComponentActivity() {
     }
 
     //Splash Animation
-    private fun animateSplashScreen(splashScreen: SplashScreen){
+    private fun animateSplashScreen(splashScreen: SplashScreen) {
         splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
             // Create a scale animation (zoom effect)
             val scaleAnimation = ScaleAnimation(
@@ -173,7 +189,7 @@ class MainHomeScreen : ComponentActivity() {
     // Finds which screen to start on
     private fun determineStartDestination(): String {
         return when {
-            getBooleanSetting(mainAppModel.context,"FirstTime", true) -> "onboarding"
+            getBooleanSetting(mainAppModel.context, "FirstTime", true) -> "onboarding"
             else -> "home"
         }
     }
@@ -202,7 +218,7 @@ class MainHomeScreen : ComponentActivity() {
                         this@MainHomeScreen,
                     )
                 }
-                composable ("onboarding",
+                composable("onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Onboarding(navController, mainAppModel)
