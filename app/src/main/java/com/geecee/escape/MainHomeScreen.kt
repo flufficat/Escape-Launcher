@@ -24,27 +24,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.ui.theme.EscapeTheme
 import com.geecee.escape.ui.views.HomeScreenPageManager
+import com.geecee.escape.ui.views.Onboarding
 import com.geecee.escape.ui.views.Settings
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
 import com.geecee.escape.utils.ScreenTimeManager
 import com.geecee.escape.utils.getBooleanSetting
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.core.splashscreen.SplashScreen
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.geecee.escape.ui.views.Onboarding
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.perf.FirebasePerformance
 
 data class MainAppModel(
     var context: Context,
@@ -62,19 +62,13 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var mainAppModel: MainAppModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //Disable or enable analytics based on user preference
-        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
+        configureAnalytics(
             getBooleanSetting(
                 this,
                 this.resources.getString(R.string.Analytics),
                 false
             )
         )
-        FirebasePerformance.getInstance().isPerformanceCollectionEnabled =
-            getBooleanSetting(this, this.resources.getString(R.string.Analytics), false)
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled =
-            getBooleanSetting(this, this.resources.getString(R.string.Analytics), false)
-
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         animateSplashScreen(splashScreen)
@@ -226,4 +220,17 @@ class MainHomeScreen : ComponentActivity() {
             }
         }
     }
+}
+
+// Function to enable or disable analytics
+fun configureAnalytics(enabled: Boolean) {
+    val analytics = Firebase.analytics
+
+    analytics.setConsent(
+        mapOf(
+            FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE to if (enabled) FirebaseAnalytics.ConsentStatus.GRANTED else FirebaseAnalytics.ConsentStatus.DENIED,
+        )
+    )
+
+    analytics.setAnalyticsCollectionEnabled(enabled)
 }

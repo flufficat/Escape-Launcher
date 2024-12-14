@@ -27,11 +27,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.sharp.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +57,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,6 +72,7 @@ import com.geecee.escape.ui.theme.DarkColorScheme
 import com.geecee.escape.ui.theme.LightColorScheme
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.AppUtils.loadTextFromAssets
 import com.geecee.escape.utils.changeAppsAlignment
 import com.geecee.escape.utils.changeHomeAlignment
 import com.geecee.escape.utils.changeHomeVAlignment
@@ -246,6 +252,9 @@ fun MainSettingsPage(
     navController: NavController,
     mainAppModel: MainAppModel
 ) {
+    val showPolicyDialog = remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
@@ -254,6 +263,11 @@ fun MainSettingsPage(
             .verticalScroll(rememberScrollState())
     ) {
         SettingsHeader(goHome, stringResource(R.string.settings))
+        SettingsSwitch(
+            label = stringResource(id = R.string.Analytics),
+            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.Analytics), true),
+            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.Analytics)) }
+        )
         SettingsSwitch(
             label = stringResource(id = R.string.search_box),
             checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowSearchBox), true),
@@ -278,6 +292,11 @@ fun MainSettingsPage(
             label = stringResource(id = R.string.screen_time_on_app),
             checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ScreenTimeOnApp)),
             onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ScreenTimeOnApp)) }
+        )
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.read_privacy_policy),
+            false,
+            onClick = { showPolicyDialog.value = true }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.theme),
@@ -320,6 +339,45 @@ fun MainSettingsPage(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
+    }
+
+
+    if (showPolicyDialog.value) {
+        Card(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)  // Make the content scrollable
+                    .padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(120.dp))
+
+                // Load text from the asset
+                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
+                    BasicText(
+                        text = text, style = TextStyle(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Normal
+                        ), modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // "OK" Button
+                Button(
+                    onClick = { showPolicyDialog.value = false },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text("OK")
+                }
+            }
+        }
     }
 }
 

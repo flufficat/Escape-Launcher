@@ -36,6 +36,13 @@
             android:name=".MainHomeScreen"
             android:exported="true"
             android:theme="@style/Theme.Escape.Splash">
+
+            <!-- Disable Analytics collection initially -->
+            <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+
+            <!-- Set default consent states -->
+            <meta-data android:name="google_analytics_default_allow_analytics_storage" android:value="false" />
+
             <intent-filter>
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />

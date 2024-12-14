@@ -11,6 +11,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
+import java.io.IOException
+import java.io.InputStream
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -106,5 +108,19 @@ object AppUtils {
         val now = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("HH:mm") // Format as hours:minutes:seconds
         return now.format(formatter)
+    }
+
+    fun loadTextFromAssets(context: Context, fileName: String): String? {
+        var inputStream: InputStream? = null
+        var fileContent: String? = null
+        try {
+            inputStream = context.assets.open(fileName)
+            fileContent = inputStream.bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } finally {
+            inputStream?.close()
+        }
+        return fileContent
     }
 }

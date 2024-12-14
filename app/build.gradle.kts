@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
+    id("com.google.firebase.crashlytics")
 }
 
 android {

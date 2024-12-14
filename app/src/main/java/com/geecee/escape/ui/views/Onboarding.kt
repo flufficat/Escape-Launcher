@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,12 +19,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -48,6 +55,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
+import com.geecee.escape.configureAnalytics
+import com.geecee.escape.utils.AppUtils.loadTextFromAssets
 import com.geecee.escape.utils.changeLauncher
 import com.geecee.escape.utils.setBooleanSetting
 
@@ -74,7 +83,12 @@ fun Onboarding(mainNavController: NavController, mainAppModel: MainAppModel) {
         composable("Page4",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
-            OnboardingPage4(mainNavController, mainAppModel)
+            OnboardingPage4(navController, mainAppModel)
+        }
+        composable("Page5",
+            enterTransition = { fadeIn(tween(300)) },
+            exitTransition = { fadeOut(tween(300)) }) {
+            OnboardingPage5(mainNavController, mainAppModel)
         }
     }
 }
@@ -108,9 +122,7 @@ fun OnboardingPage1(navController: NavController) {
         Button(
             onClick = {
                 navController.navigate("Page2")
-            },
-            modifier = Modifier.align(Alignment.BottomEnd),
-            colors = ButtonColors(
+            }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
                 MaterialTheme.colorScheme.onBackground,
                 MaterialTheme.colorScheme.background,
                 MaterialTheme.colorScheme.onBackground,
@@ -122,8 +134,7 @@ fun OnboardingPage1(navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.continue_str),
-                    maxLines = 1, // Prevent overflow
+                    text = stringResource(R.string.continue_str), maxLines = 1, // Prevent overflow
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
@@ -194,9 +205,7 @@ fun OnboardingPage2(navController: NavController) {
         Button(
             onClick = {
                 navController.navigate("Page3")
-            },
-            modifier = Modifier.align(Alignment.BottomEnd),
-            colors = ButtonColors(
+            }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
                 MaterialTheme.colorScheme.onBackground,
                 MaterialTheme.colorScheme.background,
                 MaterialTheme.colorScheme.onBackground,
@@ -208,8 +217,7 @@ fun OnboardingPage2(navController: NavController) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.continue_str),
-                    maxLines = 1, // Prevent overflow
+                    text = stringResource(R.string.continue_str), maxLines = 1, // Prevent overflow
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
@@ -249,8 +257,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
     }
 
     val nonFavoritedApps = installedApps.value.filter { appInfo ->
-        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) &&
-                appInfo.activityInfo.packageName != "com.geecee.escape"
+        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
     }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
 
     Box(
@@ -291,12 +298,10 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                         text = appInfo.loadLabel(mainAppModel.packageManager).toString(),
                         modifier = Modifier
                             .padding(vertical = 15.dp)
-                            .combinedClickable(
-                                onClick = {
-                                    mainAppModel.favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
-                                    updateFavoriteStatus(appInfo.activityInfo.packageName, false)
-                                }
-                            ),
+                            .combinedClickable(onClick = {
+                                mainAppModel.favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
+                                updateFavoriteStatus(appInfo.activityInfo.packageName, false)
+                            }),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -347,8 +352,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.continue_str),
-                    maxLines = 1, // Prevent overflow
+                    text = stringResource(R.string.continue_str), maxLines = 1, // Prevent overflow
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
@@ -389,9 +393,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
             Button(
                 onClick = {
                     changeLauncher(mainAppModel.context)
-                },
-                modifier = Modifier,
-                colors = ButtonColors(
+                }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onBackground,
                     MaterialTheme.colorScheme.background,
                     MaterialTheme.colorScheme.onBackground,
@@ -409,11 +411,8 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
 
         Button(
             onClick = {
-                navController.navigate("home")
-                setBooleanSetting(mainAppModel.context,mainAppModel.context.resources.getString(R.string.FirstTime),false)
-            },
-            modifier = Modifier.align(Alignment.BottomEnd),
-            colors = ButtonColors(
+                navController.navigate("Page5")
+            }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
                 MaterialTheme.colorScheme.onBackground,
                 MaterialTheme.colorScheme.background,
                 MaterialTheme.colorScheme.onBackground,
@@ -425,14 +424,169 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.continue_str),
-                    maxLines = 1, // Prevent overflow
+                    text = stringResource(R.string.continue_str), maxLines = 1, // Prevent overflow
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                     contentDescription = "Continue"
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
+    val showPolicyDialog = remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(30.dp, 120.dp, 30.dp, 30.dp)
+    ) {
+        Column {
+            Text(
+                stringResource(R.string.analytics_and_data_collection),
+                Modifier,
+                MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleSmall,
+                textAlign = TextAlign.Start
+            )
+            Spacer(Modifier.height(5.dp))
+            Text(
+                stringResource(R.string.anonymous_data),
+                Modifier,
+                MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Start,
+                lineHeight = 32.sp
+            )
+            Spacer(Modifier.height(10.dp))
+            Button(
+                onClick = {
+                    showPolicyDialog.value = true
+                }, modifier = Modifier, colors = ButtonColors(
+                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(text = stringResource(R.string.read_privacy_policy))
+                }
+            }
+        }
+
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+            Button(
+                onClick = {
+                    navController.navigate("home")
+                    setBooleanSetting(
+                        mainAppModel.context,
+                        mainAppModel.context.resources.getString(R.string.Analytics),
+                        false
+                    )
+                    setBooleanSetting(
+                        mainAppModel.context,
+                        mainAppModel.context.resources.getString(R.string.FirstTime),
+                        false
+                    )
+                },
+                modifier = Modifier,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onBackground
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.deny), maxLines = 1, // Prevent overflow
+                        overflow = TextOverflow.Ellipsis // Gracefully handle long text
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(15.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("home")
+                    setBooleanSetting(
+                        mainAppModel.context,
+                        mainAppModel.context.resources.getString(R.string.Analytics),
+                        true
+                    )
+                    setBooleanSetting(
+                        mainAppModel.context,
+                        mainAppModel.context.resources.getString(R.string.FirstTime),
+                        false
+                    )
+                    configureAnalytics(true)
+                }, modifier = Modifier, colors = ButtonColors(
+                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.allow), maxLines = 1, // Prevent overflow
+                        overflow = TextOverflow.Ellipsis // Gracefully handle long text
+                    )
+                }
+            }
+        }
+    }
+
+    if (showPolicyDialog.value) {
+        Card(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)  // Make the content scrollable
+                    .padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(120.dp))
+
+                // Load text from the asset
+                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
+                    BasicText(
+                        text = text, style = TextStyle(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Normal
+                        ), modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // "OK" Button
+                Button(
+                    onClick = { showPolicyDialog.value = false },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text("OK")
+                }
             }
         }
     }

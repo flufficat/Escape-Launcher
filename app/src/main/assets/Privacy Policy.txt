@@ -1,0 +1,40 @@
+Privacy Policy
+
+Last updated: 14/12/24
+
+Your privacy is important to us. This Privacy Policy explains how we collect, use, and disclose information when you use the Escape launcher ("the App").
+
+By selecting consent to analytics, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with the terms outlined here, please do not press consent.
+
+1.Information Collection and Use
+We do not collect any personally identifiable information (PII) from users. The App uses the Firebase Analytics SDK, which may collect certain data automatically to help us understand how users interact with the App. This data includes:
+Device Information: Type of device, operating system version, app version, and language preference.
+Usage Data: How users interact with the App, such as clicks, scrolls, and other actions.
+Firebase Analytics data is anonymized and used solely for performance optimization, usage analysis, and to improve the user experience of the App.
+
+2.Analytics and Performance Monitoring
+The App uses Firebase Analytics and Firebase Performance Monitoring to collect anonymous data about app usage. This data is used to:
+Understand user behavior and improve app functionality.
+Optimize app performance.
+You can disable Firebase Analytics and Performance Monitoring by turning off data collection in your app settings at any time.
+
+3.Crash Reporting
+The App uses Firebase Crashlytics for crash reporting. In the event of an error or crash, the app may send anonymous data about the issue (such as device information, logs, and app state) to Firebase to help us identify and fix problems.
+
+4.Data Sharing
+We do not share or sell your personal data to third parties. The data collected via Firebase Analytics, Firebase Performance Monitoring, and Firebase Crashlytics is used solely for improving app functionality and performance.
+
+5.Consent
+By allowing analytics, you consent to the collection and use of your data as described in this Privacy Policy. If you do not want to allow data collection, you can disable analytics in the app settings, which will stop future analytics from being recorded.
+
+6.Data Retention
+We retain analytics data for as long as necessary to fulfill the purposes described in this Privacy Policy. Once the data is no longer needed or if you revoke consent, it will be deleted in accordance with Firebase's data retention policy.
+
+7.Children's Privacy
+We do not knowingly collect or store personal data from users under the age of 13. If you are under 13 years of age, make sure a parent or adult reads this policy and consents or doesn't consent for you. If you consent without an adult, you can withdraw consent and have data deleted by disabling analytics in settings. Please note that once you disable analytics, no further data will be collected, and past data will be handled according to Firebase's retention policies.
+
+8.Security
+We take reasonable precautions to protect the data we collect, but no method of transmission over the internet is 100% secure. While we strive to use commercially acceptable means to protect your information, we cannot guarantee its absolute security.
+
+9.Changes to This Privacy Policy
+We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated revision date. We encourage you to review this Privacy Policy periodically for any updates.
