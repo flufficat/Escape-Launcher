@@ -1,5 +1,6 @@
 package com.geecee.escape.ui.views
 
+import android.os.Build
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +22,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,6 +47,9 @@ import androidx.compose.ui.unit.dp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.isPrivateSpace
+import com.geecee.escape.utils.lockPrivateSpace
+import com.geecee.escape.utils.unlockPrivateSpaceAndUpdateVariable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -76,7 +83,11 @@ fun AppsList(
             }
 
             item {
-                if (homeScreenModel.sharedPreferences.getBoolean(stringResource(R.string.ShowSearchBox), true)) {
+                if (homeScreenModel.sharedPreferences.getBoolean(
+                        stringResource(R.string.ShowSearchBox),
+                        true
+                    )
+                ) {
                     Spacer(modifier = Modifier.height(15.dp))
                     AnimatedPillSearchBar(
                         { searchBoxText ->
@@ -181,29 +192,49 @@ fun AppsList(
                     )
             }
 
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            //TODO: Private space
+            item {
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    val isPrivateSpaceVisible = remember {
+                        mutableStateOf(
+                            isPrivateSpace(
+                                mainAppModel.context
+                            )
+                        )
+                    }
+
+                    if (!isPrivateSpaceVisible.value) {
+                        Button({
+                            unlockPrivateSpaceAndUpdateVariable(mainAppModel.context, isPrivateSpaceVisible)
+                        }) {
+                            Text(stringResource(R.string.unlock_private_space))
+                        }
+                    }
+
+                    if(isPrivateSpaceVisible.value){
+                        Card(
+                            Modifier.fillMaxWidth()
+                        ){
+                            Button({
+                                lockPrivateSpace(mainAppModel.context)
+                                isPrivateSpaceVisible.value = isPrivateSpace(
+                                    mainAppModel.context
+                                )
+                            }) {
+                                Text(stringResource(R.string.lock_private_space))
+                            }
+                        }
+                    }
+                }
+            }
 
             item {
                 Spacer(modifier = Modifier.height(90.dp))
             }
-
-            //TODO: Private space
-//            item {
-//                val isPrivateSpaceVisible by remember { mutableStateOf(false) }
-//
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                    Button(onClick = {
-//                        if(isPrivateSpace(mainAppModel.context)) {
-//                            // Hide private space
-//                            lockPrivateSpace(mainAppModel.context)
-//                        } else {
-//                            // Show private space
-//                            unlockPrivateSpace(mainAppModel.context)
-//                        }
-//                    }) {
-//                        Text(if (isPrivateSpaceVisible) "Hide Private Space" else "Show Private Space")
-//                    }
-//                }
-//            }
         }
     }
 }

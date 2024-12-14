@@ -68,9 +68,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
-import com.geecee.escape.ui.theme.DarkColorScheme
-import com.geecee.escape.ui.theme.LightColorScheme
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
+import com.geecee.escape.ui.theme.darkScheme
+import com.geecee.escape.ui.theme.lightScheme
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.loadTextFromAssets
 import com.geecee.escape.utils.changeAppsAlignment
@@ -556,10 +556,10 @@ fun ThemeCard(
                 .background(
                     when (theme) {
                         0 ->
-                            DarkColorScheme.background
+                            darkScheme.background
 
                         1 ->
-                            LightColorScheme.background
+                            lightScheme.background
 
                         2 ->
                             PitchDarkColorScheme.background
@@ -568,18 +568,18 @@ fun ThemeCard(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 dynamicDarkColorScheme(context).background
                             } else {
-                                DarkColorScheme.background
+                                darkScheme.background
                             }
 
                         4 ->
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 dynamicLightColorScheme(context).background
                             } else {
-                                LightColorScheme.background
+                                lightScheme.background
                             }
 
                         else ->
-                            DarkColorScheme.background
+                            darkScheme.background
                     }
                 )
         ) {
@@ -608,10 +608,10 @@ fun ThemeCard(
                     .padding(5.dp),
                 when (theme) {
                     0 ->
-                        DarkColorScheme.onBackground
+                        darkScheme.onBackground
 
                     1 ->
-                        LightColorScheme.onBackground
+                        lightScheme.onBackground
 
                     2 ->
                         PitchDarkColorScheme.onBackground
@@ -620,18 +620,18 @@ fun ThemeCard(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             dynamicDarkColorScheme(context).onBackground
                         } else {
-                            DarkColorScheme.primary
+                            darkScheme.primary
                         }
 
                     4 ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             dynamicLightColorScheme(context).onBackground
                         } else {
-                            LightColorScheme.onBackground
+                            lightScheme.onBackground
                         }
 
                     else ->
-                        DarkColorScheme.onBackground
+                        darkScheme.onBackground
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center

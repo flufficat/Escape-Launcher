@@ -14,6 +14,8 @@
     <string name="add_open_challenge">Add Open Challenge</string>
     <string name="app_info">App Info</string>
     <string name="search">Search</string>
+    <string name="unlock_private_space">Unlock Private Space</string>
+    <string name="lock_private_space">Lock Private Space</string>
 
     <!-- Hidden Apps strings-->
     <string name="hidden_apps">Hidden Apps</string>

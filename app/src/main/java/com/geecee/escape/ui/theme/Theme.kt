@@ -24,13 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.geecee.escape.R
 import com.geecee.escape.utils.getStringSetting
 
-val DarkColorScheme = darkColorScheme(
-    primary = primary,
-    secondary = secondary,
-    background = background,
-    onPrimary = secondary,
-)
-
 val PitchDarkColorScheme = darkColorScheme(
     primary = primary,
     secondary = secondary,
@@ -38,15 +31,7 @@ val PitchDarkColorScheme = darkColorScheme(
     onPrimary = secondary,
 )
 
-val LightColorScheme = lightColorScheme(
-    primary = lightPrimary,
-    secondary = lightSecondary,
-    background = lightBackground,
-    onPrimary = lightSecondary,
-)
-
-
-private val lightScheme = lightColorScheme(
+val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
@@ -84,7 +69,7 @@ private val lightScheme = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight,
 )
 
-private val darkScheme = darkColorScheme(
+val darkScheme = darkColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
     primaryContainer = primaryContainerDark,
