@@ -4,11 +4,11 @@
     <selectionStates>
       <SelectionState runConfigName="Escape">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-12-13T19:29:26.097315600Z">
+        <DropdownSelection timestamp="2024-12-14T16:37:12.928506100Z">
           <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />
-            </handle>
+            <template>
+              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=komodo/34" />
+            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection />

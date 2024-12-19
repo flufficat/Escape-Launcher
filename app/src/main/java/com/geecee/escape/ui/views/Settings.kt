@@ -265,33 +265,87 @@ fun MainSettingsPage(
         SettingsHeader(goHome, stringResource(R.string.settings))
         SettingsSwitch(
             label = stringResource(id = R.string.Analytics),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.Analytics), true),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.Analytics)) }
+            checked = getBooleanSetting(
+                mainAppModel.context,
+                stringResource(R.string.Analytics),
+                true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.Analytics)
+                )
+            }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.search_box),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowSearchBox), true),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ShowSearchBox)) }
+            checked = getBooleanSetting(
+                mainAppModel.context,
+                stringResource(R.string.ShowSearchBox),
+                true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.ShowSearchBox)
+                )
+            }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.auto_open),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.SearchAutoOpen)),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.SearchAutoOpen)) }
+            checked = getBooleanSetting(
+                mainAppModel.context,
+                stringResource(R.string.SearchAutoOpen)
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.SearchAutoOpen)
+                )
+            }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.show_clock),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowClock), true),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ShowClock)) }
+            checked = getBooleanSetting(
+                mainAppModel.context,
+                stringResource(R.string.ShowClock),
+                true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.ShowClock)
+                )
+            }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.big_clock),
             checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.BigClock)),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.BigClock)) }
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.BigClock)
+                )
+            }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.screen_time_on_app),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.ScreenTimeOnApp)),
-            onCheckedChange = { toggleBooleanSetting(mainAppModel.context, it, mainAppModel.context.resources.getString(R.string.ScreenTimeOnApp)) }
+            checked = getBooleanSetting(
+                mainAppModel.context,
+                stringResource(R.string.ScreenTimeOnApp)
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.context,
+                    it,
+                    mainAppModel.context.resources.getString(R.string.ScreenTimeOnApp)
+                )
+            }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.read_privacy_policy),
@@ -343,38 +397,41 @@ fun MainSettingsPage(
 
 
     if (showPolicyDialog.value) {
-        Card(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)  // Make the content scrollable
-                    .padding(16.dp)
+        Column {
+            Spacer(modifier = Modifier.height(30.dp))
+            Card(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Spacer(modifier = Modifier.height(120.dp))
-
-                // Load text from the asset
-                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
-                    BasicText(
-                        text = text, style = TextStyle(
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Start,
-                            fontWeight = FontWeight.Normal
-                        ), modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // "OK" Button
-                Button(
-                    onClick = { showPolicyDialog.value = false },
+                Column(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 8.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)  // Make the content scrollable
+                        .padding(16.dp)
                 ) {
-                    Text("OK")
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Load text from the asset
+                    loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
+                        BasicText(
+                            text = text, style = TextStyle(
+                                color = MaterialTheme.colorScheme.onBackground,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Normal
+                            ), modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // "OK" Button
+                    Button(
+                        onClick = { showPolicyDialog.value = false },
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text("OK")
+                    }
                 }
             }
         }
@@ -825,7 +882,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Jost")
-                    resetActivity(context,activity)
+                    resetActivity(context, activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium
@@ -836,7 +893,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Inter")
-                    resetActivity(context,activity)
+                    resetActivity(context, activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium
@@ -847,7 +904,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Lexend")
-                    resetActivity(context,activity)
+                    resetActivity(context, activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium
@@ -857,8 +914,12 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             modifier = Modifier
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
-                    setStringSetting(context, context.resources.getString(R.string.Font), "Work Sans")
-                    resetActivity(context,activity)
+                    setStringSetting(
+                        context,
+                        context.resources.getString(R.string.Font),
+                        "Work Sans"
+                    )
+                    resetActivity(context, activity)
                 }),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium
@@ -894,8 +955,16 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             Switch(
                 checked = checked, onCheckedChange = {
                     checked = it
-                    setBooleanSetting(context,context.resources.getString(R.string.FirstTime), true)
-                    setBooleanSetting(context,context.resources.getString(R.string.FirstTimeAppDrawHelp), true)
+                    setBooleanSetting(
+                        context,
+                        context.resources.getString(R.string.FirstTime),
+                        true
+                    )
+                    setBooleanSetting(
+                        context,
+                        context.resources.getString(R.string.FirstTimeAppDrawHelp),
+                        true
+                    )
                 }, Modifier.align(Alignment.CenterEnd)
             )
         }

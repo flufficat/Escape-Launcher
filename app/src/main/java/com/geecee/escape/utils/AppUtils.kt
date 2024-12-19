@@ -85,8 +85,14 @@ object AppUtils {
         }.sortedBy { it.loadLabel(packageManager).toString() }
     }
 
-    fun getAppsListAlignmentFromPreferences(preferences: SharedPreferences,context: Context): Alignment.Horizontal {
-        return when (preferences.getString(context.resources.getString(R.string.AppsAlignment), "Center")) {
+    fun getAppsListAlignmentFromPreferences(
+        preferences: SharedPreferences,
+        context: Context
+    ): Alignment.Horizontal {
+        return when (preferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        )) {
             "Center" -> Alignment.CenterHorizontally
             "Left" -> Alignment.Start
             else -> Alignment.End
@@ -122,5 +128,15 @@ object AppUtils {
             inputStream?.close()
         }
         return fileContent
+    }
+
+    fun isDefaultLauncher(context: Context): Boolean {
+        val packageManager = context.packageManager
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+
+        return resolveInfo?.activityInfo?.packageName == context.packageName
     }
 }

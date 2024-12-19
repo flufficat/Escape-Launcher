@@ -49,15 +49,14 @@ import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.isPrivateSpace
 import com.geecee.escape.utils.lockPrivateSpace
-import com.geecee.escape.utils.unlockPrivateSpaceAndUpdateVariable
+import com.geecee.escape.utils.unlockPrivateSpace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 //Apps list from the pager
 @Composable
 fun AppsList(
-    mainAppModel: MainAppModel,
-    homeScreenModel: HomeScreenModel
+    mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel
 ) {
     Box(
         Modifier
@@ -84,72 +83,36 @@ fun AppsList(
 
             item {
                 if (homeScreenModel.sharedPreferences.getBoolean(
-                        stringResource(R.string.ShowSearchBox),
-                        true
+                        stringResource(R.string.ShowSearchBox), true
                     )
                 ) {
                     Spacer(modifier = Modifier.height(15.dp))
-                    AnimatedPillSearchBar(
-                        { searchBoxText ->
-                            homeScreenModel.searchText.value = searchBoxText
-                            var autoOpen = false
+                    AnimatedPillSearchBar({ searchBoxText ->
+                        homeScreenModel.searchText.value = searchBoxText
+                        var autoOpen = false
 
-                            if (homeScreenModel.sharedPreferences.getBoolean(
-                                    mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
-                                    false
-                                )
-                            ) {
-                                autoOpen = true
-                            }
+                        if (homeScreenModel.sharedPreferences.getBoolean(
+                                mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
+                                false
+                            )
+                        ) {
+                            autoOpen = true
+                        }
 
-                            if (autoOpen) {
-                                if (AppUtils.filterAndSortApps(
-                                        homeScreenModel.installedApps,
-                                        homeScreenModel.searchText.value,
-                                        mainAppModel.packageManager
-                                    ).size == 1
-                                ) {
-                                    val appInfo = AppUtils.filterAndSortApps(
-                                        homeScreenModel.installedApps,
-                                        homeScreenModel.searchText.value,
-                                        mainAppModel.packageManager
-                                    ).first()
-                                    homeScreenModel.currentPackageName.value =
-                                        appInfo.activityInfo.packageName
-
-                                    AppUtils.openApp(
-                                        homeScreenModel.currentPackageName.value,
-                                        false,
-                                        homeScreenModel.showOpenChallenge,
-                                        mainAppModel
-                                    )
-
-                                    homeScreenModel.coroutineScope.launch {
-                                        delay(200)
-                                        homeScreenModel.pagerState.animateScrollToPage(1)
-                                        homeScreenModel.appsListScrollState.scrollToItem(0)
-                                        homeScreenModel.searchExpanded.value = false
-                                        homeScreenModel.searchText.value = ""
-                                    }
-
-                                }
-                            }
-                        },
-                        { searchBoxText ->
+                        if (autoOpen) {
                             if (AppUtils.filterAndSortApps(
                                     homeScreenModel.installedApps,
-                                    searchBoxText,
+                                    homeScreenModel.searchText.value,
                                     mainAppModel.packageManager
-                                ).isNotEmpty()
+                                ).size == 1
                             ) {
-                                val firstAppInfo = AppUtils.filterAndSortApps(
+                                val appInfo = AppUtils.filterAndSortApps(
                                     homeScreenModel.installedApps,
-                                    searchBoxText,
+                                    homeScreenModel.searchText.value,
                                     mainAppModel.packageManager
                                 ).first()
-
-                                val packageName = firstAppInfo.activityInfo.packageName
-                                homeScreenModel.currentPackageName.value = packageName
+                                homeScreenModel.currentPackageName.value =
+                                    appInfo.activityInfo.packageName
 
                                 AppUtils.openApp(
                                     homeScreenModel.currentPackageName.value,
@@ -165,9 +128,41 @@ fun AppsList(
                                     homeScreenModel.searchExpanded.value = false
                                     homeScreenModel.searchText.value = ""
                                 }
+
                             }
-                        },
-                        homeScreenModel.searchExpanded
+                        }
+                    }, { searchBoxText ->
+                        if (AppUtils.filterAndSortApps(
+                                homeScreenModel.installedApps,
+                                searchBoxText,
+                                mainAppModel.packageManager
+                            ).isNotEmpty()
+                        ) {
+                            val firstAppInfo = AppUtils.filterAndSortApps(
+                                homeScreenModel.installedApps,
+                                searchBoxText,
+                                mainAppModel.packageManager
+                            ).first()
+
+                            val packageName = firstAppInfo.activityInfo.packageName
+                            homeScreenModel.currentPackageName.value = packageName
+
+                            AppUtils.openApp(
+                                homeScreenModel.currentPackageName.value,
+                                false,
+                                homeScreenModel.showOpenChallenge,
+                                mainAppModel
+                            )
+
+                            homeScreenModel.coroutineScope.launch {
+                                delay(200)
+                                homeScreenModel.pagerState.animateScrollToPage(1)
+                                homeScreenModel.appsListScrollState.scrollToItem(0)
+                                homeScreenModel.searchExpanded.value = false
+                                homeScreenModel.searchText.value = ""
+                            }
+                        }
+                    }, homeScreenModel.searchExpanded
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
@@ -176,54 +171,41 @@ fun AppsList(
             items(homeScreenModel.sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
                 appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
-            })
-            { app ->
+            }) { app ->
                 if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
+                ) AppsListItem(
+                    app,
+                    mainAppModel = mainAppModel,
+                    homeScreenModel = homeScreenModel,
+                    lazyListState = homeScreenModel.appsListScrollState,
+                    searchExpanded = homeScreenModel.searchExpanded,
+                    searchText = homeScreenModel.searchText,
                 )
-                    AppsListItem(
-                        app,
-                        mainAppModel = mainAppModel,
-                        homeScreenModel = homeScreenModel,
-                        lazyListState = homeScreenModel.appsListScrollState,
-                        searchExpanded = homeScreenModel.searchExpanded,
-                        searchText = homeScreenModel.searchText,
-                    )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+            if (AppUtils.isDefaultLauncher(mainAppModel.context) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
-            //TODO: Private space
-            item {
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                    val isPrivateSpaceVisible = remember {
-                        mutableStateOf(
-                            isPrivateSpace(
-                                mainAppModel.context
-                            )
-                        )
-                    }
-
-                    if (!isPrivateSpaceVisible.value) {
+                mainAppModel.showPrivateSpaceUnlockedUI.value = isPrivateSpace(mainAppModel.context)
+                item {
+                    if (!mainAppModel.showPrivateSpaceUnlockedUI.value) {
                         Button({
-                            unlockPrivateSpaceAndUpdateVariable(mainAppModel.context, isPrivateSpaceVisible)
+                            unlockPrivateSpace(mainAppModel.context)
                         }) {
                             Text(stringResource(R.string.unlock_private_space))
                         }
                     }
 
-                    if(isPrivateSpaceVisible.value){
+                    if (mainAppModel.showPrivateSpaceUnlockedUI.value) {
                         Card(
                             Modifier.fillMaxWidth()
-                        ){
+                        ) {
                             Button({
                                 lockPrivateSpace(mainAppModel.context)
-                                isPrivateSpaceVisible.value = isPrivateSpace(
-                                    mainAppModel.context
-                                )
                             }) {
                                 Text(stringResource(R.string.lock_private_space))
                             }
@@ -267,17 +249,15 @@ fun AnimatedPillSearchBar(
         }
     }
 
-    Surface(
-        modifier = Modifier
-            .width(width)
-            .height(56.dp)
-            .clickable {
-                expanded.value = !expanded.value
-            }
-            .animateContentSize(),
+    Surface(modifier = Modifier
+        .width(width)
+        .height(56.dp)
+        .clickable {
+            expanded.value = !expanded.value
+        }
+        .animateContentSize(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.onBackground
-    ) {
+        color = MaterialTheme.colorScheme.onBackground) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -309,8 +289,7 @@ fun AnimatedPillSearchBar(
                         .animateContentSize()
                 )
 
-                BasicTextField(
-                    value = searchText,
+                BasicTextField(value = searchText,
                     onValueChange = {
                         searchText = it
                         textChange(searchText.text)
@@ -327,14 +306,11 @@ fun AnimatedPillSearchBar(
                         }
                     },
                     maxLines = 1,
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            keyboardController?.hide()
-                            keyboardDone(searchText.text)
-                        }
-                    ),
-                    textStyle = MaterialTheme.typography.bodyMedium
-                )
+                    keyboardActions = KeyboardActions(onDone = {
+                        keyboardController?.hide()
+                        keyboardDone(searchText.text)
+                    }),
+                    textStyle = MaterialTheme.typography.bodyMedium)
             }
         }
     }

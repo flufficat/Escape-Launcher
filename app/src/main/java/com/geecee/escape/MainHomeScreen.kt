@@ -1,6 +1,8 @@
 package com.geecee.escape
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +23,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,6 +42,7 @@ import com.geecee.escape.ui.views.Settings
 import com.geecee.escape.utils.ChallengesManager
 import com.geecee.escape.utils.FavoriteAppsManager
 import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.PrivateSpaceStateReceiver
 import com.geecee.escape.utils.ScreenTimeManager
 import com.geecee.escape.utils.getBooleanSetting
 import com.google.firebase.Firebase
@@ -54,14 +60,17 @@ data class MainAppModel(
     var challengesManager: ChallengesManager,
     var isAppOpened: Boolean,
     var currentPackageName: String? = null,
-    var coroutineScope: CoroutineScope
+    var coroutineScope: CoroutineScope,
+    var showPrivateSpaceUnlockedUI: MutableState<Boolean>
 )
 
 @Suppress("DEPRECATION")
 class MainHomeScreen : ComponentActivity() {
     private lateinit var mainAppModel: MainAppModel
+    private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Setup analytics
         configureAnalytics(
             getBooleanSetting(
                 this,
@@ -69,6 +78,8 @@ class MainHomeScreen : ComponentActivity() {
                 false
             )
         )
+
+        // Setup Splashscreen
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         animateSplashScreen(splashScreen)
@@ -76,13 +87,25 @@ class MainHomeScreen : ComponentActivity() {
         configureFullScreenMode()
         ScreenTimeManager.initialize(this)
         setContent { SetUpContent() }
+
+        //Private space receiver
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            privateSpaceReceiver = PrivateSpaceStateReceiver { isUnlocked ->
+                mainAppModel.showPrivateSpaceUnlockedUI.value = isUnlocked
+            }
+            val intentFilter = IntentFilter().apply {
+                addAction(Intent.ACTION_PROFILE_AVAILABLE)
+                addAction(Intent.ACTION_PROFILE_UNAVAILABLE)
+            }
+            registerReceiver(privateSpaceReceiver, intentFilter)
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
+        //Updates the screen time when you close an app
         try {
-
             // Update screen time on app when you come home
             if (mainAppModel.isAppOpened) {
                 if (mainAppModel.currentPackageName != null) {
@@ -99,6 +122,11 @@ class MainHomeScreen : ComponentActivity() {
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(privateSpaceReceiver)
     }
 
     // Makes it fullscreen
@@ -176,7 +204,8 @@ class MainHomeScreen : ComponentActivity() {
             hiddenAppsManager = HiddenAppsManager(context),
             challengesManager = ChallengesManager(context),
             false,
-            coroutineScope = rememberCoroutineScope()
+            coroutineScope = rememberCoroutineScope(),
+            showPrivateSpaceUnlockedUI = remember { mutableStateOf(false) }
         )
     }
 
