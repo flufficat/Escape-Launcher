@@ -1,12 +1,19 @@
 package com.geecee.escape.ui.views
 
+import android.graphics.Rect
 import android.os.Build
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,9 +29,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -47,8 +59,13 @@ import androidx.compose.ui.unit.dp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.PrivateAppItem
+import com.geecee.escape.utils.PrivateSpaceSettings
+import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.getPrivateSpaceApps
 import com.geecee.escape.utils.isPrivateSpace
 import com.geecee.escape.utils.lockPrivateSpace
+import com.geecee.escape.utils.openPrivateSpaceApp
 import com.geecee.escape.utils.unlockPrivateSpace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -171,7 +188,8 @@ fun AppsList(
             items(homeScreenModel.sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
                 appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
-            }) { app ->
+            })
+            { app ->
                 if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
@@ -185,6 +203,7 @@ fun AppsList(
                 )
             }
 
+            //Private space
             if (AppUtils.isDefaultLauncher(mainAppModel.context) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
@@ -192,7 +211,18 @@ fun AppsList(
 
                 mainAppModel.showPrivateSpaceUnlockedUI.value = isPrivateSpace(mainAppModel.context)
                 item {
-                    if (!mainAppModel.showPrivateSpaceUnlockedUI.value) {
+                    if ((!mainAppModel.showPrivateSpaceUnlockedUI.value && !getBooleanSetting(
+                            mainAppModel.context,
+                            "searchHiddenPrivateSpace",
+                            false
+                        )) || (!mainAppModel.showPrivateSpaceUnlockedUI.value && homeScreenModel.searchText.value.contains(
+                            "pri"
+                        ) && getBooleanSetting(
+                            mainAppModel.context,
+                            "searchHiddenPrivateSpace",
+                            false
+                        ))
+                    ) {
                         Button({
                             unlockPrivateSpace(mainAppModel.context)
                         }) {
@@ -200,14 +230,93 @@ fun AppsList(
                         }
                     }
 
-                    if (mainAppModel.showPrivateSpaceUnlockedUI.value) {
+                    AnimatedVisibility(
+                        visible = mainAppModel.showPrivateSpaceUnlockedUI.value,
+                        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                    ) {
                         Card(
-                            Modifier.fillMaxWidth()
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(MaterialTheme.shapes.extraLarge)
                         ) {
-                            Button({
-                                lockPrivateSpace(mainAppModel.context)
-                            }) {
-                                Text(stringResource(R.string.lock_private_space))
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp)
+                                ) {
+                                    Text(
+                                        stringResource(R.string.private_space),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.align(Alignment.CenterStart)
+                                    )
+
+                                    Row(
+                                        Modifier.align(Alignment.CenterEnd)
+                                    ) {
+                                        IconButton(
+                                            {
+                                                homeScreenModel.showPrivateSpaceSettings.value =
+                                                    true
+                                            },
+                                            Modifier,
+                                            colors = IconButtonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Settings,
+                                                stringResource(R.string.private_space_settings)
+                                            )
+                                        }
+
+
+                                        IconButton(
+                                            {
+                                                lockPrivateSpace(mainAppModel.context)
+                                                mainAppModel.coroutineScope.launch {
+                                                    homeScreenModel.appsListScrollState.animateScrollToItem(
+                                                        0, 50
+                                                    )
+                                                }
+                                            },
+                                            Modifier,
+                                            colors = IconButtonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Lock,
+                                                stringResource(R.string.lock_private_space)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                getPrivateSpaceApps(mainAppModel.context).forEach { app ->
+                                    PrivateAppItem(app.displayName, {
+
+                                    }) {
+                                        openPrivateSpaceApp(
+                                            privateSpaceApp = app,
+                                            context = mainAppModel.context,
+                                            Rect()
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(20.dp))
                             }
                         }
                     }
@@ -218,7 +327,21 @@ fun AppsList(
                 Spacer(modifier = Modifier.height(90.dp))
             }
         }
+
+        AnimatedVisibility(
+            visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.showPrivateSpaceUnlockedUI.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            PrivateSpaceSettings(
+                mainAppModel.context
+            ) {
+                homeScreenModel.showPrivateSpaceSettings.value = false
+            }
+        }
+
     }
+
 }
 
 //Search bar in the apps list
@@ -289,7 +412,8 @@ fun AnimatedPillSearchBar(
                         .animateContentSize()
                 )
 
-                BasicTextField(value = searchText,
+                BasicTextField(
+                    value = searchText,
                     onValueChange = {
                         searchText = it
                         textChange(searchText.text)
@@ -310,7 +434,8 @@ fun AnimatedPillSearchBar(
                         keyboardController?.hide()
                         keyboardDone(searchText.text)
                     }),
-                    textStyle = MaterialTheme.typography.bodyMedium)
+                    textStyle = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

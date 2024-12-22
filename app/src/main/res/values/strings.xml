@@ -16,6 +16,8 @@
     <string name="search">Search</string>
     <string name="unlock_private_space">Unlock Private Space</string>
     <string name="lock_private_space">Lock Private Space</string>
+    <string name="private_space">Private Space</string>
+    <string name="private_space_settings">Private Space Settings</string>
 
     <!-- Hidden Apps strings-->
     <string name="hidden_apps">Hidden Apps</string>
@@ -53,6 +55,7 @@
     <string name="material_dark">Material Dark</string>
     <string name="material_light">Material Light</string>
     <string name="screen_time_on_app">Screen Time On Apps</string>
+    <string name="hide_private_space_in_search">Hidden private space</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

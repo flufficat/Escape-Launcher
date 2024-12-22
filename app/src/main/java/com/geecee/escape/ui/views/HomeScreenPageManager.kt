@@ -96,7 +96,8 @@ data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
     var sortedInstalledApps: List<ResolveInfo>,
     val appsListScrollState: LazyListState,
     val searchText: MutableState<String>,
-    val searchExpanded: MutableState<Boolean>
+    val searchExpanded: MutableState<Boolean>,
+    val showPrivateSpaceSettings: MutableState<Boolean>
 )
 
 // Main composable for home screen - contains a pager with all the pages inside of it
@@ -141,7 +142,8 @@ fun HomeScreenPageManager(
         },
         appsListScrollState = rememberLazyListState(),
         searchText = remember { mutableStateOf("") },
-        searchExpanded =  remember { mutableStateOf(false) }
+        searchExpanded =  remember { mutableStateOf(false) },
+        showPrivateSpaceSettings = remember { mutableStateOf(false) }
     )
 
     // Home Screen Pages
