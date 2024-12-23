@@ -8,6 +8,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
@@ -143,5 +144,13 @@ object AppUtils {
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
         }
+    }
+
+    fun updateFavorites(
+        mainAppModel: MainAppModel,
+        favoriteApps: SnapshotStateList<String>
+    ) {
+        favoriteApps.clear()
+        favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
     }
 }

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.AppUtils.updateFavorites
 import com.geecee.escape.utils.managers.OpenChallenge
 import com.geecee.escape.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
@@ -160,7 +161,7 @@ fun HomeScreenPageManager(
 
     //Bottom Sheet
     if (homeScreenModel.showBottomSheet.value) {
-        val actions = listOf(
+        var actions = listOf(
             AppAction(
                 label = stringResource(id = R.string.uninstall),
                 onClick = {
@@ -176,10 +177,24 @@ fun HomeScreenPageManager(
                 label = stringResource(if (homeScreenModel.isCurrentAppFavorite.value) R.string.rem_from_fav else R.string.add_to_fav),
                 onClick = {
                     if (homeScreenModel.isCurrentAppFavorite.value) {
-                        mainAppModel.favoriteAppsManager.removeFavoriteApp(homeScreenModel.currentPackageName.value)
+                        mainAppModel.favoriteAppsManager.removeFavoriteApp(
+                            homeScreenModel.currentPackageName.value
+                        )
+                        homeScreenModel.isCurrentAppFavorite.value = false
                     } else {
-                        mainAppModel.favoriteAppsManager.addFavoriteApp(homeScreenModel.currentPackageName.value)
+                        mainAppModel.favoriteAppsManager.addFavoriteApp(
+                            homeScreenModel.currentPackageName.value
+                        )
+                        homeScreenModel.isCurrentAppFavorite.value = true
                     }
+                    updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
+                }
+            ),
+            AppAction(
+                label = stringResource(R.string.hide),
+                onClick = {
+                    mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentPackageName.value)
+                    homeScreenModel.showBottomSheet.value = false
                 }
             ),
             AppAction(
@@ -192,6 +207,21 @@ fun HomeScreenPageManager(
                 }
             )
         )
+
+        if (!homeScreenModel.isCurrentAppChallenged.value) {
+            actions = actions +
+                    AppAction(
+                        label = stringResource(R.string.add_open_challenge),
+                        onClick = {
+                            mainAppModel.challengesManager.addChallengeApp(
+                                homeScreenModel.currentPackageName.value
+                            )
+                            homeScreenModel.showBottomSheet.value = false
+                            homeScreenModel.isCurrentAppChallenged.value = true
+                        }
+                    )
+        }
+
 
         HomeScreenBottomSheet(
             title = homeScreenModel.currentSelectedApp.value,
