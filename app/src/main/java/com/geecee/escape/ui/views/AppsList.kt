@@ -390,7 +390,9 @@ fun AnimatedPillSearchBar(
                         keyboardController?.hide()
                         keyboardDone(searchText.text)
                     }),
-                    textStyle = MaterialTheme.typography.bodyMedium
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.background
+                    )
                 )
             }
         }

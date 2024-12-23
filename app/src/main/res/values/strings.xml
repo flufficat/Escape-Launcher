@@ -1,6 +1,6 @@
 <resources>
     <string name="analytics_and_data_collection">Analytics and Data collection</string>
-    <string name="anonymous_data">We use anonymous data to improve your experience with the Escape launcher. This includes information like device type, app usage, and performance. No personal data is collected. By continuing, you agree to allow us to collect this data. You can disable this at any time in the settings or by selecting Deny.</string>
+    <string name="anonymous_data">We use anonymous data to improve your experience with the Escape launcher. Make sure to read the privacy policy before selecting allow.</string>
     <string name="allow">Allow</string>
     <string name="deny">Deny</string>
     <string name="read_privacy_policy">Privacy Policy</string>

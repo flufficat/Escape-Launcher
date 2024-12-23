@@ -76,8 +76,12 @@ fun HomeScreen(
         ) Alignment.Start else Alignment.End,
         modifier = Modifier
             .fillMaxSize()
-            .padding(30.dp, 90.dp)
+            .padding(30.dp, 0.dp)
     ) {
+        item {
+            Spacer(Modifier.height(90.dp))
+        }
+
 
         //Clock
         item {
@@ -157,6 +161,10 @@ fun HomeScreen(
             item {
                 FirstTimeHelp()
             }
+        }
+
+        item {
+            Spacer(Modifier.height(90.dp))
         }
     }
 

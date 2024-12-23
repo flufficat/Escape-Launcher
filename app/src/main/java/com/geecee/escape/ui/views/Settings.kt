@@ -193,11 +193,13 @@ fun Settings(
     goHome: () -> Unit,
     activity: Activity,
 ) {
+    val showPolicyDialog = remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(20.dp, 20.dp, 20.dp, 11.dp)
+            .padding(20.dp, 0.dp, 20.dp, 0.dp)
     ) {
 
         val navController = rememberNavController()
@@ -206,7 +208,7 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() }, navController, mainAppModel)
+                MainSettingsPage({ goHome() }, {showPolicyDialog.value = true}, navController, mainAppModel)
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
@@ -244,16 +246,20 @@ fun Settings(
             }
         }
     }
+
+    if (showPolicyDialog.value) {
+        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainSettingsPage(
     goHome: () -> Unit,
+    showPolicyDialog: () -> Unit,
     navController: NavController,
     mainAppModel: MainAppModel
 ) {
-    val showPolicyDialog = remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.Top,
@@ -350,7 +356,7 @@ fun MainSettingsPage(
         SettingsNavigationItem(
             label = stringResource(id = R.string.read_privacy_policy),
             false,
-            onClick = { showPolicyDialog.value = true }
+            onClick = { showPolicyDialog() }
         )
         SettingsNavigationItem(
             label = stringResource(id = R.string.theme),
@@ -393,11 +399,7 @@ fun MainSettingsPage(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
-    }
-
-
-    if (showPolicyDialog.value) {
-        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
+        Spacer(Modifier.height(25.dp))
     }
 }
 
@@ -563,7 +565,7 @@ fun ThemeCard(
             .size(120.dp)
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable {
                 changeTheme(theme, context, activity)
             }
@@ -938,7 +940,6 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
 fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableState<Boolean>){
     val scrollState = rememberScrollState()
     Column {
-        Spacer(modifier = Modifier.height(30.dp))
         Card(
             modifier = Modifier.fillMaxSize()
         ) {

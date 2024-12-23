@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -147,9 +149,12 @@ fun OnboardingPage2(navController: NavController) {
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(30.dp, 120.dp, 30.dp, 30.dp)
+            .padding(30.dp, 0.dp, 30.dp, 0.dp)
     ) {
-        Column {
+        Column(
+            Modifier.verticalScroll(rememberScrollState())
+        ) {
+            Spacer(Modifier.height(120.dp))
             Text(
                 buildAnnotatedString {
                     append(stringResource(R.string.most_people_waste))
@@ -195,12 +200,13 @@ fun OnboardingPage2(navController: NavController) {
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
+            Spacer(Modifier.height(120.dp))
         }
 
         Button(
             onClick = {
                 navController.navigate("Page3")
-            }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
+            }, modifier = Modifier.align(Alignment.BottomEnd).padding(0.dp,0.dp,0.dp,30.dp), colors = ButtonColors(
                 MaterialTheme.colorScheme.onBackground,
                 MaterialTheme.colorScheme.background,
                 MaterialTheme.colorScheme.onBackground,
@@ -434,46 +440,63 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
 @Composable
 fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
     val showPolicyDialog = remember { mutableStateOf(false) }
+    val scrollState = rememberLazyListState()
 
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(30.dp, 120.dp, 30.dp, 30.dp)
+            .padding(30.dp, 0.dp, 30.dp, 30.dp)
     ) {
-        Column {
-            Text(
-                stringResource(R.string.analytics_and_data_collection),
-                Modifier,
-                MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.titleSmall,
-                textAlign = TextAlign.Start
-            )
-            Spacer(Modifier.height(5.dp))
-            Text(
-                stringResource(R.string.anonymous_data),
-                Modifier,
-                MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Start,
-                lineHeight = 32.sp
-            )
-            Spacer(Modifier.height(10.dp))
-            Button(
-                onClick = {
-                    showPolicyDialog.value = true
-                }, modifier = Modifier, colors = ButtonColors(
+        LazyColumn(
+            state = scrollState
+        ) {
+            item {
+                Spacer(Modifier.height(120.dp))
+            }
+
+            item {
+                Text(
+                    stringResource(R.string.analytics_and_data_collection),
+                    Modifier,
                     MaterialTheme.colorScheme.onBackground,
-                    MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.onBackground,
-                    MaterialTheme.colorScheme.background
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.Start
                 )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            }
+
+            item {
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    stringResource(R.string.anonymous_data),
+                    Modifier,
+                    MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start,
+                    lineHeight = 32.sp
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(10.dp))
+            }
+            item {
+                Button(
+                    onClick = {
+                        showPolicyDialog.value = true
+                    }, modifier = Modifier, colors = ButtonColors(
+                        MaterialTheme.colorScheme.onBackground,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.onBackground,
+                        MaterialTheme.colorScheme.background
+                    )
                 ) {
-                    Text(text = stringResource(R.string.read_privacy_policy))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = stringResource(R.string.read_privacy_policy))
+                    }
                 }
             }
         }
@@ -492,13 +515,10 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                         mainAppModel.context.resources.getString(R.string.FirstTime),
                         false
                     )
-                },
-                modifier = Modifier,
-                colors = ButtonDefaults.outlinedButtonColors(
+                }, modifier = Modifier, colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     contentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
+                ), border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -548,6 +568,6 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
     }
 
     if (showPolicyDialog.value) {
-        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
+        PrivacyPolicyDialog(mainAppModel, showPolicyDialog)
     }
 }
