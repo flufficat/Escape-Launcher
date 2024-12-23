@@ -2,6 +2,7 @@ package com.geecee.escape.ui.views
 
 import android.graphics.Rect
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -63,12 +64,18 @@ import com.geecee.escape.utils.PrivateAppItem
 import com.geecee.escape.utils.PrivateSpaceSettings
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getPrivateSpaceApps
+import com.geecee.escape.utils.managers.getUsageForApp
 import com.geecee.escape.utils.isPrivateSpace
 import com.geecee.escape.utils.lockPrivateSpace
 import com.geecee.escape.utils.openPrivateSpaceApp
 import com.geecee.escape.utils.unlockPrivateSpace
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import com.geecee.escape.utils.AppUtils.resetHome
 
 //Apps list from the pager
 @Composable
@@ -90,12 +97,7 @@ fun AppsList(
             )
         ) {
             item {
-                Spacer(modifier = Modifier.height(140.dp))
-                Text(
-                    text = stringResource(id = R.string.all_apps),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                AppsListHeader()
             }
 
             item {
@@ -104,51 +106,41 @@ fun AppsList(
                     )
                 ) {
                     Spacer(modifier = Modifier.height(15.dp))
-                    AnimatedPillSearchBar({ searchBoxText ->
+                    AnimatedPillSearchBar(textChange = { searchBoxText ->
                         homeScreenModel.searchText.value = searchBoxText
-                        var autoOpen = false
+                        val autoOpen = homeScreenModel.sharedPreferences.getBoolean(
+                            mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
+                            false
+                        )
 
-                        if (homeScreenModel.sharedPreferences.getBoolean(
-                                mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
-                                false
-                            )
+                        if (autoOpen && AppUtils.filterAndSortApps(
+                                homeScreenModel.installedApps,
+                                homeScreenModel.searchText.value,
+                                mainAppModel.packageManager
+                            ).size == 1
                         ) {
-                            autoOpen = true
+
+
+                            val appInfo = AppUtils.filterAndSortApps(
+                                homeScreenModel.installedApps,
+                                homeScreenModel.searchText.value,
+                                mainAppModel.packageManager
+                            ).first()
+                            homeScreenModel.currentPackageName.value =
+                                appInfo.activityInfo.packageName
+
+                            AppUtils.openApp(
+                                homeScreenModel.currentPackageName.value,
+                                false,
+                                homeScreenModel.showOpenChallenge,
+                                mainAppModel
+                            )
+
+                            resetHome(homeScreenModel)
+
+
                         }
-
-                        if (autoOpen) {
-                            if (AppUtils.filterAndSortApps(
-                                    homeScreenModel.installedApps,
-                                    homeScreenModel.searchText.value,
-                                    mainAppModel.packageManager
-                                ).size == 1
-                            ) {
-                                val appInfo = AppUtils.filterAndSortApps(
-                                    homeScreenModel.installedApps,
-                                    homeScreenModel.searchText.value,
-                                    mainAppModel.packageManager
-                                ).first()
-                                homeScreenModel.currentPackageName.value =
-                                    appInfo.activityInfo.packageName
-
-                                AppUtils.openApp(
-                                    homeScreenModel.currentPackageName.value,
-                                    false,
-                                    homeScreenModel.showOpenChallenge,
-                                    mainAppModel
-                                )
-
-                                homeScreenModel.coroutineScope.launch {
-                                    delay(200)
-                                    homeScreenModel.pagerState.animateScrollToPage(1)
-                                    homeScreenModel.appsListScrollState.scrollToItem(0)
-                                    homeScreenModel.searchExpanded.value = false
-                                    homeScreenModel.searchText.value = ""
-                                }
-
-                            }
-                        }
-                    }, { searchBoxText ->
+                    }, keyboardDone = { searchBoxText ->
                         if (AppUtils.filterAndSortApps(
                                 homeScreenModel.installedApps,
                                 searchBoxText,
@@ -171,15 +163,9 @@ fun AppsList(
                                 mainAppModel
                             )
 
-                            homeScreenModel.coroutineScope.launch {
-                                delay(200)
-                                homeScreenModel.pagerState.animateScrollToPage(1)
-                                homeScreenModel.appsListScrollState.scrollToItem(0)
-                                homeScreenModel.searchExpanded.value = false
-                                homeScreenModel.searchText.value = ""
-                            }
+                            resetHome(homeScreenModel)
                         }
-                    }, homeScreenModel.searchExpanded
+                    }, expanded = homeScreenModel.searchExpanded
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
@@ -190,16 +176,63 @@ fun AppsList(
                 appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
             })
             { app ->
+                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+
+                // Fetch screen time in a coroutine
+                LaunchedEffect(app.activityInfo.packageName) {
+                    withContext(Dispatchers.IO) {
+                        appScreenTime.longValue = getUsageForApp(
+                            app.activityInfo.packageName,
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        )
+                    }
+                }
+
                 if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
-                ) AppsListItem(
-                    app,
-                    mainAppModel = mainAppModel,
-                    homeScreenModel = homeScreenModel,
-                    lazyListState = homeScreenModel.appsListScrollState,
-                    searchExpanded = homeScreenModel.searchExpanded,
-                    searchText = homeScreenModel.searchText,
+                ) HomeScreenItem(
+                    appName = AppUtils.getAppNameFromPackageName(mainAppModel.context,app.activityInfo.packageName),
+                    screenTime = appScreenTime.longValue,
+                    onAppClick = {
+                        val packageName = app.activityInfo.packageName
+                        homeScreenModel.currentPackageName.value = packageName
+
+                        AppUtils.openApp(
+                            packageName,
+                            false,
+                            homeScreenModel.showOpenChallenge,
+                            mainAppModel
+                        )
+
+                        resetHome(homeScreenModel)
+                    },
+                    onAppLongClick = {
+                        homeScreenModel.showBottomSheet.value = true
+                        homeScreenModel.currentSelectedApp.value =
+                            AppUtils.getAppNameFromPackageName(
+                                mainAppModel.context,
+                                app.activityInfo.packageName
+                            )
+                        homeScreenModel.currentPackageName.value = app.activityInfo.packageName
+                        homeScreenModel.isCurrentAppChallenged.value =
+                            mainAppModel.challengesManager.doesAppHaveChallenge(
+                                app.activityInfo.packageName
+                            )
+                        homeScreenModel.isCurrentAppHidden.value =
+                            mainAppModel.hiddenAppsManager.isAppHidden(
+                                app.activityInfo.packageName
+                            )
+                        homeScreenModel.isCurrentAppFavorite.value =
+                            mainAppModel.favoriteAppsManager.isAppFavorite(
+                                app.activityInfo.packageName
+                            )
+                    },
+                    showScreenTime = getBooleanSetting(
+                        mainAppModel.context,
+                        stringResource(R.string.screen_time_on_app)
+                    ),
+                    modifier = Modifier
                 )
             }
 
@@ -212,15 +245,11 @@ fun AppsList(
                 mainAppModel.showPrivateSpaceUnlockedUI.value = isPrivateSpace(mainAppModel.context)
                 item {
                     if ((!mainAppModel.showPrivateSpaceUnlockedUI.value && !getBooleanSetting(
-                            mainAppModel.context,
-                            "searchHiddenPrivateSpace",
-                            false
+                            mainAppModel.context, stringResource(R.string.SearchHiddenPrivateSpace), false
                         )) || (!mainAppModel.showPrivateSpaceUnlockedUI.value && homeScreenModel.searchText.value.contains(
-                            "pri"
+                            stringResource(R.string.private_space_search_term)
                         ) && getBooleanSetting(
-                            mainAppModel.context,
-                            "searchHiddenPrivateSpace",
-                            false
+                            mainAppModel.context, stringResource(R.string.SearchHiddenPrivateSpace), false
                         ))
                     ) {
                         Button({
@@ -235,90 +264,7 @@ fun AppsList(
                         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
-                        Card(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.extraLarge)
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-
-                                Box(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(20.dp)
-                                ) {
-                                    Text(
-                                        stringResource(R.string.private_space),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.align(Alignment.CenterStart)
-                                    )
-
-                                    Row(
-                                        Modifier.align(Alignment.CenterEnd)
-                                    ) {
-                                        IconButton(
-                                            {
-                                                homeScreenModel.showPrivateSpaceSettings.value =
-                                                    true
-                                            },
-                                            Modifier,
-                                            colors = IconButtonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                        ) {
-                                            Icon(
-                                                Icons.Outlined.Settings,
-                                                stringResource(R.string.private_space_settings)
-                                            )
-                                        }
-
-
-                                        IconButton(
-                                            {
-                                                lockPrivateSpace(mainAppModel.context)
-                                                mainAppModel.coroutineScope.launch {
-                                                    homeScreenModel.appsListScrollState.animateScrollToItem(
-                                                        0, 50
-                                                    )
-                                                }
-                                            },
-                                            Modifier,
-                                            colors = IconButtonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                        ) {
-                                            Icon(
-                                                Icons.Outlined.Lock,
-                                                stringResource(R.string.lock_private_space)
-                                            )
-                                        }
-                                    }
-                                }
-
-                                getPrivateSpaceApps(mainAppModel.context).forEach { app ->
-                                    PrivateAppItem(app.displayName, {
-
-                                    }) {
-                                        openPrivateSpaceApp(
-                                            privateSpaceApp = app,
-                                            context = mainAppModel.context,
-                                            Rect()
-                                        )
-                                    }
-                                }
-
-                                Spacer(Modifier.height(20.dp))
-                            }
-                        }
+                        PrivateSpace(mainAppModel, homeScreenModel)
                     }
                 }
             }
@@ -328,6 +274,7 @@ fun AppsList(
             }
         }
 
+        // Private space settings
         AnimatedVisibility(
             visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.showPrivateSpaceUnlockedUI.value,
             enter = fadeIn(),
@@ -341,7 +288,16 @@ fun AppsList(
         }
 
     }
+}
 
+@Composable
+fun AppsListHeader() {
+    Spacer(modifier = Modifier.height(140.dp))
+    Text(
+        text = stringResource(id = R.string.all_apps),
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.titleMedium
+    )
 }
 
 //Search bar in the apps list
@@ -437,6 +393,86 @@ fun AnimatedPillSearchBar(
                     textStyle = MaterialTheme.typography.bodyMedium
                 )
             }
+        }
+    }
+}
+
+//Shown when private space is unlocked
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+@Composable
+fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
+    Card(
+        Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.extraLarge)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
+        ) {
+
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                Text(
+                    stringResource(R.string.private_space),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                )
+
+                Row(
+                    Modifier.align(Alignment.CenterEnd)
+                ) {
+                    IconButton(
+                        {
+                            homeScreenModel.showPrivateSpaceSettings.value = true
+                        }, Modifier, colors = IconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Outlined.Settings, stringResource(R.string.private_space_settings)
+                        )
+                    }
+
+
+                    IconButton(
+                        {
+                            lockPrivateSpace(mainAppModel.context)
+                            mainAppModel.coroutineScope.launch {
+                                homeScreenModel.appsListScrollState.animateScrollToItem(
+                                    0, 50
+                                )
+                            }
+                        }, Modifier, colors = IconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Outlined.Lock, stringResource(R.string.lock_private_space)
+                        )
+                    }
+                }
+            }
+
+            getPrivateSpaceApps(mainAppModel.context).forEach { app ->
+                PrivateAppItem(app.displayName, {
+
+                }) {
+                    openPrivateSpaceApp(
+                        privateSpaceApp = app, context = mainAppModel.context, Rect()
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
         }
     }
 }

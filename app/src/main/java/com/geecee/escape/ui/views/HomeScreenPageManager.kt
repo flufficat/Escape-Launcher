@@ -14,11 +14,9 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -35,7 +33,6 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,50 +51,32 @@ import androidx.compose.ui.unit.sp
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.OpenChallenge
-import com.geecee.escape.utils.getBooleanSetting
-import com.geecee.escape.utils.getUsageForApp
+import com.geecee.escape.utils.managers.OpenChallenge
 import com.geecee.escape.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 // Model to be passed around home screen pages
 data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
-    //Bottom Sheet
-    var showBottomSheet: MutableState<Boolean>,
-    var sheetState: SheetState,
-    var currentSelectedApp: MutableState<String>,
-    var currentPackageName: MutableState<String>,
-    var isCurrentAppFavorite: MutableState<Boolean>,
-    var isCurrentAppChallenged: MutableState<Boolean>,
-    var isCurrentAppHidden: MutableState<Boolean>,
-
-    //Other
-    var haptics: HapticFeedback,
-    var sharedPreferences: SharedPreferences,
-    var favoriteApps: SnapshotStateList<String>,
-    var interactionSource: MutableInteractionSource,
-
-    //Open Challenge
-    var showOpenChallenge: MutableState<Boolean>,
-
-    //Pages
-    var pagerState: PagerState,
-
-    //Apps Page
-    var coroutineScope: CoroutineScope,
-    val installedApps: MutableList<ResolveInfo>,
-    var sortedInstalledApps: List<ResolveInfo>,
-    val appsListScrollState: LazyListState,
-    val searchText: MutableState<String>,
-    val searchExpanded: MutableState<Boolean>,
-    val showPrivateSpaceSettings: MutableState<Boolean>
+    var showBottomSheet: MutableState<Boolean>, // Whether or not the Bottom sheet should be shown
+    var sheetState: SheetState, // The bottom sheet state
+    var currentSelectedApp: MutableState<String>, // The currently selected app, set when pressed or long held, used for things like bottom sheet
+    var currentPackageName: MutableState<String>, // Similar idea to currentSelectedApp
+    var isCurrentAppFavorite: MutableState<Boolean>, // If the currentSelectedApp is a favourite
+    var isCurrentAppChallenged: MutableState<Boolean>, // If the currentSelectedApp is challenged
+    var isCurrentAppHidden: MutableState<Boolean>, // If the currentSelectedApp is hidden (don't know how you've managed to do that if it is lol)
+    var haptics: HapticFeedback, // Haptic feedback (self explanatory)
+    var sharedPreferences: SharedPreferences, // The sharedPreferences
+    var favoriteApps: SnapshotStateList<String>, // List of apps that are favourites
+    var interactionSource: MutableInteractionSource, // Something to do with clicking stuff idk
+    var showOpenChallenge: MutableState<Boolean>, // Whether there is an open challenge open rn
+    var pagerState: PagerState, // I wonder what this does
+    var coroutineScope: CoroutineScope, // Same applies
+    val installedApps: MutableList<ResolveInfo>, // List of installed apps
+    var sortedInstalledApps: List<ResolveInfo>, // Sorted list of installed apps
+    val appsListScrollState: LazyListState, // Scroll state of the apps list
+    val searchText: MutableState<String>, // The current text in the search box
+    val searchExpanded: MutableState<Boolean>, // If the search box is currently expanded
+    val showPrivateSpaceSettings: MutableState<Boolean> // Whether the private space settings are open
 )
 
 // Main composable for home screen - contains a pager with all the pages inside of it
@@ -112,7 +91,6 @@ fun HomeScreenPageManager(
 ) {
     //Set up variables
     val homeScreenModel = HomeScreenModel(
-        //BottomSheet
         showBottomSheet = remember { mutableStateOf(false) },
         sheetState = rememberModalBottomSheetState(),
         currentSelectedApp = remember { mutableStateOf("") },
@@ -120,7 +98,6 @@ fun HomeScreenPageManager(
         isCurrentAppFavorite = remember { mutableStateOf(false) },
         isCurrentAppChallenged = remember { mutableStateOf(false) },
         isCurrentAppHidden = remember { mutableStateOf(false) },
-        //Other
         haptics = LocalHapticFeedback.current,
         sharedPreferences = mainAppModel.context.getSharedPreferences(
             R.string.settings_pref_file_name.toString(),
@@ -128,21 +105,20 @@ fun HomeScreenPageManager(
         ),
         favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } },
         interactionSource = remember { MutableInteractionSource() },
-        //Challenge stuff
         showOpenChallenge = remember { mutableStateOf(false) },
         pagerState = rememberPagerState(1, 0f) { 3 },
-        //Apps List
         coroutineScope = rememberCoroutineScope(),
         installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager),
-        sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager).sortedBy {
-            AppUtils.getAppNameFromPackageName(
-                mainAppModel.context,
-                it.activityInfo.packageName
-            )
-        },
+        sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
+            .sortedBy {
+                AppUtils.getAppNameFromPackageName(
+                    mainAppModel.context,
+                    it.activityInfo.packageName
+                )
+            },
         appsListScrollState = rememberLazyListState(),
         searchText = remember { mutableStateOf("") },
-        searchExpanded =  remember { mutableStateOf(false) },
+        searchExpanded = remember { mutableStateOf(false) },
         showPrivateSpaceSettings = remember { mutableStateOf(false) }
     )
 
@@ -156,7 +132,11 @@ fun HomeScreenPageManager(
                 onLongClick = {
                     homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onOpenSettings()
-                    setBooleanSetting(mainAppModel.context,mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),false)
+                    setBooleanSetting(
+                        mainAppModel.context,
+                        mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),
+                        false
+                    )
                 },
                 indication = null, interactionSource = homeScreenModel.interactionSource
             )
@@ -167,10 +147,7 @@ fun HomeScreenPageManager(
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,
-                homeScreenModel = homeScreenModel,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(30.dp, 90.dp)
+                homeScreenModel = homeScreenModel
             )
 
             2 -> AppsList(
@@ -183,118 +160,45 @@ fun HomeScreenPageManager(
 
     //Bottom Sheet
     if (homeScreenModel.showBottomSheet.value) {
-        ModalBottomSheet(
-            onDismissRequest = { homeScreenModel.showBottomSheet.value = false; },
+        val actions = listOf(
+            AppAction(
+                label = stringResource(id = R.string.uninstall),
+                onClick = {
+                    val intent = Intent(
+                        Intent.ACTION_DELETE,
+                        Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                    )
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    mainAppModel.context.startActivity(intent)
+                }
+            ),
+            AppAction(
+                label = stringResource(if (homeScreenModel.isCurrentAppFavorite.value) R.string.rem_from_fav else R.string.add_to_fav),
+                onClick = {
+                    if (homeScreenModel.isCurrentAppFavorite.value) {
+                        mainAppModel.favoriteAppsManager.removeFavoriteApp(homeScreenModel.currentPackageName.value)
+                    } else {
+                        mainAppModel.favoriteAppsManager.addFavoriteApp(homeScreenModel.currentPackageName.value)
+                    }
+                }
+            ),
+            AppAction(
+                label = stringResource(id = R.string.app_info),
+                onClick = {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                    }
+                    mainAppModel.context.startActivity(intent)
+                }
+            )
+        )
+
+        HomeScreenBottomSheet(
+            title = homeScreenModel.currentSelectedApp.value,
+            actions = actions,
+            onDismissRequest = { homeScreenModel.showBottomSheet.value = false },
             sheetState = homeScreenModel.sheetState
-        ) {
-            Column(Modifier.padding(25.dp, 25.dp, 25.dp, 50.dp)) {
-                Row {
-                    Icon(
-                        Icons.Rounded.Settings,
-                        contentDescription = "App Options",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .size(45.dp)
-                            .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    )
-                    Spacer(Modifier.width(2.dp))
-                    Text(
-                        homeScreenModel.currentSelectedApp.value,
-                        Modifier,
-                        MaterialTheme.colorScheme.onSurface,
-                        fontSize = 32.sp,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                HorizontalDivider(Modifier.padding(0.dp, 15.dp))
-                Column(Modifier.padding(47.dp, 0.dp, 0.dp, 0.dp)) {
-                    Text(
-                        stringResource(id = R.string.uninstall),
-                        Modifier
-                            .padding(0.dp, 10.dp)
-                            .combinedClickable(onClick = {
-                                // Uninstall logic here
-                                val intent = Intent(
-                                    Intent.ACTION_DELETE,
-                                    Uri.parse("package:${homeScreenModel.currentPackageName.value}")
-                                )
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                mainAppModel.context.startActivity(intent)
-                            }),
-                        MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    if (!homeScreenModel.isCurrentAppHidden.value) {
-                        Text(
-                            stringResource(id = R.string.hide),
-                            Modifier
-                                .padding(0.dp, 10.dp)
-                                .combinedClickable(onClick = {
-                                    mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentPackageName.value)
-                                    homeScreenModel.showBottomSheet.value = false
-                                }),
-                            MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Text(
-                        text = if (homeScreenModel.isCurrentAppFavorite.value) stringResource(id = R.string.rem_from_fav) else stringResource(
-                            id = R.string.add_to_fav
-                        ),
-                        modifier = Modifier
-                            .padding(0.dp, 10.dp)
-                            .combinedClickable(onClick = {
-                                if (homeScreenModel.isCurrentAppFavorite.value) {
-                                    mainAppModel.favoriteAppsManager.removeFavoriteApp(
-                                        homeScreenModel.currentPackageName.value
-                                    )
-                                    homeScreenModel.isCurrentAppFavorite.value = false
-                                } else {
-                                    mainAppModel.favoriteAppsManager.addFavoriteApp(
-                                        homeScreenModel.currentPackageName.value
-                                    )
-                                    homeScreenModel.isCurrentAppFavorite.value = true
-                                }
-                                updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
-                            }),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    if (!homeScreenModel.isCurrentAppChallenged.value) {
-                        Text(
-                            stringResource(id = R.string.add_open_challenge),
-                            Modifier
-                                .padding(0.dp, 10.dp)
-                                .combinedClickable(onClick = {
-                                    mainAppModel.challengesManager.addChallengeApp(
-                                        homeScreenModel.currentPackageName.value
-                                    )
-                                    homeScreenModel.showBottomSheet.value = false
-                                    homeScreenModel.isCurrentAppChallenged.value = true
-                                }),
-                            MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Text(
-                        stringResource(id = R.string.app_info),
-                        Modifier
-                            .padding(0.dp, 10.dp)
-                            .combinedClickable(onClick = {
-                                val intent =
-                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data =
-                                            Uri.parse("package:${homeScreenModel.currentPackageName.value}")
-                                    }
-                                mainAppModel.context.startActivity(intent)
-                                homeScreenModel.showBottomSheet.value = false
-                            }),
-                        MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
+        )
     }
 
     //Open Challenge
@@ -319,135 +223,101 @@ fun HomeScreenPageManager(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppsListItem(
-    app: ResolveInfo?,
-    mainAppModel: MainAppModel,
-    homeScreenModel: HomeScreenModel,
-    lazyListState: LazyListState?,
-    searchExpanded: MutableState<Boolean>?,
-    searchText: MutableState<String>?
+fun HomeScreenItem(
+    appName: String,
+    screenTime: Long? = null,
+    onAppClick: () -> Unit,
+    onAppLongClick: () -> Unit,
+    showScreenTime: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    if (app != null) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                AppUtils.getAppNameFromPackageName(
-                    mainAppModel.context,
-                    app.activityInfo.packageName
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        modifier = modifier
+    ) {
+        // App name text with click and long click handlers
+        Text(
+            appName,
+            modifier = Modifier
+                .padding(vertical = 15.dp)
+                .combinedClickable(
+                    onClick = onAppClick,
+                    onLongClick = onAppLongClick
                 ),
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        // Optional screen time
+        if (showScreenTime && screenTime != null) {
+            Text(
+                AppUtils.formatScreenTime(screenTime),
                 modifier = Modifier
-                    .padding(vertical = 15.dp)
+                    .padding(vertical = 15.dp, horizontal = 5.dp)
+                    .alpha(0.5f)
                     .combinedClickable(
-                        onClick = {
-                            val packageName = app.activityInfo.packageName
-                            homeScreenModel.currentPackageName.value = packageName
-
-                            AppUtils.openApp(
-                                packageName,
-                                false,
-                                homeScreenModel.showOpenChallenge,
-                                mainAppModel
-                            )
-
-                            coroutineScope.launch {
-                                delay(200)
-                                homeScreenModel.pagerState.animateScrollToPage(1)
-                                lazyListState?.scrollToItem(0)
-                                searchExpanded?.value = false
-                                searchText?.value = ""
-                            }
-                        },
-                        onLongClick = {
-                            homeScreenModel.showBottomSheet.value = true
-                            homeScreenModel.currentSelectedApp.value =
-                                AppUtils.getAppNameFromPackageName(
-                                    mainAppModel.context,
-                                    app.activityInfo.packageName
-                                )
-                            homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                            homeScreenModel.isCurrentAppChallenged.value =
-                                mainAppModel.challengesManager.doesAppHaveChallenge(
-                                    app.activityInfo.packageName
-                                )
-                            homeScreenModel.isCurrentAppHidden.value =
-                                mainAppModel.hiddenAppsManager.isAppHidden(
-                                    app.activityInfo.packageName
-                                )
-                            homeScreenModel.isCurrentAppFavorite.value =
-                                mainAppModel.favoriteAppsManager.isAppFavorite(
-                                    app.activityInfo.packageName
-                                )
-                        }
+                        onClick = onAppClick,
+                        onLongClick = onAppLongClick
                     ),
                 color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall
             )
+        }
+    }
 
-            if (getBooleanSetting(mainAppModel.context, "screenTimeOnApp")) {
-                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+}
 
-                // Fetch screen time in a coroutine
-                LaunchedEffect(app.activityInfo.packageName) {
-                    withContext(Dispatchers.IO) {
-                        appScreenTime.longValue = getUsageForApp(
-                            app.activityInfo.packageName,
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                        )
-                    }
-                }
-
-                Text(
-                    AppUtils.formatScreenTime(appScreenTime.longValue),
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun HomeScreenBottomSheet(
+    title: String,
+    actions: List<AppAction>,
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState,
+    modifier: Modifier = Modifier
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
+        Column(modifier.padding(25.dp, 25.dp, 25.dp, 50.dp)) {
+            // Header
+            Row {
+                Icon(
+                    Icons.Rounded.Settings,
+                    contentDescription = "App Options",
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
-                        .padding(vertical = 15.dp, horizontal = 5.dp)
-                        .alpha(0.5f)
-                        .combinedClickable(
-                            onClick = {
-                                val packageName = app.activityInfo.packageName
-                                homeScreenModel.currentPackageName.value = packageName
-
-                                AppUtils.openApp(
-                                    packageName,
-                                    false,
-                                    homeScreenModel.showOpenChallenge,
-                                    mainAppModel
-                                )
-
-                                coroutineScope.launch {
-                                    delay(200)
-                                    homeScreenModel.pagerState.animateScrollToPage(1)
-                                    lazyListState?.scrollToItem(0)
-                                    searchExpanded?.value = false
-                                    searchText?.value = ""
-                                }
-                            },
-                            onLongClick = {
-                                homeScreenModel.showBottomSheet.value = true
-                                homeScreenModel.currentSelectedApp.value =
-                                    AppUtils.getAppNameFromPackageName(
-                                        mainAppModel.context,
-                                        app.activityInfo.packageName
-                                    )
-                                homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                                homeScreenModel.isCurrentAppChallenged.value =
-                                    mainAppModel.challengesManager.doesAppHaveChallenge(
-                                        app.activityInfo.packageName
-                                    )
-                                homeScreenModel.isCurrentAppHidden.value =
-                                    mainAppModel.hiddenAppsManager.isAppHidden(
-                                        app.activityInfo.packageName
-                                    )
-                                homeScreenModel.isCurrentAppFavorite.value =
-                                    mainAppModel.favoriteAppsManager.isAppFavorite(
-                                        app.activityInfo.packageName
-                                    )
-                            }
-                        ),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.bodySmall
+                        .size(45.dp)
+                        .padding(end = 10.dp)
                 )
+                Text(
+                    title,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 32.sp,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            HorizontalDivider(Modifier.padding(vertical = 15.dp))
+
+            // Actions
+            Column(Modifier.padding(start = 47.dp)) {
+                actions.forEach { action ->
+                    Text(
+                        text = action.label,
+                        modifier = Modifier
+                            .padding(vertical = 10.dp)
+                            .combinedClickable(onClick = action.onClick),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
 }
+
+data class AppAction(
+    val label: String,
+    val onClick: () -> Unit
+)

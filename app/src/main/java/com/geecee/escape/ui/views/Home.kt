@@ -1,5 +1,6 @@
 package com.geecee.escape.ui.views
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -26,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,15 +39,21 @@ import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
+import com.geecee.escape.utils.AppUtils.resetHome
 import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.managers.getUsageForApp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Home Screen Page Inside the Pager
 @Composable
 fun HomeScreen(
     mainAppModel: MainAppModel,
-    homeScreenModel: HomeScreenModel,
-    modifier: Modifier,
+    homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
     val noApps = remember { mutableStateOf(true) }
@@ -67,22 +74,73 @@ fun HomeScreen(
                 stringResource(R.string.HomeAlignment), "Center"
             ) == "Left"
         ) Alignment.Start else Alignment.End,
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(30.dp, 90.dp)
     ) {
+
+        //Clock
         item {
             if (getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowClock), true)) {
-                Clock(homeScreenModel.sharedPreferences, mainAppModel, noApps)
+                Clock(homeScreenModel.sharedPreferences, mainAppModel.context, noApps)
             }
         }
 
+        //Apps
         items(homeScreenModel.favoriteApps) { app ->
-            AppsListItem(
-                AppUtils.getResolveInfoFromPackageName(app, mainAppModel.packageManager),
-                mainAppModel = mainAppModel,
-                homeScreenModel,
-                null,
-                null,
-                null,
+            val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+
+            // Fetch screen time in a coroutine
+            LaunchedEffect(app) {
+                withContext(Dispatchers.IO) {
+                    appScreenTime.longValue = getUsageForApp(
+                        app,
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    )
+                }
+            }
+
+            HomeScreenItem(
+                appName = AppUtils.getAppNameFromPackageName(context = mainAppModel.context, packageName = app),
+                screenTime = appScreenTime.longValue,
+                onAppClick = {
+                    homeScreenModel.currentPackageName.value = app
+
+                    AppUtils.openApp(
+                        app,
+                        false,
+                        homeScreenModel.showOpenChallenge,
+                        mainAppModel
+                    )
+
+                    resetHome(homeScreenModel)
+                },
+                onAppLongClick = {
+                    homeScreenModel.showBottomSheet.value = true
+                    homeScreenModel.currentSelectedApp.value =
+                        AppUtils.getAppNameFromPackageName(
+                            mainAppModel.context,
+                            app
+                        )
+                    homeScreenModel.currentPackageName.value = app
+                    homeScreenModel.isCurrentAppChallenged.value =
+                        mainAppModel.challengesManager.doesAppHaveChallenge(
+                            app
+                        )
+                    homeScreenModel.isCurrentAppHidden.value =
+                        mainAppModel.hiddenAppsManager.isAppHidden(
+                            app
+                        )
+                    homeScreenModel.isCurrentAppFavorite.value =
+                        mainAppModel.favoriteAppsManager.isAppFavorite(
+                            app
+                        )
+                },
+                showScreenTime = getBooleanSetting(
+                    mainAppModel.context,
+                    stringResource(R.string.screen_time_on_app)
+                ),
+                modifier = Modifier
             )
         }
 
@@ -97,49 +155,7 @@ fun HomeScreen(
             }
 
             item {
-                Box(
-                    Modifier
-                        .clip(
-                            MaterialTheme.shapes.extraLarge
-                        )
-                ) {
-                    Column(
-                        Modifier
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Row(Modifier.padding(25.dp, 25.dp, 25.dp, 15.dp).align(Alignment.CenterHorizontally)) {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.ArrowForward,
-                                "",
-                                Modifier.align(Alignment.CenterVertically),
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(Modifier.width(5.dp))
-                            Text(
-                                stringResource(R.string.swipe_for_all_apps),
-                                modifier = Modifier,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        Row(Modifier.padding(25.dp, 0.dp, 25.dp, 25.dp).align(Alignment.CenterHorizontally)) {
-                            Icon(
-                                painterResource(R.drawable.radio_button_unchecked),
-                                "",
-                                Modifier.align(Alignment.CenterVertically),
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(Modifier.width(5.dp))
-                            Text(
-                                stringResource(R.string.hold_for_settings),
-                                modifier = Modifier,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
+                FirstTimeHelp()
             }
         }
     }
@@ -150,7 +166,7 @@ fun HomeScreen(
 @Composable
 fun Clock(
     sharedPreferencesSettings: SharedPreferences,
-    mainAppModel: MainAppModel,
+    context: Context,
     noApps: MutableState<Boolean>
 ) {
     var time by remember { mutableStateOf(getCurrentTime()) }
@@ -166,7 +182,7 @@ fun Clock(
     }
 
     if (getBooleanSetting(
-            context = mainAppModel.context,
+            context = context,
             stringResource(R.string.BigClock),
             false
         )
@@ -214,11 +230,49 @@ fun Clock(
     }
 }
 
-// Reloads favourite apps
-fun updateFavorites(
-    mainAppModel: MainAppModel,
-    favoriteApps: SnapshotStateList<String>
-) {
-    favoriteApps.clear()
-    favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
+@Composable
+fun FirstTimeHelp(){
+    Box(
+        Modifier
+            .clip(
+                MaterialTheme.shapes.extraLarge
+            )
+    ) {
+        Column(
+            Modifier
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(Modifier.padding(25.dp, 25.dp, 25.dp, 15.dp).align(Alignment.CenterHorizontally)) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowForward,
+                    "",
+                    Modifier.align(Alignment.CenterVertically),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    stringResource(R.string.swipe_for_all_apps),
+                    modifier = Modifier,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Row(Modifier.padding(25.dp, 0.dp, 25.dp, 25.dp).align(Alignment.CenterHorizontally)) {
+                Icon(
+                    painterResource(R.drawable.radio_button_unchecked),
+                    "",
+                    Modifier.align(Alignment.CenterVertically),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    stringResource(R.string.hold_for_settings),
+                    modifier = Modifier,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
 }

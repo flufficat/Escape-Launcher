@@ -13,4 +13,5 @@
     <string name="Font" translatable="false">font</string>
     <string name="FirstTime" translatable="false">FirstTime</string>
     <string name="FirstTimeAppDrawHelp" translatable="false">FirstTimeAppDrawHelp</string>
+    <string name="SearchHiddenPrivateSpace" translatable="false">searchHiddenPrivateSpace</string>
 </resources>

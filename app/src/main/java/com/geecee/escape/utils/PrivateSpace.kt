@@ -188,9 +188,9 @@ fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
 
                 SettingsSwitch(
                     stringResource(R.string.hide_private_space_in_search),
-                    getBooleanSetting(context, "searchHiddenPrivateSpace", false)
+                    getBooleanSetting(context, stringResource(R.string.SearchHiddenPrivateSpace), false)
                 ) { value ->
-                    setBooleanSetting(context, "searchHiddenPrivateSpace", value)
+                    setBooleanSetting(context, context.resources.getString(R.string.SearchHiddenPrivateSpace)  , value)
                 }
             }
         }

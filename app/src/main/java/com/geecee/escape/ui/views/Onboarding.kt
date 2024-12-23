@@ -21,14 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,9 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -56,7 +52,6 @@ import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.configureAnalytics
-import com.geecee.escape.utils.AppUtils.loadTextFromAssets
 import com.geecee.escape.utils.changeLauncher
 import com.geecee.escape.utils.setBooleanSetting
 
@@ -439,7 +434,6 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
 @Composable
 fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
     val showPolicyDialog = remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
     Box(
         Modifier
@@ -554,40 +548,6 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
     }
 
     if (showPolicyDialog.value) {
-        Card(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)  // Make the content scrollable
-                    .padding(16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(120.dp))
-
-                // Load text from the asset
-                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
-                    BasicText(
-                        text = text, style = TextStyle(
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Start,
-                            fontWeight = FontWeight.Normal
-                        ), modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // "OK" Button
-                Button(
-                    onClick = { showPolicyDialog.value = false },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text("OK")
-                }
-            }
-        }
+        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
     }
 }

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.geecee.escape.utils
+package com.geecee.escape.utils.managers
 
 import android.content.Context
 import com.google.gson.Gson

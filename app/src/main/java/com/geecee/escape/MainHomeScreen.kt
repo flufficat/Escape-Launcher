@@ -39,11 +39,11 @@ import com.geecee.escape.ui.theme.EscapeTheme
 import com.geecee.escape.ui.views.HomeScreenPageManager
 import com.geecee.escape.ui.views.Onboarding
 import com.geecee.escape.ui.views.Settings
-import com.geecee.escape.utils.ChallengesManager
-import com.geecee.escape.utils.FavoriteAppsManager
-import com.geecee.escape.utils.HiddenAppsManager
+import com.geecee.escape.utils.managers.ChallengesManager
+import com.geecee.escape.utils.managers.FavoriteAppsManager
+import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.PrivateSpaceStateReceiver
-import com.geecee.escape.utils.ScreenTimeManager
+import com.geecee.escape.utils.managers.ScreenTimeManager
 import com.geecee.escape.utils.getBooleanSetting
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics

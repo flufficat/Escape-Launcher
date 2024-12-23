@@ -1,9 +1,10 @@
-package com.geecee.escape.utils
+package com.geecee.escape.utils.managers
 
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+@Suppress("unused")
 class HiddenAppsManager(context: Context) {
 
     private val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

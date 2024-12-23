@@ -11,6 +11,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
+import com.geecee.escape.ui.views.HomeScreenModel
+import com.geecee.escape.utils.managers.ScreenTimeManager
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
 import java.time.LocalTime
@@ -79,10 +83,12 @@ object AppUtils {
         searchText: String,
         packageManager: PackageManager
     ): List<ResolveInfo> {
-        return apps.filter { appInfo ->
-            val appName = appInfo.loadLabel(packageManager).toString()
+        return apps.map { appInfo ->
+            appInfo to appInfo.loadLabel(packageManager).toString()
+        }.filter { (_, appName) ->
             appName.contains(searchText, ignoreCase = true)
-        }.sortedBy { it.loadLabel(packageManager).toString() }
+        }.sortedBy { (_, appName) -> appName }
+            .map { (appInfo, _) -> appInfo }
     }
 
     fun getAppsListAlignmentFromPreferences(
@@ -97,17 +103,6 @@ object AppUtils {
             "Left" -> Alignment.Start
             else -> Alignment.End
         }
-    }
-
-    fun getResolveInfoFromPackageName(
-        packageName: String,
-        packageManager: PackageManager
-    ): ResolveInfo? {
-        val intent = packageManager.getLaunchIntentForPackage(packageName)
-        intent?.let {
-            return packageManager.resolveActivity(it, PackageManager.MATCH_DEFAULT_ONLY)
-        }
-        return null
     }
 
     fun getCurrentTime(): String {
@@ -138,5 +133,15 @@ object AppUtils {
         val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
         return resolveInfo?.activityInfo?.packageName == context.packageName
+    }
+
+    fun resetHome(homeScreenModel: HomeScreenModel) {
+        homeScreenModel.coroutineScope.launch {
+            delay(200)
+            homeScreenModel.pagerState.animateScrollToPage(1)
+            homeScreenModel.appsListScrollState.scrollToItem(0)
+            homeScreenModel.searchExpanded.value = false
+            homeScreenModel.searchText.value = ""
+        }
     }
 }

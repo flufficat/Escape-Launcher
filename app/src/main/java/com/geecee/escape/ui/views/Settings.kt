@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -253,7 +254,6 @@ fun MainSettingsPage(
     mainAppModel: MainAppModel
 ) {
     val showPolicyDialog = remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
     Column(
         verticalArrangement = Arrangement.Top,
@@ -397,44 +397,7 @@ fun MainSettingsPage(
 
 
     if (showPolicyDialog.value) {
-        Column {
-            Spacer(modifier = Modifier.height(30.dp))
-            Card(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)  // Make the content scrollable
-                        .padding(16.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Load text from the asset
-                    loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
-                        BasicText(
-                            text = text, style = TextStyle(
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Normal
-                            ), modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // "OK" Button
-                    Button(
-                        onClick = { showPolicyDialog.value = false },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 8.dp)
-                    ) {
-                        Text("OK")
-                    }
-                }
-            }
-        }
+        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
     }
 }
 
@@ -967,6 +930,49 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                     )
                 }, Modifier.align(Alignment.CenterEnd)
             )
+        }
+    }
+}
+
+@Composable
+fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableState<Boolean>){
+    val scrollState = rememberScrollState()
+    Column {
+        Spacer(modifier = Modifier.height(30.dp))
+        Card(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)  // Make the content scrollable
+                    .padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Load text from the asset
+                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
+                    BasicText(
+                        text = text, style = TextStyle(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Normal
+                        ), modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // "OK" Button
+                Button(
+                    onClick = { showPolicyDialog.value = false },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text("OK")
+                }
+            }
         }
     }
 }

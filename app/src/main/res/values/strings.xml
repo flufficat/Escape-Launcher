@@ -18,6 +18,7 @@
     <string name="lock_private_space">Lock Private Space</string>
     <string name="private_space">Private Space</string>
     <string name="private_space_settings">Private Space Settings</string>
+    <string name="private_space_search_term">pri</string>
 
     <!-- Hidden Apps strings-->
     <string name="hidden_apps">Hidden Apps</string>
