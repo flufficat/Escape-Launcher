@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.graphics.shapes)
 
     // Lifecycle and Activity Libraries
     implementation(libs.androidx.lifecycle.runtime.ktx)

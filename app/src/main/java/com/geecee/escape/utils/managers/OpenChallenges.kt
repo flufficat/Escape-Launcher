@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -178,7 +179,13 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                 Button(onClick = {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     goBack()
-                }, Modifier.align(Alignment.CenterHorizontally)) {
+                }, Modifier.align(Alignment.CenterHorizontally), colors = ButtonColors(
+                        MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.background
+                )
+                ) {
                     Icon(
                         Icons.AutoMirrored.Rounded.ArrowBack,
                         "Go back",
