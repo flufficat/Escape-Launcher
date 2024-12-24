@@ -107,6 +107,7 @@ fun AppsList(
                     )
                 ) {
                     Spacer(modifier = Modifier.height(15.dp))
+
                     AnimatedPillSearchBar(textChange = { searchBoxText ->
                         homeScreenModel.searchText.value = searchBoxText
                         val autoOpen = homeScreenModel.sharedPreferences.getBoolean(
@@ -174,7 +175,11 @@ fun AppsList(
 
             items(homeScreenModel.sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
-                appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
+                if (homeScreenModel.searchExpanded.value) {
+                    appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
+                } else {
+                    true
+                }
             }) { app ->
                 val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
 
@@ -192,8 +197,7 @@ fun AppsList(
                         app.activityInfo.packageName
                     )
                 ) HomeScreenItem(appName = AppUtils.getAppNameFromPackageName(
-                    mainAppModel.getContext(),
-                    app.activityInfo.packageName
+                    mainAppModel.getContext(), app.activityInfo.packageName
                 ), screenTime = appScreenTime.longValue, onAppClick = {
                     val packageName = app.activityInfo.packageName
                     homeScreenModel.currentPackageName.value = packageName
@@ -318,9 +322,11 @@ fun AnimatedPillSearchBar(
 
     LaunchedEffect(expanded.value) {
         if (expanded.value) {
-            searchText = TextFieldValue("")
             focusRequester.requestFocus()
             keyboardController?.show()
+        }
+        if (!expanded.value) {
+            keyboardController?.hide()
         }
     }
 
