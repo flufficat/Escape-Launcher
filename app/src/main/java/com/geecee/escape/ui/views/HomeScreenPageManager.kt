@@ -247,7 +247,7 @@ fun HomeScreenPageManager(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        OpenChallenge({
+        OpenChallenge(homeScreenModel.haptics,{
             AppUtils.openApp(
                 homeScreenModel.currentPackageName.value,
                 true,

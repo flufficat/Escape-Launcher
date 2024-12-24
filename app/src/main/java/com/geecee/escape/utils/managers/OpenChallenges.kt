@@ -29,8 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
@@ -89,7 +89,7 @@ class ChallengesManager(context: Context) {
 }
 
 @Composable
-fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
+fun OpenChallenge(haptics: HapticFeedback,openApp: () -> Unit, goBack: () -> Unit) {
     var currentText by remember { mutableStateOf("5") }
     var showText by remember { mutableStateOf(true) }
     var nextScreen by remember { mutableStateOf(false) }
@@ -110,6 +110,7 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                 delay(1000)
                 currentText = stringOne
                 showText = true
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 
                 delay(3000)
                 showText = false
@@ -117,6 +118,7 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                 delay(1000)
                 currentText = stringTwo
                 showText = true
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 
                 delay(3000)
                 showText = false
@@ -124,6 +126,7 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                 delay(1000)
                 currentText = stringThree
                 showText = true
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 
                 delay(3000)
                 showText = false
@@ -131,11 +134,14 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                 delay(1000)
                 currentText = stringFour
                 showText = true
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 
                 delay(3000)
                 showText = false
+
                 delay(1000)
                 nextScreen = true
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
 
                 delay(500)
                 openApp()
@@ -175,7 +181,6 @@ fun OpenChallenge(openApp: () -> Unit, goBack: () -> Unit) {
                         )
                 }
 
-                val haptics = LocalHapticFeedback.current
                 Button(onClick = {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     goBack()
