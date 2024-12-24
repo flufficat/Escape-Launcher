@@ -48,13 +48,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.updateFavorites
+import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.managers.OpenChallenge
 import com.geecee.escape.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 // Model to be passed around home screen pages
 data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
@@ -131,7 +132,14 @@ fun HomeScreenPageManager(
             .combinedClickable(
                 onClick = {}, onLongClickLabel = {}.toString(),
                 onLongClick = {
-                    homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (getBooleanSetting(
+                            mainAppModel.getContext(),
+                            mainAppModel.getContext().resources.getString(R.string.Haptic),
+                            true
+                        )
+                    ) {
+                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                     onOpenSettings()
                     setBooleanSetting(
                         mainAppModel.getContext(),

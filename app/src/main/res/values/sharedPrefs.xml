@@ -14,4 +14,5 @@
     <string name="FirstTime" translatable="false">FirstTime</string>
     <string name="FirstTimeAppDrawHelp" translatable="false">FirstTimeAppDrawHelp</string>
     <string name="SearchHiddenPrivateSpace" translatable="false">searchHiddenPrivateSpace</string>
+    <string name="Haptic" translatable="false">Haptics</string>
 </resources>

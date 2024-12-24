@@ -67,7 +67,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.darkScheme
@@ -87,6 +86,7 @@ import com.geecee.escape.utils.resetActivity
 import com.geecee.escape.utils.setBooleanSetting
 import com.geecee.escape.utils.setStringSetting
 import com.geecee.escape.utils.toggleBooleanSetting
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -118,9 +118,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
 
 @Composable
 fun SettingsSwitch(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit
 ) {
     var isChecked by remember { mutableStateOf(checked) }
 
@@ -133,12 +131,10 @@ fun SettingsSwitch(
             textAlign = TextAlign.Center,
         )
         Switch(
-            checked = isChecked,
-            onCheckedChange = {
+            checked = isChecked, onCheckedChange = {
                 isChecked = !isChecked
                 onCheckedChange(isChecked)
-            },
-            Modifier.align(Alignment.CenterEnd)
+            }, Modifier.align(Alignment.CenterEnd)
         )
     }
 }
@@ -146,9 +142,7 @@ fun SettingsSwitch(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsNavigationItem(
-    label: String,
-    diagonalArrow: Boolean?,
-    onClick: () -> Unit
+    label: String, diagonalArrow: Boolean?, onClick: () -> Unit
 ) {
     Box(
         Modifier
@@ -208,7 +202,11 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() }, {showPolicyDialog.value = true}, navController, mainAppModel)
+                MainSettingsPage({ goHome() },
+                    { showPolicyDialog.value = true },
+                    navController,
+                    mainAppModel
+                )
             }
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
@@ -248,7 +246,7 @@ fun Settings(
     }
 
     if (showPolicyDialog.value) {
-        PrivacyPolicyDialog(mainAppModel,showPolicyDialog)
+        PrivacyPolicyDialog(mainAppModel, showPolicyDialog)
     }
 }
 
@@ -269,27 +267,18 @@ fun MainSettingsPage(
             .verticalScroll(rememberScrollState())
     ) {
         SettingsHeader(goHome, stringResource(R.string.settings))
-        SettingsSwitch(
-            label = stringResource(id = R.string.Analytics),
-            checked = getBooleanSetting(
+        SettingsSwitch(label = stringResource(id = R.string.Analytics), checked = getBooleanSetting(
+            mainAppModel.getContext(), stringResource(R.string.Analytics), true
+        ), onCheckedChange = {
+            toggleBooleanSetting(
                 mainAppModel.getContext(),
-                stringResource(R.string.Analytics),
-                true
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.Analytics)
-                )
-            }
-        )
-        SettingsSwitch(
-            label = stringResource(id = R.string.search_box),
+                it,
+                mainAppModel.getContext().resources.getString(R.string.Analytics)
+            )
+        })
+        SettingsSwitch(label = stringResource(id = R.string.search_box),
             checked = getBooleanSetting(
-                mainAppModel.getContext(),
-                stringResource(R.string.ShowSearchBox),
-                true
+                mainAppModel.getContext(), stringResource(R.string.ShowSearchBox), true
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
@@ -297,28 +286,19 @@ fun MainSettingsPage(
                     it,
                     mainAppModel.getContext().resources.getString(R.string.ShowSearchBox)
                 )
-            }
-        )
-        SettingsSwitch(
-            label = stringResource(id = R.string.auto_open),
-            checked = getBooleanSetting(
+            })
+        SettingsSwitch(label = stringResource(id = R.string.auto_open), checked = getBooleanSetting(
+            mainAppModel.getContext(), stringResource(R.string.SearchAutoOpen)
+        ), onCheckedChange = {
+            toggleBooleanSetting(
                 mainAppModel.getContext(),
-                stringResource(R.string.SearchAutoOpen)
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
-                )
-            }
-        )
-        SettingsSwitch(
-            label = stringResource(id = R.string.show_clock),
+                it,
+                mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
+            )
+        })
+        SettingsSwitch(label = stringResource(id = R.string.show_clock),
             checked = getBooleanSetting(
-                mainAppModel.getContext(),
-                stringResource(R.string.ShowClock),
-                true
+                mainAppModel.getContext(), stringResource(R.string.ShowClock), true
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
@@ -326,24 +306,30 @@ fun MainSettingsPage(
                     it,
                     mainAppModel.getContext().resources.getString(R.string.ShowClock)
                 )
-            }
-        )
-        SettingsSwitch(
-            label = stringResource(id = R.string.big_clock),
-            checked = getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.BigClock)),
+            })
+        SettingsSwitch(label = stringResource(id = R.string.big_clock), checked = getBooleanSetting(
+            mainAppModel.getContext(), stringResource(R.string.BigClock)
+        ), onCheckedChange = {
+            toggleBooleanSetting(
+                mainAppModel.getContext(),
+                it,
+                mainAppModel.getContext().resources.getString(R.string.BigClock)
+            )
+        })
+        SettingsSwitch(label = stringResource(id = R.string.haptic_feedback),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.Haptic), true
+            ),
             onCheckedChange = {
                 toggleBooleanSetting(
                     mainAppModel.getContext(),
                     it,
-                    mainAppModel.getContext().resources.getString(R.string.BigClock)
+                    mainAppModel.getContext().resources.getString(R.string.Haptic)
                 )
-            }
-        )
-        SettingsSwitch(
-            label = stringResource(id = R.string.screen_time_on_app),
+            })
+        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_app),
             checked = getBooleanSetting(
-                mainAppModel.getContext(),
-                stringResource(R.string.ScreenTimeOnApp)
+                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
@@ -351,42 +337,29 @@ fun MainSettingsPage(
                     it,
                     mainAppModel.getContext().resources.getString(R.string.ScreenTimeOnApp)
                 )
-            }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.read_privacy_policy),
+            })
+        SettingsNavigationItem(label = stringResource(id = R.string.read_privacy_policy),
             false,
-            onClick = { showPolicyDialog() }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.theme),
+            onClick = { showPolicyDialog() })
+        SettingsNavigationItem(label = stringResource(id = R.string.theme),
             false,
-            onClick = { navController.navigate("theme") }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.alignments),
+            onClick = { navController.navigate("theme") })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.alignments),
             false,
-            onClick = { navController.navigate("alignmentOptions") }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.manage_hidden_apps),
+            onClick = { navController.navigate("alignmentOptions") })
+        SettingsNavigationItem(label = stringResource(id = R.string.manage_hidden_apps),
             false,
-            onClick = { navController.navigate("hiddenApps") }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.manage_open_challenges),
+            onClick = { navController.navigate("hiddenApps") })
+        SettingsNavigationItem(label = stringResource(id = R.string.manage_open_challenges),
             false,
-            onClick = { navController.navigate("openChallenges") }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.choose_font), false,
-            onClick = { navController.navigate("chooseFont") }
-        )
-        SettingsNavigationItem(
-            label = stringResource(id = R.string.make_default_launcher),
+            onClick = { navController.navigate("openChallenges") })
+        SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
+            false,
+            onClick = { navController.navigate("chooseFont") })
+        SettingsNavigationItem(label = stringResource(id = R.string.make_default_launcher),
             true,
-            onClick = { changeLauncher(mainAppModel.getContext()) }
-        )
+            onClick = { changeLauncher(mainAppModel.getContext()) })
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
         Text(
             stringResource(id = R.string.escape_launcher) + " " + stringResource(id = R.string.app_version),
@@ -450,14 +423,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = options.size
-                        ),
-                        onClick = {
+                            index = index, count = options.size
+                        ), onClick = {
                             selectedIndex = index
                             changeHomeAlignment(context, selectedIndex)
-                        },
-                        selected = index == selectedIndex
+                        }, selected = index == selectedIndex
                     ) {
                         Text(label)
                     }
@@ -489,14 +459,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = options.size
-                        ),
-                        onClick = {
+                            index = index, count = options.size
+                        ), onClick = {
                             selectedIndex = index
                             changeHomeVAlignment(context, selectedIndex)
-                        },
-                        selected = index == selectedIndex
+                        }, selected = index == selectedIndex
                     ) {
                         Text(label)
                     }
@@ -538,14 +505,11 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = options.size
-                        ),
-                        onClick = {
+                            index = index, count = options.size
+                        ), onClick = {
                             selectedIndex = index
                             changeAppsAlignment(context, selectedIndex)
-                        },
-                        selected = index == selectedIndex
+                        }, selected = index == selectedIndex
                     ) {
                         Text(label)
                     }
@@ -557,8 +521,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
 @Composable
 fun ThemeCard(
-    theme: Int, context: Context,
-    activity: Activity
+    theme: Int, context: Context, activity: Activity
 ) {
     Box(
         Modifier
@@ -568,8 +531,7 @@ fun ThemeCard(
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable {
                 changeTheme(theme, context, activity)
-            }
-    ) {
+            }) {
         Box(
             Modifier
                 .padding(10.dp)
@@ -577,86 +539,65 @@ fun ThemeCard(
                 .clip(RoundedCornerShape(8.dp))
                 .background(
                     when (theme) {
-                        0 ->
-                            darkScheme.background
+                        0 -> darkScheme.background
 
-                        1 ->
+                        1 -> lightScheme.background
+
+                        2 -> PitchDarkColorScheme.background
+
+                        3 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            dynamicDarkColorScheme(context).background
+                        } else {
+                            darkScheme.background
+                        }
+
+                        4 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            dynamicLightColorScheme(context).background
+                        } else {
                             lightScheme.background
+                        }
 
-                        2 ->
-                            PitchDarkColorScheme.background
-
-                        3 ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                dynamicDarkColorScheme(context).background
-                            } else {
-                                darkScheme.background
-                            }
-
-                        4 ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                dynamicLightColorScheme(context).background
-                            } else {
-                                lightScheme.background
-                            }
-
-                        else ->
-                            darkScheme.background
+                        else -> darkScheme.background
                     }
                 )
         ) {
             Text(
                 when (theme) {
-                    0 ->
-                        stringResource(R.string.dark)
+                    0 -> stringResource(R.string.dark)
 
-                    1 ->
-                        stringResource(R.string.light)
+                    1 -> stringResource(R.string.light)
 
-                    2 ->
-                        stringResource(R.string.pitch_black)
+                    2 -> stringResource(R.string.pitch_black)
 
-                    3 ->
-                        stringResource(R.string.material_dark)
+                    3 -> stringResource(R.string.material_dark)
 
-                    4 ->
-                        stringResource(R.string.material_light)
+                    4 -> stringResource(R.string.material_light)
 
-                    else ->
-                        stringResource(R.string.theme)
+                    else -> stringResource(R.string.theme)
                 },
                 Modifier
                     .align(Alignment.Center)
-                    .padding(5.dp),
-                when (theme) {
-                    0 ->
-                        darkScheme.onBackground
+                    .padding(5.dp), when (theme) {
+                    0 -> darkScheme.onBackground
 
-                    1 ->
+                    1 -> lightScheme.onBackground
+
+                    2 -> PitchDarkColorScheme.onBackground
+
+                    3 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        dynamicDarkColorScheme(context).onBackground
+                    } else {
+                        darkScheme.primary
+                    }
+
+                    4 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        dynamicLightColorScheme(context).onBackground
+                    } else {
                         lightScheme.onBackground
+                    }
 
-                    2 ->
-                        PitchDarkColorScheme.onBackground
-
-                    3 ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicDarkColorScheme(context).onBackground
-                        } else {
-                            darkScheme.primary
-                        }
-
-                    4 ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicLightColorScheme(context).onBackground
-                        } else {
-                            lightScheme.onBackground
-                        }
-
-                    else ->
-                        darkScheme.onBackground
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
+                    else -> darkScheme.onBackground
+                }, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
             )
         }
     }
@@ -664,15 +605,12 @@ fun ThemeCard(
 
 @Composable
 fun ThemeOptions(
-    context: Context,
-    activity: Activity,
-    goBack: () -> Unit
+    context: Context, activity: Activity, goBack: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         SettingsHeader(goBack, stringResource(R.string.theme))
 
@@ -705,8 +643,7 @@ fun ThemeOptions(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HiddenApps(
-    mainAppModel: MainAppModel,
-    goBack: () -> Unit
+    mainAppModel: MainAppModel, goBack: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Top,
@@ -734,7 +671,9 @@ fun HiddenApps(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
+                                mainAppModel
+                                    .getContext()
+                                    .startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
                             mainAppModel.hiddenAppsManager.removeHiddenApp(app)
@@ -767,8 +706,7 @@ fun HiddenApps(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OpenChallenges(
-    mainAppModel: MainAppModel,
-    goBack: () -> Unit
+    mainAppModel: MainAppModel, goBack: () -> Unit
 ) {
     val challengeApps =
         remember { mutableStateOf(mainAppModel.challengesManager.getChallengeApps()) }
@@ -797,7 +735,9 @@ fun OpenChallenges(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
+                                mainAppModel
+                                    .getContext()
+                                    .startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
                             mainAppModel.challengesManager.removeChallengeApp(app)
@@ -880,9 +820,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                 .padding(0.dp, 15.dp)
                 .combinedClickable(onClick = {
                     setStringSetting(
-                        context,
-                        context.resources.getString(R.string.Font),
-                        "Work Sans"
+                        context, context.resources.getString(R.string.Font), "Work Sans"
                     )
                     resetActivity(context, activity)
                 }),
@@ -921,14 +859,10 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
                 checked = checked, onCheckedChange = {
                     checked = it
                     setBooleanSetting(
-                        context,
-                        context.resources.getString(R.string.FirstTime),
-                        true
+                        context, context.resources.getString(R.string.FirstTime), true
                     )
                     setBooleanSetting(
-                        context,
-                        context.resources.getString(R.string.FirstTimeAppDrawHelp),
-                        true
+                        context, context.resources.getString(R.string.FirstTimeAppDrawHelp), true
                     )
                 }, Modifier.align(Alignment.CenterEnd)
             )
@@ -937,7 +871,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
 }
 
 @Composable
-fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableState<Boolean>){
+fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableState<Boolean>) {
     val scrollState = rememberScrollState()
     Column {
         Card(
@@ -949,7 +883,7 @@ fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableSta
                     .verticalScroll(scrollState)  // Make the content scrollable
                     .padding(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(50.dp))
 
                 // Load text from the asset
                 loadTextFromAssets(mainAppModel.getContext(), "Privacy Policy.txt")?.let { text ->

@@ -57,6 +57,7 @@
     <string name="material_light">Material Light</string>
     <string name="screen_time_on_app">Screen Time On Apps</string>
     <string name="hide_private_space_in_search">Hidden private space</string>
+    <string name="haptic_feedback">Haptic feedback</string>
 
     <!-- Challenge apps strings -->
     <string name="open_challenges">Open Challenges</string>

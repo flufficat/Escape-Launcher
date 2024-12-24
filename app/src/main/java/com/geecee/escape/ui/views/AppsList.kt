@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -225,8 +226,12 @@ fun AppsList(
                         mainAppModel.favoriteAppsManager.isAppFavorite(
                             app.activityInfo.packageName
                         )
+
+                    if(getBooleanSetting(mainAppModel.getContext(), mainAppModel.getContext().resources.getString(R.string.Haptic), true)){
+                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                 }, showScreenTime = getBooleanSetting(
-                    mainAppModel.getContext(), stringResource(R.string.screen_time_on_app)
+                    mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
                 ), modifier = Modifier
                 )
             }

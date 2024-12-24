@@ -126,7 +126,9 @@ class MainHomeScreen : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(privateSpaceReceiver)
+        if (::privateSpaceReceiver.isInitialized) {
+            unregisterReceiver(privateSpaceReceiver)
+        }
     }
 
     // Makes it fullscreen

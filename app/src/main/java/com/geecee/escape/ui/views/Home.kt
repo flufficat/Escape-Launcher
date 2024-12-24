@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -139,10 +140,13 @@ fun HomeScreen(
                         mainAppModel.favoriteAppsManager.isAppFavorite(
                             app
                         )
+                    if(getBooleanSetting(mainAppModel.getContext(), mainAppModel.getContext().resources.getString(R.string.Haptic), true)){
+                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                 },
                 showScreenTime = getBooleanSetting(
                     mainAppModel.getContext(),
-                    stringResource(R.string.screen_time_on_app)
+                    stringResource(R.string.ScreenTimeOnApp)
                 ),
                 modifier = Modifier
             )
