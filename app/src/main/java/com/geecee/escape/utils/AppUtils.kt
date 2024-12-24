@@ -10,7 +10,7 @@ import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import com.geecee.escape.MainAppModel
+import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.views.HomeScreenModel
 import com.geecee.escape.utils.managers.ScreenTimeManager
@@ -36,7 +36,7 @@ object AppUtils {
             if (!mainAppModel.challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 val options = ActivityOptions.makeBasic()
-                mainAppModel.context.startActivity(launchIntent, options.toBundle())
+                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
 
                 ScreenTimeManager.onAppOpened(packageName)
 

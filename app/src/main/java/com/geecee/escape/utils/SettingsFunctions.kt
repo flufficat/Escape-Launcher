@@ -11,9 +11,11 @@ import android.provider.Settings
 import com.geecee.escape.MainHomeScreen
 import com.geecee.escape.R
 
-fun changeLauncher(context: Context) {
-    val intent = Intent(Settings.ACTION_HOME_SETTINGS)
-    context.startActivity(intent)
+fun changeLauncher(activity: Context) {
+    val intent = Intent(Settings.ACTION_HOME_SETTINGS).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    activity.startActivity(intent)
 }
 
 fun changeTheme(theme: Int, context: Context, activity: Activity) {
@@ -26,7 +28,9 @@ fun changeTheme(theme: Int, context: Context, activity: Activity) {
 
     editor.apply()
 
-    val intent = Intent(context, MainHomeScreen::class.java)
+    val intent = Intent(context, MainHomeScreen::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
     val options = ActivityOptions.makeBasic()
     context.startActivity(intent, options.toBundle())
     activity.finish()
@@ -54,9 +58,17 @@ fun getHomeAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString(context.resources.getString(R.string.HomeAlignment), "Center") == "Left") {
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Left"
+    ) {
         0
-    } else if (sharedPreferences.getString(context.resources.getString(R.string.HomeAlignment), "Center") == "Center") {
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Center"
+    ) {
         1
     } else {
         2
@@ -85,9 +97,17 @@ fun getHomeVAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString(context.resources.getString(R.string.HomeVAlignment), "Center") == "Top") {
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Top"
+    ) {
         0
-    } else if (sharedPreferences.getString(context.resources.getString(R.string.HomeVAlignment), "Center") == "Center") {
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Center"
+    ) {
         1
     } else {
         2
@@ -116,9 +136,17 @@ fun getAppsAlignment(context: Context): Int {
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return if (sharedPreferences.getString(context.resources.getString(R.string.AppsAlignment), "Center") == "Left") {
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Left"
+    ) {
         0
-    } else if (sharedPreferences.getString(context.resources.getString(R.string.AppsAlignment), "Center") == "Center") {
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Center"
+    ) {
         1
     } else {
         2
@@ -142,12 +170,12 @@ fun toggleBooleanSetting(context: Context, shouldTurnOn: Boolean, setting: Strin
     editor.apply()
 }
 
-fun getBooleanSetting(context: Context,setting:String): Boolean {
+fun getBooleanSetting(context: Context, setting: String): Boolean {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
 
-    return sharedPreferences.getBoolean(setting,false)
+    return sharedPreferences.getBoolean(setting, false)
 }
 
 fun getStringSetting(context: Context, setting: String, defaultValue: String): String {
@@ -198,8 +226,10 @@ fun setBooleanSetting(context: Context, setting: String, value: Boolean) {
     editor.apply()
 }
 
-fun resetActivity(context: Context, activity: Activity){
-    val intent = Intent(context, MainHomeScreen::class.java)
+fun resetActivity(context: Context, activity: Activity) {
+    val intent = Intent(context, MainHomeScreen::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
     val options = ActivityOptions.makeBasic()
     context.startActivity(intent, options.toBundle())
     activity.finish()

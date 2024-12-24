@@ -67,7 +67,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.MainAppModel
+import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.darkScheme
@@ -213,7 +213,7 @@ fun Settings(
             composable("alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                AlignmentOptions(mainAppModel.context) { navController.popBackStack() }
+                AlignmentOptions(mainAppModel.getContext()) { navController.popBackStack() }
             }
             composable("hiddenApps",
                 enterTransition = { fadeIn(tween(300)) },
@@ -232,17 +232,17 @@ fun Settings(
             composable("chooseFont",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                ChooseFont(mainAppModel.context, activity) { navController.popBackStack() }
+                ChooseFont(mainAppModel.getContext(), activity) { navController.popBackStack() }
             }
             composable("devOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                DevOptions(context = mainAppModel.context) { navController.popBackStack() }
+                DevOptions(context = mainAppModel.getContext()) { navController.popBackStack() }
             }
             composable("theme",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                ThemeOptions(mainAppModel.context, activity) { navController.popBackStack() }
+                ThemeOptions(mainAppModel.getContext(), activity) { navController.popBackStack() }
             }
         }
     }
@@ -272,84 +272,84 @@ fun MainSettingsPage(
         SettingsSwitch(
             label = stringResource(id = R.string.Analytics),
             checked = getBooleanSetting(
-                mainAppModel.context,
+                mainAppModel.getContext(),
                 stringResource(R.string.Analytics),
                 true
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.Analytics)
+                    mainAppModel.getContext().resources.getString(R.string.Analytics)
                 )
             }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.search_box),
             checked = getBooleanSetting(
-                mainAppModel.context,
+                mainAppModel.getContext(),
                 stringResource(R.string.ShowSearchBox),
                 true
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.ShowSearchBox)
+                    mainAppModel.getContext().resources.getString(R.string.ShowSearchBox)
                 )
             }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.auto_open),
             checked = getBooleanSetting(
-                mainAppModel.context,
+                mainAppModel.getContext(),
                 stringResource(R.string.SearchAutoOpen)
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.SearchAutoOpen)
+                    mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
                 )
             }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.show_clock),
             checked = getBooleanSetting(
-                mainAppModel.context,
+                mainAppModel.getContext(),
                 stringResource(R.string.ShowClock),
                 true
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.ShowClock)
+                    mainAppModel.getContext().resources.getString(R.string.ShowClock)
                 )
             }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.big_clock),
-            checked = getBooleanSetting(mainAppModel.context, stringResource(R.string.BigClock)),
+            checked = getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.BigClock)),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.BigClock)
+                    mainAppModel.getContext().resources.getString(R.string.BigClock)
                 )
             }
         )
         SettingsSwitch(
             label = stringResource(id = R.string.screen_time_on_app),
             checked = getBooleanSetting(
-                mainAppModel.context,
+                mainAppModel.getContext(),
                 stringResource(R.string.ScreenTimeOnApp)
             ),
             onCheckedChange = {
                 toggleBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it,
-                    mainAppModel.context.resources.getString(R.string.ScreenTimeOnApp)
+                    mainAppModel.getContext().resources.getString(R.string.ScreenTimeOnApp)
                 )
             }
         )
@@ -385,7 +385,7 @@ fun MainSettingsPage(
         SettingsNavigationItem(
             label = stringResource(id = R.string.make_default_launcher),
             true,
-            onClick = { changeLauncher(mainAppModel.context) }
+            onClick = { changeLauncher(mainAppModel.getContext()) }
         )
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
         Text(
@@ -725,7 +725,7 @@ fun HiddenApps(
         for (app in hiddenApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.getContext(), app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
@@ -734,7 +734,7 @@ fun HiddenApps(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
                             mainAppModel.hiddenAppsManager.removeHiddenApp(app)
@@ -788,7 +788,7 @@ fun OpenChallenges(
         for (app in challengeApps.value) {
             Box(Modifier.fillMaxWidth()) {
                 Text(
-                    AppUtils.getAppNameFromPackageName(mainAppModel.context, app),
+                    AppUtils.getAppNameFromPackageName(mainAppModel.getContext(), app),
                     modifier = Modifier
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
@@ -797,7 +797,7 @@ fun OpenChallenges(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel.context.startActivity(launchIntent, options.toBundle())
+                                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
                             mainAppModel.challengesManager.removeChallengeApp(app)
@@ -952,7 +952,7 @@ fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableSta
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Load text from the asset
-                loadTextFromAssets(mainAppModel.context, "Privacy Policy.txt")?.let { text ->
+                loadTextFromAssets(mainAppModel.getContext(), "Privacy Policy.txt")?.let { text ->
                     BasicText(
                         text = text, style = TextStyle(
                             color = MaterialTheme.colorScheme.onBackground,

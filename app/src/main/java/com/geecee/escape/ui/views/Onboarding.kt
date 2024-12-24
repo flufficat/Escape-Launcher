@@ -51,7 +51,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.MainAppModel
+import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.configureAnalytics
 import com.geecee.escape.utils.changeLauncher
@@ -393,7 +393,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
             Spacer(Modifier.height(10.dp))
             Button(
                 onClick = {
-                    changeLauncher(mainAppModel.context)
+                    changeLauncher(mainAppModel.getContext())
                 }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onBackground,
                     MaterialTheme.colorScheme.background,
@@ -506,13 +506,13 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                 onClick = {
                     navController.navigate("home")
                     setBooleanSetting(
-                        mainAppModel.context,
-                        mainAppModel.context.resources.getString(R.string.Analytics),
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.Analytics),
                         false
                     )
                     setBooleanSetting(
-                        mainAppModel.context,
-                        mainAppModel.context.resources.getString(R.string.FirstTime),
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
                 }, modifier = Modifier, colors = ButtonDefaults.outlinedButtonColors(
@@ -537,13 +537,13 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                 onClick = {
                     navController.navigate("home")
                     setBooleanSetting(
-                        mainAppModel.context,
-                        mainAppModel.context.resources.getString(R.string.Analytics),
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.Analytics),
                         true
                     )
                     setBooleanSetting(
-                        mainAppModel.context,
-                        mainAppModel.context.resources.getString(R.string.FirstTime),
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
                     configureAnalytics(true)

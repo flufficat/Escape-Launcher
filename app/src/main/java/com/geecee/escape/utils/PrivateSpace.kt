@@ -197,7 +197,6 @@ fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 fun openPrivateSpaceApp(privateSpaceApp: PrivateSpaceApp, context: Context, sourceBounds: Rect) {
     val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps

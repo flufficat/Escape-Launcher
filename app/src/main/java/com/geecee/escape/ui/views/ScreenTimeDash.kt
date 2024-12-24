@@ -6,10 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.geecee.escape.MainAppModel
 
 @Composable
-fun ScreenTimeDashboard(mainAppModel: MainAppModel){
+fun ScreenTimeDashboard(){
     Box(
         Modifier
             .background(MaterialTheme.colorScheme.background)

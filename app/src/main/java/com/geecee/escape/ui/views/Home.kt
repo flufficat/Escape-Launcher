@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.MainAppModel
+import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
@@ -85,8 +85,8 @@ fun HomeScreen(
 
         //Clock
         item {
-            if (getBooleanSetting(mainAppModel.context, stringResource(R.string.ShowClock), true)) {
-                Clock(homeScreenModel.sharedPreferences, mainAppModel.context, noApps)
+            if (getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.ShowClock), true)) {
+                Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
             }
         }
 
@@ -105,7 +105,7 @@ fun HomeScreen(
             }
 
             HomeScreenItem(
-                appName = AppUtils.getAppNameFromPackageName(context = mainAppModel.context, packageName = app),
+                appName = AppUtils.getAppNameFromPackageName(context = mainAppModel.getContext(), packageName = app),
                 screenTime = appScreenTime.longValue,
                 onAppClick = {
                     homeScreenModel.currentPackageName.value = app
@@ -123,7 +123,7 @@ fun HomeScreen(
                     homeScreenModel.showBottomSheet.value = true
                     homeScreenModel.currentSelectedApp.value =
                         AppUtils.getAppNameFromPackageName(
-                            mainAppModel.context,
+                            mainAppModel.getContext(),
                             app
                         )
                     homeScreenModel.currentPackageName.value = app
@@ -141,7 +141,7 @@ fun HomeScreen(
                         )
                 },
                 showScreenTime = getBooleanSetting(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     stringResource(R.string.screen_time_on_app)
                 ),
                 modifier = Modifier
@@ -149,8 +149,8 @@ fun HomeScreen(
         }
 
         if (getBooleanSetting(
-                mainAppModel.context,
-                mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),
+                mainAppModel.getContext(),
+                mainAppModel.getContext().resources.getString(R.string.FirstTimeAppDrawHelp),
                 true
             )
         ) {

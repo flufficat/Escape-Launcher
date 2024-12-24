@@ -46,6 +46,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,16 +58,16 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.AppUtils.resetHome
 import com.geecee.escape.utils.PrivateAppItem
 import com.geecee.escape.utils.PrivateSpaceSettings
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getPrivateSpaceApps
-import com.geecee.escape.utils.managers.getUsageForApp
 import com.geecee.escape.utils.isPrivateSpace
 import com.geecee.escape.utils.lockPrivateSpace
+import com.geecee.escape.utils.managers.getUsageForApp
 import com.geecee.escape.utils.openPrivateSpaceApp
 import com.geecee.escape.utils.unlockPrivateSpace
 import kotlinx.coroutines.Dispatchers
@@ -75,7 +76,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.geecee.escape.utils.AppUtils.resetHome
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 //Apps list from the pager
 @Composable
@@ -93,7 +94,7 @@ fun AppsList(
                 .fillMaxSize()
                 .padding(30.dp, 0.dp),
             horizontalAlignment = AppUtils.getAppsListAlignmentFromPreferences(
-                homeScreenModel.sharedPreferences, mainAppModel.context
+                homeScreenModel.sharedPreferences, mainAppModel.getContext()
             )
         ) {
             item {
@@ -109,7 +110,7 @@ fun AppsList(
                     AnimatedPillSearchBar(textChange = { searchBoxText ->
                         homeScreenModel.searchText.value = searchBoxText
                         val autoOpen = homeScreenModel.sharedPreferences.getBoolean(
-                            mainAppModel.context.resources.getString(R.string.SearchAutoOpen),
+                            mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen),
                             false
                         )
 
@@ -174,8 +175,7 @@ fun AppsList(
             items(homeScreenModel.sortedInstalledApps.filter { appInfo ->
                 val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
                 appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
-            })
-            { app ->
+            }) { app ->
                 val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
 
                 // Fetch screen time in a coroutine
@@ -191,69 +191,65 @@ fun AppsList(
                 if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
-                ) HomeScreenItem(
-                    appName = AppUtils.getAppNameFromPackageName(mainAppModel.context,app.activityInfo.packageName),
-                    screenTime = appScreenTime.longValue,
-                    onAppClick = {
-                        val packageName = app.activityInfo.packageName
-                        homeScreenModel.currentPackageName.value = packageName
+                ) HomeScreenItem(appName = AppUtils.getAppNameFromPackageName(
+                    mainAppModel.getContext(),
+                    app.activityInfo.packageName
+                ), screenTime = appScreenTime.longValue, onAppClick = {
+                    val packageName = app.activityInfo.packageName
+                    homeScreenModel.currentPackageName.value = packageName
 
-                        AppUtils.openApp(
-                            packageName,
-                            false,
-                            homeScreenModel.showOpenChallenge,
-                            mainAppModel
+                    AppUtils.openApp(
+                        packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
+                    )
+
+                    resetHome(homeScreenModel)
+                }, onAppLongClick = {
+                    homeScreenModel.showBottomSheet.value = true
+                    homeScreenModel.currentSelectedApp.value = AppUtils.getAppNameFromPackageName(
+                        mainAppModel.getContext(), app.activityInfo.packageName
+                    )
+                    homeScreenModel.currentPackageName.value = app.activityInfo.packageName
+                    homeScreenModel.isCurrentAppChallenged.value =
+                        mainAppModel.challengesManager.doesAppHaveChallenge(
+                            app.activityInfo.packageName
                         )
-
-                        resetHome(homeScreenModel)
-                    },
-                    onAppLongClick = {
-                        homeScreenModel.showBottomSheet.value = true
-                        homeScreenModel.currentSelectedApp.value =
-                            AppUtils.getAppNameFromPackageName(
-                                mainAppModel.context,
-                                app.activityInfo.packageName
-                            )
-                        homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                        homeScreenModel.isCurrentAppChallenged.value =
-                            mainAppModel.challengesManager.doesAppHaveChallenge(
-                                app.activityInfo.packageName
-                            )
-                        homeScreenModel.isCurrentAppHidden.value =
-                            mainAppModel.hiddenAppsManager.isAppHidden(
-                                app.activityInfo.packageName
-                            )
-                        homeScreenModel.isCurrentAppFavorite.value =
-                            mainAppModel.favoriteAppsManager.isAppFavorite(
-                                app.activityInfo.packageName
-                            )
-                    },
-                    showScreenTime = getBooleanSetting(
-                        mainAppModel.context,
-                        stringResource(R.string.screen_time_on_app)
-                    ),
-                    modifier = Modifier
+                    homeScreenModel.isCurrentAppHidden.value =
+                        mainAppModel.hiddenAppsManager.isAppHidden(
+                            app.activityInfo.packageName
+                        )
+                    homeScreenModel.isCurrentAppFavorite.value =
+                        mainAppModel.favoriteAppsManager.isAppFavorite(
+                            app.activityInfo.packageName
+                        )
+                }, showScreenTime = getBooleanSetting(
+                    mainAppModel.getContext(), stringResource(R.string.screen_time_on_app)
+                ), modifier = Modifier
                 )
             }
 
             //Private space
-            if (AppUtils.isDefaultLauncher(mainAppModel.context) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                mainAppModel.showPrivateSpaceUnlockedUI.value = isPrivateSpace(mainAppModel.context)
+                mainAppModel.showPrivateSpaceUnlockedUI.value =
+                    isPrivateSpace(mainAppModel.getContext())
                 item {
                     if ((!mainAppModel.showPrivateSpaceUnlockedUI.value && !getBooleanSetting(
-                            mainAppModel.context, stringResource(R.string.SearchHiddenPrivateSpace), false
+                            mainAppModel.getContext(),
+                            stringResource(R.string.SearchHiddenPrivateSpace),
+                            false
                         )) || (!mainAppModel.showPrivateSpaceUnlockedUI.value && homeScreenModel.searchText.value.contains(
                             stringResource(R.string.private_space_search_term)
                         ) && getBooleanSetting(
-                            mainAppModel.context, stringResource(R.string.SearchHiddenPrivateSpace), false
+                            mainAppModel.getContext(),
+                            stringResource(R.string.SearchHiddenPrivateSpace),
+                            false
                         ))
                     ) {
                         Button({
-                            unlockPrivateSpace(mainAppModel.context)
+                            unlockPrivateSpace(mainAppModel.getContext())
                         }) {
                             Text(stringResource(R.string.unlock_private_space))
                         }
@@ -281,7 +277,7 @@ fun AppsList(
             exit = fadeOut()
         ) {
             PrivateSpaceSettings(
-                mainAppModel.context
+                mainAppModel.getContext()
             ) {
                 homeScreenModel.showPrivateSpaceSettings.value = false
             }
@@ -441,11 +437,11 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                         )
                     }
 
-
+                    val scope = rememberCoroutineScope()
                     IconButton(
                         {
-                            lockPrivateSpace(mainAppModel.context)
-                            mainAppModel.coroutineScope.launch {
+                            lockPrivateSpace(mainAppModel.getContext())
+                            scope.launch {
                                 homeScreenModel.appsListScrollState.animateScrollToItem(
                                     0, 50
                                 )
@@ -464,12 +460,12 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                 }
             }
 
-            getPrivateSpaceApps(mainAppModel.context).forEach { app ->
+            getPrivateSpaceApps(mainAppModel.getContext()).forEach { app ->
                 PrivateAppItem(app.displayName, {
 
                 }) {
                     openPrivateSpaceApp(
-                        privateSpaceApp = app, context = mainAppModel.context, Rect()
+                        privateSpaceApp = app, context = mainAppModel.getContext(), Rect()
                     )
                 }
             }

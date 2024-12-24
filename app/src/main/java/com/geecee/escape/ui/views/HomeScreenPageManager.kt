@@ -48,7 +48,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.geecee.escape.MainAppModel
+import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.updateFavorites
@@ -100,7 +100,7 @@ fun HomeScreenPageManager(
         isCurrentAppChallenged = remember { mutableStateOf(false) },
         isCurrentAppHidden = remember { mutableStateOf(false) },
         haptics = LocalHapticFeedback.current,
-        sharedPreferences = mainAppModel.context.getSharedPreferences(
+        sharedPreferences = mainAppModel.getContext().getSharedPreferences(
             R.string.settings_pref_file_name.toString(),
             Context.MODE_PRIVATE
         ),
@@ -113,7 +113,7 @@ fun HomeScreenPageManager(
         sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
             .sortedBy {
                 AppUtils.getAppNameFromPackageName(
-                    mainAppModel.context,
+                    mainAppModel.getContext(),
                     it.activityInfo.packageName
                 )
             },
@@ -134,8 +134,8 @@ fun HomeScreenPageManager(
                     homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onOpenSettings()
                     setBooleanSetting(
-                        mainAppModel.context,
-                        mainAppModel.context.resources.getString(R.string.FirstTimeAppDrawHelp),
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.FirstTimeAppDrawHelp),
                         false
                     )
                 },
@@ -144,7 +144,7 @@ fun HomeScreenPageManager(
 
     ) { page ->
         when (page) {
-            0 -> ScreenTimeDashboard(mainAppModel)
+            0 -> ScreenTimeDashboard()
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,
@@ -170,7 +170,7 @@ fun HomeScreenPageManager(
                         Uri.parse("package:${homeScreenModel.currentPackageName.value}")
                     )
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    mainAppModel.context.startActivity(intent)
+                    mainAppModel.getContext().startActivity(intent)
                 }
             ),
             AppAction(
@@ -202,8 +202,10 @@ fun HomeScreenPageManager(
                 onClick = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                    }.apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-                    mainAppModel.context.startActivity(intent)
+                    mainAppModel.getContext().startActivity(intent)
                 }
             )
         )
