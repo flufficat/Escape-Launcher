@@ -9,6 +9,9 @@ val background = Color(0xFF131313)
 val pitchBlackBackground = Color(0,0,0)
 val transparentHalf = Color(0, 0, 0,150)
 
+val escapeRed = Color(172,43,43)
+val escapeGreen = Color(43,172,61)
+
 
 val primaryLight = Color(0xFF070808)
 val onPrimaryLight = Color(0xFFFFFFFF)
