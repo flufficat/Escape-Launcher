@@ -23,7 +23,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -324,7 +324,7 @@ fun HomeScreenBottomSheet(
             // Header
             Row {
                 Icon(
-                    Icons.Rounded.Settings,
+                    Icons.Default.Settings,
                     contentDescription = "App Options",
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier

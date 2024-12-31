@@ -2,6 +2,7 @@ package com.geecee.escape.ui.views
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,12 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.AppUtils.resetHome
 import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.managers.getTotalUsageForDate
 import com.geecee.escape.utils.managers.getUsageForApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,6 +51,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 // Home Screen Page Inside the Pager
 @Composable
@@ -86,14 +89,47 @@ fun HomeScreen(
 
         //Clock
         item {
-            if (getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.ShowClock), true)) {
+            if (getBooleanSetting(
+                    mainAppModel.getContext(),
+                    stringResource(R.string.ShowClock),
+                    true
+                )
+            ) {
                 Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
+            }
+        }
+
+        //Screen time
+        item {
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val todayUsage = remember { mutableLongStateOf(0L) }
+
+            LaunchedEffect(true) {
+                try {
+                    withContext(Dispatchers.IO) {
+                        val usage = getTotalUsageForDate(today)
+                        withContext(Dispatchers.Main) {
+                            todayUsage.longValue = usage
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
+                }
+            }
+
+            if (getBooleanSetting(
+                    mainAppModel.getContext(),
+                    stringResource(R.string.ScreenTimeOnHome),
+                    false
+                )
+            ) {
+                HomeScreenScreenTime(AppUtils.formatScreenTime(todayUsage.longValue), homeScreenModel.sharedPreferences)
             }
         }
 
         //Apps
         items(homeScreenModel.favoriteApps) { app ->
-            val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+            val appScreenTime = remember { mutableLongStateOf(0L) }
 
             // Fetch screen time in a coroutine
             LaunchedEffect(app) {
@@ -106,7 +142,10 @@ fun HomeScreen(
             }
 
             HomeScreenItem(
-                appName = AppUtils.getAppNameFromPackageName(context = mainAppModel.getContext(), packageName = app),
+                appName = AppUtils.getAppNameFromPackageName(
+                    context = mainAppModel.getContext(),
+                    packageName = app
+                ),
                 screenTime = appScreenTime.longValue,
                 onAppClick = {
                     homeScreenModel.currentPackageName.value = app
@@ -140,7 +179,12 @@ fun HomeScreen(
                         mainAppModel.favoriteAppsManager.isAppFavorite(
                             app
                         )
-                    if(getBooleanSetting(mainAppModel.getContext(), mainAppModel.getContext().resources.getString(R.string.Haptic), true)){
+                    if (getBooleanSetting(
+                            mainAppModel.getContext(),
+                            mainAppModel.getContext().resources.getString(R.string.Haptic),
+                            true
+                        )
+                    ) {
                         homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
                 },
@@ -171,7 +215,6 @@ fun HomeScreen(
             Spacer(Modifier.height(90.dp))
         }
     }
-
 }
 
 // Home Screen Clock
@@ -242,8 +285,31 @@ fun Clock(
     }
 }
 
+// Screen time on home screen
 @Composable
-fun FirstTimeHelp(){
+fun HomeScreenScreenTime(
+    screenTime: String,
+    sharedPreferencesSettings: SharedPreferences
+) {
+    Text(
+        text = screenTime,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        style = MaterialTheme.typography.displaySmall,
+        fontWeight = FontWeight.SemiBold,
+        modifier = if (sharedPreferencesSettings.getString(
+                stringResource(R.string.HomeAlignment),
+                "Center"
+            ) == "Left"
+        ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+                stringResource(R.string.HomeAlignment),
+                "Center"
+            ) == "Right"
+        ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+    )
+}
+
+@Composable
+fun FirstTimeHelp() {
     Box(
         Modifier
             .clip(
@@ -254,7 +320,11 @@ fun FirstTimeHelp(){
             Modifier
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Row(Modifier.padding(25.dp, 25.dp, 25.dp, 15.dp).align(Alignment.CenterHorizontally)) {
+            Row(
+                Modifier
+                    .padding(25.dp, 25.dp, 25.dp, 15.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowForward,
                     "",
@@ -270,7 +340,11 @@ fun FirstTimeHelp(){
                 )
             }
 
-            Row(Modifier.padding(25.dp, 0.dp, 25.dp, 25.dp).align(Alignment.CenterHorizontally)) {
+            Row(
+                Modifier
+                    .padding(25.dp, 0.dp, 25.dp, 25.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
                 Icon(
                     painterResource(R.drawable.radio_button_unchecked),
                     "",

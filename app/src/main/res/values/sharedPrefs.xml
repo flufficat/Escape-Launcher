@@ -10,6 +10,7 @@
     <string name="ShowClock" translatable="false">ShowClock</string>
     <string name="BigClock" translatable="false">BigClock</string>
     <string name="ScreenTimeOnApp" translatable="false">screenTimeOnApp</string>
+    <string name="ScreenTimeOnHome" translatable="false">screenTimeOnHome</string>
     <string name="Font" translatable="false">font</string>
     <string name="FirstTime" translatable="false">FirstTime</string>
     <string name="FirstTimeAppDrawHelp" translatable="false">FirstTimeAppDrawHelp</string>

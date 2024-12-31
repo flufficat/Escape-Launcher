@@ -29,9 +29,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -444,7 +444,7 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                         )
                     ) {
                         Icon(
-                            Icons.Outlined.Settings, stringResource(R.string.private_space_settings)
+                            Icons.Default.Settings, stringResource(R.string.private_space_settings)
                         )
                     }
 
@@ -465,7 +465,7 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                         )
                     ) {
                         Icon(
-                            Icons.Outlined.Lock, stringResource(R.string.lock_private_space)
+                            Icons.Default.Lock, stringResource(R.string.lock_private_space)
                         )
                     }
                 }

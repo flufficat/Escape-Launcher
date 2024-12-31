@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
@@ -192,7 +192,7 @@ fun OpenChallenge(haptics: HapticFeedback,openApp: () -> Unit, goBack: () -> Uni
                 )
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Rounded.ArrowBack,
+                        Icons.AutoMirrored.Default.ArrowBack,
                         "Go back",
                         tint = MaterialTheme.colorScheme.background
                     )

@@ -30,8 +30,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -67,6 +67,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escape.MainAppViewModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.darkScheme
@@ -98,7 +99,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
             .height(70.dp) // Set a fixed height for the header
     ) {
         Icon(
-            Icons.AutoMirrored.Rounded.ArrowBack,
+            Icons.AutoMirrored.Default.ArrowBack,
             contentDescription = "Go Back",
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
@@ -158,7 +159,7 @@ fun SettingsNavigationItem(
         )
         if (!diagonalArrow!!) {
             Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                Icons.AutoMirrored.Default.KeyboardArrowRight,
                 "",
                 Modifier
                     .align(Alignment.CenterEnd)
@@ -168,7 +169,7 @@ fun SettingsNavigationItem(
             )
         } else {
             Icon(
-                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                Icons.AutoMirrored.Default.KeyboardArrowRight,
                 "",
                 Modifier
                     .align(Alignment.CenterEnd)
@@ -202,7 +203,8 @@ fun Settings(
             composable("mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                MainSettingsPage({ goHome() },
+                MainSettingsPage(
+                    { goHome() },
                     { showPolicyDialog.value = true },
                     navController,
                     mainAppModel
@@ -242,6 +244,11 @@ fun Settings(
                 exitTransition = { fadeOut(tween(300)) }) {
                 ThemeOptions(mainAppModel.getContext(), activity) { navController.popBackStack() }
             }
+            composable("personalization",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                PersonalizationOptions(mainAppModel, navController) { navController.popBackStack() }
+            }
         }
     }
 
@@ -267,6 +274,19 @@ fun MainSettingsPage(
             .verticalScroll(rememberScrollState())
     ) {
         SettingsHeader(goHome, stringResource(R.string.settings))
+
+        SettingsNavigationItem(label = stringResource(id = R.string.personalization),
+            false,
+            onClick = { navController.navigate("personalization") })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.manage_hidden_apps),
+            false,
+            onClick = { navController.navigate("hiddenApps") })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.manage_open_challenges),
+            false,
+            onClick = { navController.navigate("openChallenges") })
+
         SettingsSwitch(label = stringResource(id = R.string.Analytics), checked = getBooleanSetting(
             mainAppModel.getContext(), stringResource(R.string.Analytics), true
         ), onCheckedChange = {
@@ -276,91 +296,17 @@ fun MainSettingsPage(
                 mainAppModel.getContext().resources.getString(R.string.Analytics)
             )
         })
-        SettingsSwitch(label = stringResource(id = R.string.search_box),
-            checked = getBooleanSetting(
-                mainAppModel.getContext(), stringResource(R.string.ShowSearchBox), true
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.ShowSearchBox)
-                )
-            })
-        SettingsSwitch(label = stringResource(id = R.string.auto_open), checked = getBooleanSetting(
-            mainAppModel.getContext(), stringResource(R.string.SearchAutoOpen)
-        ), onCheckedChange = {
-            toggleBooleanSetting(
-                mainAppModel.getContext(),
-                it,
-                mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
-            )
-        })
-        SettingsSwitch(label = stringResource(id = R.string.show_clock),
-            checked = getBooleanSetting(
-                mainAppModel.getContext(), stringResource(R.string.ShowClock), true
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.ShowClock)
-                )
-            })
-        SettingsSwitch(label = stringResource(id = R.string.big_clock), checked = getBooleanSetting(
-            mainAppModel.getContext(), stringResource(R.string.BigClock)
-        ), onCheckedChange = {
-            toggleBooleanSetting(
-                mainAppModel.getContext(),
-                it,
-                mainAppModel.getContext().resources.getString(R.string.BigClock)
-            )
-        })
-        SettingsSwitch(label = stringResource(id = R.string.haptic_feedback),
-            checked = getBooleanSetting(
-                mainAppModel.getContext(), stringResource(R.string.Haptic), true
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.Haptic)
-                )
-            })
-        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_app),
-            checked = getBooleanSetting(
-                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
-            ),
-            onCheckedChange = {
-                toggleBooleanSetting(
-                    mainAppModel.getContext(),
-                    it,
-                    mainAppModel.getContext().resources.getString(R.string.ScreenTimeOnApp)
-                )
-            })
+
         SettingsNavigationItem(label = stringResource(id = R.string.read_privacy_policy),
             false,
             onClick = { showPolicyDialog() })
-        SettingsNavigationItem(label = stringResource(id = R.string.theme),
-            false,
-            onClick = { navController.navigate("theme") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.alignments),
-            false,
-            onClick = { navController.navigate("alignmentOptions") })
-        SettingsNavigationItem(label = stringResource(id = R.string.manage_hidden_apps),
-            false,
-            onClick = { navController.navigate("hiddenApps") })
-        SettingsNavigationItem(label = stringResource(id = R.string.manage_open_challenges),
-            false,
-            onClick = { navController.navigate("openChallenges") })
-        SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
-            false,
-            onClick = { navController.navigate("chooseFont") })
         SettingsNavigationItem(label = stringResource(id = R.string.make_default_launcher),
             true,
             onClick = { changeLauncher(mainAppModel.getContext()) })
+
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
         Text(
             stringResource(id = R.string.escape_launcher) + " " + stringResource(id = R.string.app_version),
             Modifier
@@ -372,7 +318,119 @@ fun MainSettingsPage(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
+
         Spacer(Modifier.height(25.dp))
+    }
+}
+
+@Composable
+fun PersonalizationOptions(
+    mainAppModel: MainAppViewModel,
+    navController: NavController,
+    goBack: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        SettingsHeader(goBack, stringResource(R.string.personalization))
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        SettingsSwitch(label = stringResource(id = R.string.search_box),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.ShowSearchBox), true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.ShowSearchBox)
+                )
+            })
+
+        SettingsSwitch(label = stringResource(id = R.string.auto_open), checked = getBooleanSetting(
+            mainAppModel.getContext(), stringResource(R.string.SearchAutoOpen)
+        ), onCheckedChange = {
+            toggleBooleanSetting(
+                mainAppModel.getContext(),
+                it,
+                mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
+            )
+        })
+
+        SettingsSwitch(label = stringResource(id = R.string.show_clock),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.ShowClock), true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.ShowClock)
+                )
+            })
+
+        SettingsSwitch(label = stringResource(id = R.string.big_clock), checked = getBooleanSetting(
+            mainAppModel.getContext(), stringResource(R.string.BigClock)
+        ), onCheckedChange = {
+            toggleBooleanSetting(
+                mainAppModel.getContext(),
+                it,
+                mainAppModel.getContext().resources.getString(R.string.BigClock)
+            )
+        })
+
+        SettingsSwitch(label = stringResource(id = R.string.haptic_feedback),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.Haptic), true
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.Haptic)
+                )
+            })
+
+        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_app),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.ScreenTimeOnApp)
+                )
+            })
+
+        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_home_screen),
+            checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome)
+            ),
+            onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.ScreenTimeOnHome)
+                )
+            })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.theme),
+            false,
+            onClick = { navController.navigate("theme") })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.alignments),
+            false,
+            onClick = { navController.navigate("alignmentOptions") })
+
+        SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
+            false,
+            onClick = { navController.navigate("chooseFont") })
     }
 }
 

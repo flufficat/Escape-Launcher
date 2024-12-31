@@ -25,7 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -135,7 +135,7 @@ fun OnboardingPage1(navController: NavController) {
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Default.ArrowForward,
                     contentDescription = "Continue"
                 )
             }
@@ -222,7 +222,7 @@ fun OnboardingPage2(navController: NavController) {
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Default.ArrowForward,
                     contentDescription = "Continue"
                 )
             }
@@ -357,7 +357,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Default.ArrowForward,
                     contentDescription = "Continue"
                 )
             }
@@ -429,7 +429,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
                     overflow = TextOverflow.Ellipsis // Gracefully handle long text
                 )
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Default.ArrowForward,
                     contentDescription = "Continue"
                 )
             }
