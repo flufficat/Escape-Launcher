@@ -1,6 +1,7 @@
 package com.geecee.escape
 
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -69,6 +70,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 @Suppress("DEPRECATION")
 class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
+    private lateinit var screenOffReceiver: ScreenOffReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Setup analytics
@@ -88,6 +90,24 @@ class MainHomeScreen : ComponentActivity() {
         configureFullScreenMode()
         ScreenTimeManager.initialize(this)
         setContent { SetUpContent() }
+
+        // Register screen off receiver
+        screenOffReceiver = ScreenOffReceiver {
+            // Screen turned off
+            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
+            if (viewModel.isAppOpened) {
+                if (viewModel.currentPackageName != null) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        ScreenTimeManager.onAppClosed(viewModel.currentPackageName!!)
+                        viewModel.currentPackageName = null
+                    }
+                }
+                viewModel.isAppOpened = false
+            }
+        }
+        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+        registerReceiver(screenOffReceiver, filter)
+
 
         //Private space receiver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
@@ -128,6 +148,9 @@ class MainHomeScreen : ComponentActivity() {
         super.onDestroy()
         if (::privateSpaceReceiver.isInitialized) {
             unregisterReceiver(privateSpaceReceiver)
+        }
+        if (::screenOffReceiver.isInitialized) {
+            unregisterReceiver(screenOffReceiver)
         }
     }
 
@@ -236,6 +259,15 @@ class MainHomeScreen : ComponentActivity() {
                     Onboarding(navController, mainAppViewModel)
                 }
             }
+        }
+    }
+}
+
+class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+            // When the screen is off, stop screen time tracking
+            onScreenOff()
         }
     }
 }
