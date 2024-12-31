@@ -2,9 +2,14 @@ package com.geecee.escape.ui.views
 
 import android.app.Activity
 import android.app.ActivityOptions
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,6 +37,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -48,6 +55,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -83,9 +92,21 @@ import com.geecee.escape.utils.getAppsAlignment
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.getHomeAlignment
 import com.geecee.escape.utils.getHomeVAlignment
+import com.geecee.escape.utils.getSavedWidgetId
+import com.geecee.escape.utils.getWidgetHeight
+import com.geecee.escape.utils.getWidgetOffset
+import com.geecee.escape.utils.getWidgetWidth
+import com.geecee.escape.utils.isWidgetConfigurable
+import com.geecee.escape.utils.launchWidgetConfiguration
+import com.geecee.escape.utils.openWidgetPicker
+import com.geecee.escape.utils.removeWidget
 import com.geecee.escape.utils.resetActivity
+import com.geecee.escape.utils.saveWidgetId
 import com.geecee.escape.utils.setBooleanSetting
 import com.geecee.escape.utils.setStringSetting
+import com.geecee.escape.utils.setWidgetHeight
+import com.geecee.escape.utils.setWidgetOffset
+import com.geecee.escape.utils.setWidgetWidth
 import com.geecee.escape.utils.toggleBooleanSetting
 import com.geecee.escape.MainAppViewModel as MainAppModel
 
@@ -248,6 +269,11 @@ fun Settings(
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 PersonalizationOptions(mainAppModel, navController) { navController.popBackStack() }
+            }
+            composable("widget",
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { fadeOut(tween(300)) }) {
+                WidgetOptions(mainAppModel.getContext()) { navController.popBackStack() }
             }
         }
     }
@@ -420,6 +446,10 @@ fun PersonalizationOptions(
                 )
             })
 
+        SettingsNavigationItem(label = stringResource(id = R.string.widget),
+            false,
+            onClick = { navController.navigate("widget") })
+
         SettingsNavigationItem(label = stringResource(id = R.string.theme),
             false,
             onClick = { navController.navigate("theme") })
@@ -431,6 +461,200 @@ fun PersonalizationOptions(
         SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
             false,
             onClick = { navController.navigate("chooseFont") })
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun WidgetOptions(context: Context, goBack: () -> Unit) {
+    var needsConfiguration by remember { mutableStateOf(false) }
+    val appWidgetManager = AppWidgetManager.getInstance(context)
+    var appWidgetId by remember { mutableIntStateOf(getSavedWidgetId(context)) }
+    var appWidgetHostView by remember { mutableStateOf<AppWidgetHostView?>(null) }
+    val appWidgetHost = remember { AppWidgetHost(context, 1) }
+    val widgetPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            appWidgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+                ?: return@rememberLauncherForActivityResult
+            saveWidgetId(context, appWidgetId)
+            val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+            needsConfiguration = isWidgetConfigurable(context, appWidgetId)
+
+            if (needsConfiguration) {
+                launchWidgetConfiguration(context, appWidgetId)
+            } else {
+                appWidgetHostView =
+                    appWidgetHost.createView(context, appWidgetId, widgetInfo).apply {
+                        setAppWidget(appWidgetId, widgetInfo)
+                    }
+            }
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        SettingsHeader(goBack, stringResource(R.string.widget))
+
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+
+        Button(modifier = Modifier.fillMaxWidth(),onClick = { removeWidget(context) }) {
+            Text(stringResource(R.string.remove_widget))
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        Button(modifier = Modifier.fillMaxWidth(),onClick = { openWidgetPicker(appWidgetHost, widgetPickerLauncher) }) {
+            Text(stringResource(R.string.select_widget))
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.offset),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetOffset(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetOffset(context, sliderPosition)
+                    },
+                    valueRange = -20f..20f,
+                    steps = 40,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Default.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 0F
+                        setWidgetOffset(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+        }
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.height),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetHeight(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetHeight(context, sliderPosition)
+                    },
+                    valueRange = 100f..500f,
+                    steps = 10,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Default.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 125F
+                        setWidgetHeight(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+        }
+
+        Box(
+            Modifier.fillMaxWidth()
+        )
+        {
+            var sliderPosition by remember { mutableFloatStateOf(0f) }
+            Row {
+                Text(
+                    stringResource(id = R.string.width),
+                    Modifier.padding(0.dp, 15.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+
+                sliderPosition = getWidgetWidth(context)
+
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = {
+                        sliderPosition = it
+                        setWidgetWidth(context, sliderPosition)
+                    },
+                    valueRange = 150f..1000f,
+                    steps = 10,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85F)
+                        .align(Alignment.CenterVertically)
+                        .padding(20.dp, 0.dp, 20.dp, 0.dp)
+                )
+            }
+            Icon(
+                Icons.Default.Refresh,
+                "",
+                Modifier
+                    .size(48.dp)
+                    .fillMaxSize()
+                    .align(Alignment.CenterEnd)
+                    .combinedClickable {
+                        sliderPosition = 150F
+                        setWidgetWidth(context, sliderPosition)
+                    }
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+
+        }
     }
 }
 
@@ -463,7 +687,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             )
 
             var selectedIndex by remember {
-                androidx.compose.runtime.mutableIntStateOf(
+                mutableIntStateOf(
                     getHomeAlignment(context)
                 )
             }
@@ -499,7 +723,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 .padding(0.dp, 15.dp)
         ) {
             var selectedIndex by remember {
-                androidx.compose.runtime.mutableIntStateOf(
+                mutableIntStateOf(
                     getHomeVAlignment(context)
                 )
             }
@@ -545,7 +769,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             )
 
             var selectedIndex by remember {
-                androidx.compose.runtime.mutableIntStateOf(
+                mutableIntStateOf(
                     getAppsAlignment(context)
                 )
             }

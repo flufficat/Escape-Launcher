@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +39,18 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.geecee.escape.R
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.getCurrentTime
 import com.geecee.escape.utils.AppUtils.resetHome
+import com.geecee.escape.utils.WidgetsScreen
 import com.geecee.escape.utils.getBooleanSetting
+import com.geecee.escape.utils.getStringSetting
+import com.geecee.escape.utils.getWidgetHeight
+import com.geecee.escape.utils.getWidgetOffset
+import com.geecee.escape.utils.getWidgetWidth
 import com.geecee.escape.utils.managers.getTotalUsageForDate
 import com.geecee.escape.utils.managers.getUsageForApp
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +94,6 @@ fun HomeScreen(
             Spacer(Modifier.height(90.dp))
         }
 
-
         //Clock
         item {
             if (getBooleanSetting(
@@ -125,6 +132,32 @@ fun HomeScreen(
             ) {
                 HomeScreenScreenTime(AppUtils.formatScreenTime(todayUsage.longValue), homeScreenModel.sharedPreferences)
             }
+        }
+
+        //Widgets
+        item {
+            var widgetOffset by remember { mutableIntStateOf(0) }
+            widgetOffset =
+                if (getStringSetting(mainAppModel.getContext(),"HomeAlignment", "Center") == "Left") {
+                    -8
+                } else if (getStringSetting(mainAppModel.getContext(),
+                        "HomeAlignment",
+                        "Center"
+                    ) == "Right"
+                ) {
+                    8
+                } else {
+                    0
+                }
+            widgetOffset += getWidgetOffset(mainAppModel.getContext()).toInt()
+
+            WidgetsScreen(
+                context = mainAppModel.getContext(),
+                modifier = Modifier
+                    .offset { IntOffset((widgetOffset.dp).toPx().toInt(), 0) }
+                    .size((getWidgetWidth(mainAppModel.getContext())).dp, (getWidgetHeight(mainAppModel.getContext())).dp)
+                    .padding(0.dp, 7.dp)
+            )
         }
 
         //Apps
