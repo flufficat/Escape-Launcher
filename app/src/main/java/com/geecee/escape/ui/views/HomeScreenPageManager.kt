@@ -152,7 +152,7 @@ fun HomeScreenPageManager(
 
     ) { page ->
         when (page) {
-            0 -> ScreenTimeDashboard()
+            0 -> ScreenTimeDashboard(mainAppModel.getContext())
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,

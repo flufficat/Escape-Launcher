@@ -168,3 +168,8 @@ suspend fun getUsageForApp(packageName: String, date: String): Long {
     val dao = ScreenTimeManager.database.appUsageDao()
     return dao.getAppUsage(packageName, date)?.totalTime ?: 0L
 }
+
+suspend fun getScreenTimeListSorted(date: String): List<AppUsageEntity> {
+    val dao = ScreenTimeManager.database.appUsageDao()
+    return dao.getAllUsageForDate(date).sortedByDescending { it.totalTime }
+}

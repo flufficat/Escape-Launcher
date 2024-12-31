@@ -1,4 +1,5 @@
 <resources>
+    <!-- Privacy and Analytics stuff -->
     <string name="analytics_and_data_collection">Analytics and Data collection</string>
     <string name="anonymous_data">We use anonymous data to improve your experience with the Escape launcher. Make sure to read the privacy policy before selecting allow.</string>
     <string name="allow">Allow</string>
@@ -59,7 +60,7 @@
     <string name="hide_private_space_in_search">Hidden private space</string>
     <string name="haptic_feedback">Haptic feedback</string>
 
-    <!-- Challenge apps strings -->
+    <!-- Apps challenge strings -->
     <string name="open_challenges">Open Challenges</string>
 
     <!-- First time strings -->
@@ -78,4 +79,8 @@
     <string name="stop_going_back">This will stop you going back to your default home screen</string>
     <string name="swipe_for_all_apps">Swipe for all apps</string>
     <string name="hold_for_settings">Hold for settings</string>
+
+    <!-- Screen time dashboard -->
+    <string name="of_your_day_spent_on_your_phone">Of your day spent on your phone</string>
+    <string name="higher_we_rec">Higher than the we recommend</string>
 </resources>

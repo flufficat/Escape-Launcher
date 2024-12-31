@@ -1,5 +1,7 @@
 package com.geecee.escape.ui.views
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,20 +25,102 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.geecee.escape.R
 import com.geecee.escape.ui.theme.EscapeTheme
 import com.geecee.escape.ui.theme.escapeGreen
 import com.geecee.escape.ui.theme.escapeRed
+import com.geecee.escape.utils.AppUtils
+import com.geecee.escape.utils.managers.AppUsageEntity
+import com.geecee.escape.utils.managers.getScreenTimeListSorted
+import com.geecee.escape.utils.managers.getTotalUsageForDate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+fun calculateOveragePercentage(screenTime: Long): Int {
+    val recommendedTime: Long = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
+
+    // If screen time is less than or equal to the recommended time, return 0%
+    if (screenTime <= recommendedTime) {
+        return 0
+    }
+
+    // Calculate the overage percentage
+    val overage = screenTime - recommendedTime
+    val percentage = (overage.toFloat() / recommendedTime) * 100
+
+    return percentage.toInt()
+}
 
 @Composable
-fun ScreenTimeDashboard() {
+fun ScreenTimeDashboard(context: Context) {
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    val todayUsage = remember { mutableLongStateOf(0L) }
+    val yesterdayUsage = remember { mutableLongStateOf(0L) }
+    val appUsageToday = remember { mutableStateListOf<AppUsageEntity>() }
+    val appUsageYesterday = remember { mutableStateListOf<AppUsageEntity>() }
+
+    LaunchedEffect(true) {
+        try {
+            withContext(Dispatchers.IO) {
+                val usage = getTotalUsageForDate(today)
+                withContext(Dispatchers.Main) {
+                    todayUsage.longValue = usage
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
+        }
+
+        try {
+            withContext(Dispatchers.IO) {
+                val usageList = getScreenTimeListSorted(today)
+                withContext(Dispatchers.Main) {
+                    appUsageToday.clear()
+                    appUsageToday.addAll(usageList)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
+        }
+
+        try {
+            withContext(Dispatchers.IO) {
+                val usageList = getScreenTimeListSorted(AppUtils.getYesterday())
+                withContext(Dispatchers.Main) {
+                    appUsageYesterday.clear()
+                    appUsageYesterday.addAll(usageList)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
+        }
+
+        try {
+            withContext(Dispatchers.IO) {
+                yesterdayUsage.longValue = getTotalUsageForDate(AppUtils.getYesterday())
+            }
+        } catch (e: Exception) {
+            Log.e("ScreenTime", "Error fetching yesterday's usages: ${e.message}")
+        }
+    }
+
     Column(
         Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -47,7 +131,9 @@ fun ScreenTimeDashboard() {
         Spacer(Modifier.height(120.dp))
 
         ScreenTime(
-            "3h 25m", false, Modifier
+            AppUtils.formatScreenTime(todayUsage.longValue),
+            todayUsage.longValue > yesterdayUsage.longValue,
+            Modifier
         )
 
         Spacer(Modifier.height(15.dp))
@@ -58,14 +144,17 @@ fun ScreenTimeDashboard() {
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
+            val totalDayHours = 16
+            val totalMs = totalDayHours * 60L * 60 * 1000
             DaySpent(
-                12,
+                ((todayUsage.longValue.toDouble() / totalMs) * 100).toInt(),
                 Modifier
                     .weight(1f)
                     .aspectRatio(1f)
             )
-            GovRecommend(
-                5,
+
+            HigherRec(
+                calculateOveragePercentage(todayUsage.longValue),
                 Modifier
                     .weight(1f)
                     .aspectRatio(1f)
@@ -75,11 +164,17 @@ fun ScreenTimeDashboard() {
         Spacer(Modifier.height(15.dp))
 
         AppUsages(Modifier) {
-            AppUsage("Instagram", true, "1h 34m", Modifier)
-            AppUsage("Minecraft", false, "1h 12m", Modifier)
-            AppUsage("X, the everything app", true, "1h 4m", Modifier)
-            AppUsage("BlueSky", false, "48m", Modifier)
-            AppUsage("Youtube", false, "34m", Modifier)
+            appUsageToday.forEach { appScreenTime ->
+                val yesterdayAppUsage = appUsageYesterday.find { it.packageName == appScreenTime.packageName }
+                val usageIncreased = appScreenTime.totalTime > (yesterdayAppUsage?.totalTime ?: 0L)
+
+                AppUsage(
+                    AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName),
+                    usageIncreased,
+                    if (appScreenTime.totalTime > 60000) AppUtils.formatScreenTime(appScreenTime.totalTime) else "<1m",
+                    Modifier
+                )
+            }
         }
 
         Spacer(Modifier.height(15.dp))
@@ -121,7 +216,7 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
 }
 
 @Composable
-fun GovRecommend(percent: Int, modifier: Modifier) {
+fun HigherRec(percent: Int, modifier: Modifier) {
     Box(
         modifier
             .clip(MaterialTheme.shapes.extraLarge)
@@ -144,7 +239,7 @@ fun GovRecommend(percent: Int, modifier: Modifier) {
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Higher than the UK recommends",
+                text = stringResource(R.string.higher_we_rec),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 textAlign = TextAlign.Center
@@ -177,7 +272,7 @@ fun DaySpent(percent: Int, modifier: Modifier) {
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Of your day spent on your phone",
+                text = stringResource(R.string.of_your_day_spent_on_your_phone),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 textAlign = TextAlign.Center
@@ -191,7 +286,8 @@ fun AppUsage(appName: String, increased: Boolean, time: String, modifier: Modifi
     Box(
         modifier
             .fillMaxWidth()
-            .padding(0.dp, 5.dp)) {
+            .padding(0.dp, 5.dp)
+    ) {
         Text(
             text = if (appName.length > 12) appName.take(12) + "..." else appName,
             modifier = Modifier.align(Alignment.CenterStart),
@@ -273,7 +369,7 @@ fun ScreenTimePrev() {
 @Preview
 fun ScreenTimeDashPreview() {
     EscapeTheme {
-        ScreenTimeDashboard()
+        ScreenTimeDashboard(LocalContext.current)
     }
 }
 
@@ -281,7 +377,7 @@ fun ScreenTimeDashPreview() {
 @Preview(device = "spec:parent=pixel_5,orientation=landscape")
 fun ScreenTimeDashPreviewLandscape() {
     EscapeTheme {
-        ScreenTimeDashboard()
+        ScreenTimeDashboard(LocalContext.current)
     }
 }
 
@@ -313,9 +409,9 @@ fun DavSpentBelowTenPrev() {
 
 @Composable
 @Preview
-fun GovRecommendPrev() {
+fun RecommendPrev() {
     EscapeTheme {
-        GovRecommend(
+        HigherRec(
             20,
             Modifier
                 .size(200.dp)
@@ -326,9 +422,9 @@ fun GovRecommendPrev() {
 
 @Composable
 @Preview
-fun GovRecommendBelowTenPrev() {
+fun RecommendBelowTenPrev() {
     EscapeTheme {
-        GovRecommend(
+        HigherRec(
             0,
             Modifier
                 .size(200.dp)

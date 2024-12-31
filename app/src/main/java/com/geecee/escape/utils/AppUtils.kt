@@ -18,8 +18,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
+import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 
@@ -152,5 +155,12 @@ object AppUtils {
     ) {
         favoriteApps.clear()
         favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
+    }
+
+    fun getYesterday():String{
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val yesterdayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        return yesterdayDate
     }
 }
