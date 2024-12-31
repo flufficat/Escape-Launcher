@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
@@ -64,8 +65,7 @@ import com.geecee.escape.MainAppViewModel as MainAppModel
 // Home Screen Page Inside the Pager
 @Composable
 fun HomeScreen(
-    mainAppModel: MainAppModel,
-    homeScreenModel: HomeScreenModel
+    mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
     val noApps = remember { mutableStateOf(true) }
@@ -94,70 +94,79 @@ fun HomeScreen(
             Spacer(Modifier.height(90.dp))
         }
 
-        //Clock
+        //Clock and Screen time
         item {
-            if (getBooleanSetting(
-                    mainAppModel.getContext(),
-                    stringResource(R.string.ShowClock),
-                    true
-                )
-            ) {
-                Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
-            }
-        }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                //Clock
+                if (getBooleanSetting(
+                        mainAppModel.getContext(), stringResource(R.string.ShowClock), true
+                    )
+                ) {
+                    Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
+                }
 
-        //Screen time
-        item {
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val todayUsage = remember { mutableLongStateOf(0L) }
+                Spacer(Modifier.width(10.dp))
 
-            LaunchedEffect(true) {
-                try {
-                    withContext(Dispatchers.IO) {
-                        val usage = getTotalUsageForDate(today)
-                        withContext(Dispatchers.Main) {
-                            todayUsage.longValue = usage
+                //Screen time
+                if (getBooleanSetting(
+                        mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
+                    )
+                ) {
+                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    val todayUsage = remember { mutableLongStateOf(0L) }
+
+                    LaunchedEffect(true) {
+                        try {
+                            withContext(Dispatchers.IO) {
+                                val usage = getTotalUsageForDate(today)
+                                withContext(Dispatchers.Main) {
+                                    todayUsage.longValue = usage
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
                         }
                     }
-                } catch (e: Exception) {
-                    Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
-                }
-            }
 
-            if (getBooleanSetting(
-                    mainAppModel.getContext(),
-                    stringResource(R.string.ScreenTimeOnHome),
-                    false
-                )
-            ) {
-                HomeScreenScreenTime(AppUtils.formatScreenTime(todayUsage.longValue), homeScreenModel.sharedPreferences)
+                    HomeScreenScreenTime(
+                        AppUtils.formatScreenTime(todayUsage.longValue),
+                        homeScreenModel.sharedPreferences
+                    )
+                }
             }
         }
 
         //Widgets
         item {
             var widgetOffset by remember { mutableIntStateOf(0) }
-            widgetOffset =
-                if (getStringSetting(mainAppModel.getContext(),"HomeAlignment", "Center") == "Left") {
-                    -8
-                } else if (getStringSetting(mainAppModel.getContext(),
-                        "HomeAlignment",
-                        "Center"
-                    ) == "Right"
-                ) {
-                    8
-                } else {
-                    0
-                }
+            widgetOffset = if (getStringSetting(
+                    mainAppModel.getContext(), "HomeAlignment", "Center"
+                ) == "Left"
+            ) {
+                -8
+            } else if (getStringSetting(
+                    mainAppModel.getContext(), "HomeAlignment", "Center"
+                ) == "Right"
+            ) {
+                8
+            } else {
+                0
+            }
             widgetOffset += getWidgetOffset(mainAppModel.getContext()).toInt()
 
-            WidgetsScreen(
-                context = mainAppModel.getContext(),
-                modifier = Modifier
-                    .offset { IntOffset((widgetOffset.dp).toPx().toInt(), 0) }
-                    .size((getWidgetWidth(mainAppModel.getContext())).dp, (getWidgetHeight(mainAppModel.getContext())).dp)
-                    .padding(0.dp, 7.dp)
-            )
+            WidgetsScreen(context = mainAppModel.getContext(), modifier = Modifier
+                .offset {
+                    IntOffset(
+                        (widgetOffset.dp)
+                            .toPx()
+                            .toInt(), 0
+                    )
+                }
+                .size(
+                    (getWidgetWidth(mainAppModel.getContext())).dp,
+                    (getWidgetHeight(mainAppModel.getContext())).dp
+                )
+                .padding(0.dp, 7.dp))
         }
 
         //Apps
@@ -168,64 +177,50 @@ fun HomeScreen(
             LaunchedEffect(app) {
                 withContext(Dispatchers.IO) {
                     appScreenTime.longValue = getUsageForApp(
-                        app,
-                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        app, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     )
                 }
             }
 
-            HomeScreenItem(
-                appName = AppUtils.getAppNameFromPackageName(
-                    context = mainAppModel.getContext(),
-                    packageName = app
-                ),
-                screenTime = appScreenTime.longValue,
-                onAppClick = {
-                    homeScreenModel.currentPackageName.value = app
+            HomeScreenItem(appName = AppUtils.getAppNameFromPackageName(
+                context = mainAppModel.getContext(), packageName = app
+            ), screenTime = appScreenTime.longValue, onAppClick = {
+                homeScreenModel.currentPackageName.value = app
 
-                    AppUtils.openApp(
-                        app,
-                        false,
-                        homeScreenModel.showOpenChallenge,
-                        mainAppModel
+                AppUtils.openApp(
+                    app, false, homeScreenModel.showOpenChallenge, mainAppModel
+                )
+
+                resetHome(homeScreenModel)
+            }, onAppLongClick = {
+                homeScreenModel.showBottomSheet.value = true
+                homeScreenModel.currentSelectedApp.value = AppUtils.getAppNameFromPackageName(
+                    mainAppModel.getContext(), app
+                )
+                homeScreenModel.currentPackageName.value = app
+                homeScreenModel.isCurrentAppChallenged.value =
+                    mainAppModel.challengesManager.doesAppHaveChallenge(
+                        app
                     )
-
-                    resetHome(homeScreenModel)
-                },
-                onAppLongClick = {
-                    homeScreenModel.showBottomSheet.value = true
-                    homeScreenModel.currentSelectedApp.value =
-                        AppUtils.getAppNameFromPackageName(
-                            mainAppModel.getContext(),
-                            app
-                        )
-                    homeScreenModel.currentPackageName.value = app
-                    homeScreenModel.isCurrentAppChallenged.value =
-                        mainAppModel.challengesManager.doesAppHaveChallenge(
-                            app
-                        )
-                    homeScreenModel.isCurrentAppHidden.value =
-                        mainAppModel.hiddenAppsManager.isAppHidden(
-                            app
-                        )
-                    homeScreenModel.isCurrentAppFavorite.value =
-                        mainAppModel.favoriteAppsManager.isAppFavorite(
-                            app
-                        )
-                    if (getBooleanSetting(
-                            mainAppModel.getContext(),
-                            mainAppModel.getContext().resources.getString(R.string.Haptic),
-                            true
-                        )
-                    ) {
-                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                },
-                showScreenTime = getBooleanSetting(
-                    mainAppModel.getContext(),
-                    stringResource(R.string.ScreenTimeOnApp)
-                ),
-                modifier = Modifier
+                homeScreenModel.isCurrentAppHidden.value =
+                    mainAppModel.hiddenAppsManager.isAppHidden(
+                        app
+                    )
+                homeScreenModel.isCurrentAppFavorite.value =
+                    mainAppModel.favoriteAppsManager.isAppFavorite(
+                        app
+                    )
+                if (getBooleanSetting(
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.Haptic),
+                        true
+                    )
+                ) {
+                    homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            }, showScreenTime = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
+            ), modifier = Modifier
             )
         }
 
@@ -253,9 +248,7 @@ fun HomeScreen(
 // Home Screen Clock
 @Composable
 fun Clock(
-    sharedPreferencesSettings: SharedPreferences,
-    context: Context,
-    noApps: MutableState<Boolean>
+    sharedPreferencesSettings: SharedPreferences, context: Context, noApps: MutableState<Boolean>
 ) {
     var time by remember { mutableStateOf(getCurrentTime()) }
     val parts = time.split(":")
@@ -270,9 +263,7 @@ fun Clock(
     }
 
     if (getBooleanSetting(
-            context = context,
-            stringResource(R.string.BigClock),
-            false
+            context = context, stringResource(R.string.BigClock), false
         )
     ) {
         Column {
@@ -303,15 +294,13 @@ fun Clock(
         Text(
             text = time,
             color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             modifier = if (sharedPreferencesSettings.getString(
-                    stringResource(R.string.HomeAlignment),
-                    "Center"
+                    stringResource(R.string.HomeAlignment), "Center"
                 ) == "Left"
             ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                    stringResource(R.string.HomeAlignment),
-                    "Center"
+                    stringResource(R.string.HomeAlignment), "Center"
                 ) == "Right"
             ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
         )
@@ -321,37 +310,34 @@ fun Clock(
 // Screen time on home screen
 @Composable
 fun HomeScreenScreenTime(
-    screenTime: String,
-    sharedPreferencesSettings: SharedPreferences
+    screenTime: String, sharedPreferencesSettings: SharedPreferences
 ) {
+    val alignModifier = if (sharedPreferencesSettings.getString(
+            stringResource(R.string.HomeAlignment), "Center"
+        ) == "Left"
+    ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+            stringResource(R.string.HomeAlignment), "Center"
+        ) == "Right"
+    ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+
     Text(
         text = screenTime,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
-        style = MaterialTheme.typography.displaySmall,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
-        modifier = if (sharedPreferencesSettings.getString(
-                stringResource(R.string.HomeAlignment),
-                "Center"
-            ) == "Left"
-        ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-                stringResource(R.string.HomeAlignment),
-                "Center"
-            ) == "Right"
-        ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+        modifier = alignModifier.alpha(0.5f)
     )
 }
 
 @Composable
 fun FirstTimeHelp() {
     Box(
-        Modifier
-            .clip(
+        Modifier.clip(
                 MaterialTheme.shapes.extraLarge
             )
     ) {
         Column(
-            Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+            Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Row(
                 Modifier
