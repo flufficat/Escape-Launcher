@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package com.geecee.escape.utils
 
 import android.app.ActivityOptions

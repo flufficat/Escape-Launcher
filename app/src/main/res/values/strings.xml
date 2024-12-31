@@ -34,11 +34,9 @@
     <string name="bottom">Bottom</string>
     <string name="search_box">Search box</string>
     <string name="widget">Widget</string>
-    <string name="none">None</string>
     <string name="remove_widget">Remove Widget</string>
     <string name="alignments">Alignments</string>
     <string name="choose_font">Choose Font</string>
-    <string name="enable_widget">Enable Widget</string>
     <string name="select_widget">Select Widget</string>
     <string name="manage_open_challenges">Manage Open Challenges</string>
     <string name="manage_hidden_apps">Manage Hidden Apps</string>
@@ -68,7 +66,6 @@
     <string name="open_challenges">Open Challenges</string>
 
     <!-- First time strings -->
-    <string name="launcher">Launcher</string>
     <string name="continue_str">Continue</string>
     <string name="most_people_waste">Most people waste over</string>
     <string name="hours_every_day">hours every day on their phone</string>

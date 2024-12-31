@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="Blue1">#D3ECF8</color>
-    <color name="Blue2">#8FBBCF</color>
-    <color name="Blue3">#6A94A8</color>
     <color name="Teal1">#CBF4F1</color>
-    <color name="Teal2">#9FE0DD</color>
-    <color name="Teal3">#7CBEC1</color>
     <color name="ic_launcher_background">#CBF4F1</color>
 </resources>

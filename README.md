@@ -1,5 +1,6 @@
 ![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/Banner.png)
 
+<!--suppress ALL -->
 <div align="center">
   
 <h1 align="center">
