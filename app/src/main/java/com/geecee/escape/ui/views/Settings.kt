@@ -631,7 +631,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                         sliderPosition = it
                         setWidgetWidth(context, sliderPosition)
                     },
-                    valueRange = 150f..1000f,
+                    valueRange = 150f..350f,
                     steps = 10,
                     modifier = Modifier
                         .fillMaxWidth(0.85F)

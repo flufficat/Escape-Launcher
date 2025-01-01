@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -40,6 +41,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.geecee.escape.R
@@ -94,45 +96,42 @@ fun HomeScreen(
             Spacer(Modifier.height(90.dp))
         }
 
-        //Clock and Screen time
+        //Clock
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                //Clock
-                if (getBooleanSetting(
-                        mainAppModel.getContext(), stringResource(R.string.ShowClock), true
-                    )
-                ) {
-                    Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
-                }
+            if (getBooleanSetting(
+                    mainAppModel.getContext(), stringResource(R.string.ShowClock), true
+                )
+            ) {
+                Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
+            }
+        }
 
-                Spacer(Modifier.width(10.dp))
+        //Screen time
+        item {
+            if (getBooleanSetting(
+                    mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
+                )
+            ) {
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val todayUsage = remember { mutableLongStateOf(0L) }
 
-                //Screen time
-                if (getBooleanSetting(
-                        mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
-                    )
-                ) {
-                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                    val todayUsage = remember { mutableLongStateOf(0L) }
-
-                    LaunchedEffect(true) {
-                        try {
-                            withContext(Dispatchers.IO) {
-                                val usage = getTotalUsageForDate(today)
-                                withContext(Dispatchers.Main) {
-                                    todayUsage.longValue = usage
-                                }
+                LaunchedEffect(true) {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            val usage = getTotalUsageForDate(today)
+                            withContext(Dispatchers.Main) {
+                                todayUsage.longValue = usage
                             }
-                        } catch (e: Exception) {
-                            Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
                         }
+                    } catch (e: Exception) {
+                        Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
                     }
-
-                    HomeScreenScreenTime(
-                        AppUtils.formatScreenTime(todayUsage.longValue),
-                        homeScreenModel.sharedPreferences
-                    )
                 }
+
+                HomeScreenScreenTime(
+                    AppUtils.formatScreenTime(todayUsage.longValue),
+                    homeScreenModel.sharedPreferences
+                )
             }
         }
 
@@ -296,13 +295,14 @@ fun Clock(
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
-            modifier = if (sharedPreferencesSettings.getString(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = if (sharedPreferencesSettings.getString(
                     stringResource(R.string.HomeAlignment), "Center"
                 ) == "Left"
-            ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
+            ) TextAlign.Start else if (sharedPreferencesSettings.getString(
                     stringResource(R.string.HomeAlignment), "Center"
                 ) == "Right"
-            ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
+            ) TextAlign.End else TextAlign.Center
         )
     }
 }
@@ -323,7 +323,7 @@ fun HomeScreenScreenTime(
     Text(
         text = screenTime,
         color = MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.titleSmall,
+        style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.SemiBold,
         modifier = alignModifier.alpha(0.5f)
     )
@@ -333,8 +333,8 @@ fun HomeScreenScreenTime(
 fun FirstTimeHelp() {
     Box(
         Modifier.clip(
-                MaterialTheme.shapes.extraLarge
-            )
+            MaterialTheme.shapes.extraLarge
+        )
     ) {
         Column(
             Modifier.background(MaterialTheme.colorScheme.surfaceVariant)

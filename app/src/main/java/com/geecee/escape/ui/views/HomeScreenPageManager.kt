@@ -55,6 +55,7 @@ import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.managers.OpenChallenge
 import com.geecee.escape.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import com.geecee.escape.MainAppViewModel as MainAppModel
 
 // Model to be passed around home screen pages
@@ -189,11 +190,16 @@ fun HomeScreenPageManager(
                             homeScreenModel.currentPackageName.value
                         )
                         homeScreenModel.isCurrentAppFavorite.value = false
+                        homeScreenModel.showBottomSheet.value = false
                     } else {
                         mainAppModel.favoriteAppsManager.addFavoriteApp(
                             homeScreenModel.currentPackageName.value
                         )
                         homeScreenModel.isCurrentAppFavorite.value = true
+                        homeScreenModel.showBottomSheet.value = false
+                        homeScreenModel.coroutineScope.launch {
+                            homeScreenModel.pagerState.scrollToPage(1, 0f)
+                        }
                     }
                     updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
                 }
@@ -247,7 +253,7 @@ fun HomeScreenPageManager(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        OpenChallenge(homeScreenModel.haptics,{
+        OpenChallenge(homeScreenModel.haptics, {
             AppUtils.openApp(
                 homeScreenModel.currentPackageName.value,
                 true,
