@@ -164,20 +164,28 @@ fun ScreenTimeDashboard(context: Context) {
         Spacer(Modifier.height(15.dp))
 
         AppUsages(Modifier) {
-            appUsageToday.forEach { appScreenTime ->
-                if (AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName) != "null") {
-                    val yesterdayAppUsage =
-                        appUsageYesterday.find { it.packageName == appScreenTime.packageName }
-                    val usageIncreased =
-                        appScreenTime.totalTime > (yesterdayAppUsage?.totalTime ?: 0L)
+            if (!appUsageToday.isEmpty()) {
+                appUsageToday.forEach { appScreenTime ->
+                    if (AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName) != "null") {
+                        val yesterdayAppUsage =
+                            appUsageYesterday.find { it.packageName == appScreenTime.packageName }
+                        val usageIncreased =
+                            appScreenTime.totalTime > (yesterdayAppUsage?.totalTime ?: 0L)
 
-                    AppUsage(
-                        AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName),
-                        usageIncreased,
-                        if (appScreenTime.totalTime > 60000) AppUtils.formatScreenTime(appScreenTime.totalTime) else "<1m",
-                        Modifier
-                    )
+                        AppUsage(
+                            AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName),
+                            usageIncreased,
+                            if (appScreenTime.totalTime > 60000) AppUtils.formatScreenTime(appScreenTime.totalTime) else "<1m",
+                            Modifier
+                        )
+                    }
                 }
+            } else {
+                Text(text = stringResource(R.string.no_apps_used),
+                     modifier = Modifier.align(Alignment.CenterHorizontally),
+                     style = MaterialTheme.typography.bodyMedium,
+                     color = MaterialTheme.colorScheme.onPrimaryContainer
+                 )
             }
         }
 

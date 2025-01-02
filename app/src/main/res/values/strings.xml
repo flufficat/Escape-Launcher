@@ -84,4 +84,5 @@
     <!-- Screen time dashboard -->
     <string name="of_your_day_spent_on_your_phone">Of your day spent on your phone</string>
     <string name="higher_we_rec">Higher than the we recommend</string>
+    <string name="no_apps_used">No apps opened yet!</string>
 </resources>
