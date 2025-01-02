@@ -300,7 +300,7 @@ fun AppsListHeader() {
     Spacer(modifier = Modifier.height(140.dp))
     Text(
         text = stringResource(id = R.string.all_apps),
-        color = MaterialTheme.colorScheme.onBackground,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
         style = MaterialTheme.typography.titleMedium
     )
 }
@@ -343,7 +343,7 @@ fun AnimatedPillSearchBar(
         }
         .animateContentSize(),
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.onBackground) {
+        color = MaterialTheme.colorScheme.onPrimaryContainer) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier

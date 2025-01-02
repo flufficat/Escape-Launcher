@@ -85,4 +85,15 @@
     <string name="of_your_day_spent_on_your_phone">Of your day spent on your phone</string>
     <string name="higher_we_rec">Higher than the we recommend</string>
     <string name="no_apps_used">No apps opened yet!</string>
+    
+    <!-- Themes -->
+    <string name="light_red">Light Red</string>
+    <string name="dark_red">Dark Red</string>
+    <string name="light_blue">Light Blue</string>
+    <string name="dark_blue">Dark Blue</string>
+    <string name="light_yellow">Light Yellow</string>
+    <string name="dark_yellow">Dark Yellow</string>
+    <string name="light_green">Light Green</string>
+    <string name="dark_green">Dark Green</string>
+    <string name="off_white">Off white</string>
 </resources>

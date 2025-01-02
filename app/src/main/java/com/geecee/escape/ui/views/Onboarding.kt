@@ -110,7 +110,7 @@ fun OnboardingPage1(navController: NavController) {
             Text(
                 stringResource(R.string.escape_launcher),
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Center
             )
@@ -120,9 +120,9 @@ fun OnboardingPage1(navController: NavController) {
             onClick = {
                 navController.navigate("Page2")
             }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background
             )
         ) {
@@ -164,7 +164,7 @@ fun OnboardingPage2(navController: NavController) {
                     append(stringResource(R.string.hours_every_day))
                 },
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
@@ -180,7 +180,7 @@ fun OnboardingPage2(navController: NavController) {
                     append(stringResource(R.string.every_week))
                 },
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.End
             )
@@ -196,7 +196,7 @@ fun OnboardingPage2(navController: NavController) {
                     append(stringResource(R.string.years_straight))
                 },
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
@@ -207,9 +207,9 @@ fun OnboardingPage2(navController: NavController) {
             onClick = {
                 navController.navigate("Page3")
             }, modifier = Modifier.align(Alignment.BottomEnd).padding(0.dp,0.dp,0.dp,30.dp), colors = ButtonColors(
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background
             )
         ) {
@@ -275,7 +275,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
             Text(
                 stringResource(R.string.choose_your_favourite_apps),
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
@@ -285,7 +285,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
             Text(
                 stringResource(R.string.pinned_for_access),
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start,
                 lineHeight = 32.sp
@@ -303,7 +303,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                                 mainAppModel.favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
                                 updateFavoriteStatus(appInfo.activityInfo.packageName, false)
                             }),
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -325,7 +325,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                                 mainAppModel.favoriteAppsManager.addFavoriteApp(appInfo.activityInfo.packageName)
                                 updateFavoriteStatus(appInfo.activityInfo.packageName, true)
                             }),
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -342,9 +342,9 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 30.dp),
             colors = ButtonColors(
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background
             )
         ) {
@@ -377,7 +377,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
             Text(
                 stringResource(R.string.set_escape),
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
@@ -385,7 +385,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
             Text(
                 stringResource(R.string.stop_going_back),
                 Modifier,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start,
                 lineHeight = 32.sp
@@ -395,9 +395,9 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
                 onClick = {
                     changeLauncher(mainAppModel.getContext())
                 }, modifier = Modifier, colors = ButtonColors(
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background
                 )
             ) {
@@ -414,9 +414,9 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
             onClick = {
                 navController.navigate("Page5")
             }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background,
-                MaterialTheme.colorScheme.onBackground,
+                MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background
             )
         ) {
@@ -459,7 +459,7 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                 Text(
                     stringResource(R.string.analytics_and_data_collection),
                     Modifier,
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleSmall,
                     textAlign = TextAlign.Start
                 )
@@ -470,7 +470,7 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                 Text(
                     stringResource(R.string.anonymous_data),
                     Modifier,
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Start,
                     lineHeight = 32.sp
@@ -485,9 +485,9 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                     onClick = {
                         showPolicyDialog.value = true
                     }, modifier = Modifier, colors = ButtonColors(
-                        MaterialTheme.colorScheme.onBackground,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
                         MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.onBackground,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
                         MaterialTheme.colorScheme.background
                     )
                 ) {
@@ -517,8 +517,8 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                     )
                 }, modifier = Modifier, colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                ), border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground)
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ), border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimaryContainer)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -548,9 +548,9 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
                     )
                     configureAnalytics(true)
                 }, modifier = Modifier, colors = ButtonColors(
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.onBackground,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background
                 )
             ) {

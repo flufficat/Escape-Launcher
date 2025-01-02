@@ -220,7 +220,7 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
             text = time,
             style = MaterialTheme.typography.titleMedium,
             modifier = modifier,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -334,7 +334,7 @@ fun AppUsage(appName: String, increased: Boolean, time: String, modifier: Modifi
                 text = time,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = modifier,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.SemiBold
             )
         }

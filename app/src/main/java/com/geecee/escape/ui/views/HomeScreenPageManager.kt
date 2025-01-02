@@ -290,7 +290,7 @@ fun HomeScreenItem(
                     onClick = onAppClick,
                     onLongClick = onAppLongClick
                 ),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -305,7 +305,7 @@ fun HomeScreenItem(
                         onClick = onAppClick,
                         onLongClick = onAppLongClick
                     ),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodySmall
             )
         }

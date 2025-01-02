@@ -7,7 +7,6 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -50,8 +49,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -80,7 +77,16 @@ import com.geecee.escape.MainAppViewModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.PitchDarkColorScheme
 import com.geecee.escape.ui.theme.darkScheme
+import com.geecee.escape.ui.theme.darkSchemeBlue
+import com.geecee.escape.ui.theme.darkSchemeGreen
+import com.geecee.escape.ui.theme.darkSchemeRed
+import com.geecee.escape.ui.theme.darkSchemeYellow
 import com.geecee.escape.ui.theme.lightScheme
+import com.geecee.escape.ui.theme.lightSchemeBlue
+import com.geecee.escape.ui.theme.lightSchemeGreen
+import com.geecee.escape.ui.theme.lightSchemeRed
+import com.geecee.escape.ui.theme.lightSchemeYellow
+import com.geecee.escape.ui.theme.offLightScheme
 import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.AppUtils.loadTextFromAssets
 import com.geecee.escape.utils.changeAppsAlignment
@@ -122,7 +128,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
         Icon(
             Icons.AutoMirrored.Default.ArrowBack,
             contentDescription = "Go Back",
-            tint = MaterialTheme.colorScheme.onBackground,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .size(48.dp)
                 .align(Alignment.CenterVertically)
@@ -130,7 +136,7 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = title,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.titleMedium,
             fontSize = if (title.length > 11) 35.sp else MaterialTheme.typography.titleMedium.fontSize,
             modifier = Modifier.align(Alignment.CenterVertically)
@@ -148,7 +154,7 @@ fun SettingsSwitch(
         Text(
             label,
             Modifier.padding(0.dp, 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -174,7 +180,7 @@ fun SettingsNavigationItem(
         Text(
             label,
             Modifier.padding(0.dp, 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -186,7 +192,7 @@ fun SettingsNavigationItem(
                     .align(Alignment.CenterEnd)
                     .size(48.dp)
                     .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         } else {
             Icon(
@@ -197,7 +203,7 @@ fun SettingsNavigationItem(
                     .size(48.dp)
                     .fillMaxSize()
                     .rotate(-45f),
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -340,7 +346,7 @@ fun MainSettingsPage(
                 .combinedClickable(onClick = {}, onLongClick = {
                     navController.navigate("devOptions")
                 }),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -505,13 +511,15 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Button(modifier = Modifier.fillMaxWidth(),onClick = { removeWidget(context) }) {
+        Button(modifier = Modifier.fillMaxWidth(), onClick = { removeWidget(context) }) {
             Text(stringResource(R.string.remove_widget))
         }
 
         Spacer(Modifier.height(10.dp))
 
-        Button(modifier = Modifier.fillMaxWidth(),onClick = { openWidgetPicker(appWidgetHost, widgetPickerLauncher) }) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { openWidgetPicker(appWidgetHost, widgetPickerLauncher) }) {
             Text(stringResource(R.string.select_widget))
         }
 
@@ -526,7 +534,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                 Text(
                     stringResource(id = R.string.offset),
                     Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
@@ -573,7 +581,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                 Text(
                     stringResource(id = R.string.height),
                     Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
@@ -620,7 +628,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                 Text(
                     stringResource(id = R.string.width),
                     Modifier.padding(0.dp, 15.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
@@ -683,7 +691,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 Modifier
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -765,7 +773,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 Modifier
                     .padding(0.dp, 5.dp)
                     .align(Alignment.CenterStart),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -812,78 +820,133 @@ fun ThemeCard(
             .size(120.dp)
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable {
                 changeTheme(theme, context, activity)
-            }) {
-        Box(
-            Modifier
-                .padding(10.dp)
-                .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
-                .background(
-                    when (theme) {
-                        0 -> darkScheme.background
-
-                        1 -> lightScheme.background
-
-                        2 -> PitchDarkColorScheme.background
-
-                        3 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicDarkColorScheme(context).background
-                        } else {
-                            darkScheme.background
-                        }
-
-                        4 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            dynamicLightColorScheme(context).background
-                        } else {
-                            lightScheme.background
-                        }
-
-                        else -> darkScheme.background
-                    }
-                )
-        ) {
-            Text(
+            }
+            .background(
                 when (theme) {
-                    0 -> stringResource(R.string.dark)
+                    0 -> darkScheme.background
 
-                    1 -> stringResource(R.string.light)
+                    1 -> lightScheme.background
 
-                    2 -> stringResource(R.string.pitch_black)
+                    2 -> PitchDarkColorScheme.background
 
-                    3 -> stringResource(R.string.material_dark)
-
-                    4 -> stringResource(R.string.material_light)
-
-                    else -> stringResource(R.string.theme)
-                },
-                Modifier
-                    .align(Alignment.Center)
-                    .padding(5.dp), when (theme) {
-                    0 -> darkScheme.onBackground
-
-                    1 -> lightScheme.onBackground
-
-                    2 -> PitchDarkColorScheme.onBackground
-
-                    3 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        dynamicDarkColorScheme(context).onBackground
-                    } else {
-                        darkScheme.primary
+                    3 -> {
+                        lightSchemeRed.background
                     }
 
-                    4 -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        dynamicLightColorScheme(context).onBackground
-                    } else {
-                        lightScheme.onBackground
+                    4 -> {
+                        darkSchemeRed.background
                     }
 
-                    else -> darkScheme.onBackground
-                }, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
+                    5 -> {
+                        lightSchemeGreen.background
+                    }
+
+                    6 -> {
+                        darkSchemeGreen.background
+                    }
+
+                    7 -> {
+                        lightSchemeBlue.background
+                    }
+
+                    8 -> {
+                        darkSchemeBlue.background
+                    }
+
+                    9 -> {
+                        lightSchemeYellow.background
+                    }
+
+                    10 -> {
+                        darkSchemeYellow.background
+                    }
+
+                    11 -> {
+                        offLightScheme.background
+                    }
+
+                    else -> darkScheme.background
+                }
             )
-        }
+    ) {
+        Text(
+            when (theme) {
+                0 -> stringResource(R.string.dark)
+
+                1 -> stringResource(R.string.light)
+
+                2 -> stringResource(R.string.pitch_black)
+
+                3 -> stringResource(R.string.light_red)
+
+                4 -> stringResource(R.string.dark_red)
+
+                5 -> stringResource(R.string.light_green)
+
+                6 -> stringResource(R.string.dark_green)
+
+                7 -> stringResource(R.string.light_blue)
+
+                8 -> stringResource(R.string.dark_blue)
+
+                9 -> stringResource(R.string.light_yellow)
+
+                10 -> stringResource(R.string.dark_yellow)
+
+                11 -> stringResource(R.string.off_white)
+
+                else -> stringResource(R.string.theme)
+            },
+            Modifier
+                .align(Alignment.Center)
+                .padding(5.dp), when (theme) {
+                0 -> darkScheme.onPrimaryContainer
+
+                1 -> lightScheme.onPrimaryContainer
+
+                2 -> PitchDarkColorScheme.onPrimaryContainer
+
+                3 -> {
+                    lightSchemeRed.onPrimaryContainer
+                }
+
+                4 -> {
+                    darkSchemeRed.onPrimaryContainer
+                }
+
+                5 -> {
+                    lightSchemeGreen.onPrimaryContainer
+                }
+
+                6 -> {
+                    darkSchemeGreen.onPrimaryContainer
+                }
+
+                7 -> {
+                    lightSchemeBlue.onPrimaryContainer
+                }
+
+                8 -> {
+                    darkSchemeBlue.onPrimaryContainer
+                }
+
+                9 -> {
+                    lightSchemeYellow.onPrimaryContainer
+                }
+
+                10 -> {
+                    darkSchemeYellow.onPrimaryContainer
+                }
+
+                11 -> {
+                    offLightScheme.onPrimaryContainer
+                }
+
+                else -> darkScheme.onPrimaryContainer
+            }, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -911,6 +974,33 @@ fun ThemeOptions(
             }
             item {
                 ThemeCard(2, context, activity)
+            }
+            item {
+                ThemeCard(11, context, activity)
+            }
+            item {
+                ThemeCard(3, context, activity)
+            }
+            item {
+                ThemeCard(4, context, activity)
+            }
+            item {
+                ThemeCard(5, context, activity)
+            }
+            item {
+                ThemeCard(6, context, activity)
+            }
+            item {
+                ThemeCard(7, context, activity)
+            }
+            item {
+                ThemeCard(8, context, activity)
+            }
+            item {
+                ThemeCard(9, context, activity)
+            }
+            item {
+                ThemeCard(10, context, activity)
             }
         }
     }
@@ -956,7 +1046,7 @@ fun HiddenApps(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -972,7 +1062,7 @@ fun HiddenApps(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             hiddenApps.value = mainAppModel.hiddenAppsManager.getHiddenApps()
                         }),
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
@@ -1020,7 +1110,7 @@ fun OpenChallenges(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -1036,7 +1126,7 @@ fun OpenChallenges(
                             haptics.performHapticFeedback(hapticFeedbackType = HapticFeedbackType.LongPress)
                             challengeApps.value = mainAppModel.challengesManager.getChallengeApps()
                         }),
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
@@ -1065,7 +1155,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Jost")
                     resetActivity(context, activity)
                 }),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
@@ -1076,7 +1166,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Inter")
                     resetActivity(context, activity)
                 }),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
@@ -1087,7 +1177,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     setStringSetting(context, context.resources.getString(R.string.Font), "Lexend")
                     resetActivity(context, activity)
                 }),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
@@ -1100,7 +1190,7 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
                     )
                     resetActivity(context, activity)
                 }),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -1123,7 +1213,7 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
             Text(
                 "First time",
                 Modifier.padding(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -1165,7 +1255,7 @@ fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableSta
                 loadTextFromAssets(mainAppModel.getContext(), "Privacy Policy.txt")?.let { text ->
                     BasicText(
                         text = text, style = TextStyle(
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Start,
                             fontWeight = FontWeight.Normal
                         ), modifier = Modifier.fillMaxWidth()

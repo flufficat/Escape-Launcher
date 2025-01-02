@@ -269,7 +269,7 @@ fun Clock(
             Text(
                 text = hours,
                 modifier = Modifier.offset(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.SemiBold,
                 style = if (!noApps.value) {
                     MaterialTheme.typography.titleMedium
@@ -279,7 +279,7 @@ fun Clock(
             )
             Text(
                 text = minutes,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.SemiBold,
                 style = if (!noApps.value) {
                     MaterialTheme.typography.titleMedium
@@ -292,7 +292,7 @@ fun Clock(
     } else {
         Text(
             text = time,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.fillMaxWidth(),
@@ -322,7 +322,7 @@ fun HomeScreenScreenTime(
 
     Text(
         text = screenTime,
-        color = MaterialTheme.colorScheme.onBackground,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.SemiBold,
         modifier = alignModifier.alpha(0.5f)
@@ -348,13 +348,13 @@ fun FirstTimeHelp() {
                     Icons.AutoMirrored.Rounded.ArrowForward,
                     "",
                     Modifier.align(Alignment.CenterVertically),
-                    tint = MaterialTheme.colorScheme.onBackground
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(Modifier.width(5.dp))
                 Text(
                     stringResource(R.string.swipe_for_all_apps),
                     modifier = Modifier,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -368,13 +368,13 @@ fun FirstTimeHelp() {
                     painterResource(R.drawable.radio_button_unchecked),
                     "",
                     Modifier.align(Alignment.CenterVertically),
-                    tint = MaterialTheme.colorScheme.onBackground
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(Modifier.width(5.dp))
                 Text(
                     stringResource(R.string.hold_for_settings),
                     modifier = Modifier,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
