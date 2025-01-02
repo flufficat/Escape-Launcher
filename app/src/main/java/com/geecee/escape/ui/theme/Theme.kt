@@ -168,25 +168,6 @@ fun EscapeTheme(
             colorScheme = PitchDarkColorScheme
         }
 
-        3 -> {
-            colorScheme =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    dynamicDarkColorScheme(context)
-                } else {
-                    darkScheme
-                }
-        }
-
-        4 -> {
-            colorScheme =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    dynamicLightColorScheme(context)
-                } else {
-                    lightScheme
-                }
-
-        }
-
         else -> {
             colorScheme = darkScheme
         }

@@ -461,6 +461,8 @@ fun PersonalizationOptions(
         SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
             false,
             onClick = { navController.navigate("chooseFont") })
+
+        Spacer(Modifier.height(120.dp))
     }
 }
 
@@ -909,14 +911,6 @@ fun ThemeOptions(
             }
             item {
                 ThemeCard(2, context, activity)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                item {
-                    ThemeCard(3, context, activity)
-                }
-                item {
-                    ThemeCard(4, context, activity)
-                }
             }
         }
     }
