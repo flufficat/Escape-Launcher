@@ -249,7 +249,7 @@ class MainHomeScreen : ComponentActivity() {
                     exitTransition = { fadeOut(tween(300)) }) {
                     Settings(
                         mainAppViewModel,
-                        { navController.popBackStack() },
+                        { navController.navigate("home") },
                         this@MainHomeScreen,
                     )
                 }
