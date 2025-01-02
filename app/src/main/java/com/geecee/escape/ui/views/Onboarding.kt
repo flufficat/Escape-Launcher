@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -99,12 +98,13 @@ fun OnboardingPage1(navController: NavController) {
             .padding(30.dp, 0.dp, 30.dp, 30.dp)
     ) {
         Column(Modifier.align(Alignment.Center)) {
-            Image(
+            Icon(
                 painterResource(R.drawable.outlineicon),
                 "Escape Launcher Icon",
                 Modifier
                     .padding(3.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(Modifier.height(15.dp))
             Text(
@@ -206,7 +206,11 @@ fun OnboardingPage2(navController: NavController) {
         Button(
             onClick = {
                 navController.navigate("Page3")
-            }, modifier = Modifier.align(Alignment.BottomEnd).padding(0.dp,0.dp,0.dp,30.dp), colors = ButtonColors(
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(0.dp, 0.dp, 0.dp, 30.dp),
+            colors = ButtonColors(
                 MaterialTheme.colorScheme.onPrimaryContainer,
                 MaterialTheme.colorScheme.background,
                 MaterialTheme.colorScheme.onPrimaryContainer,
