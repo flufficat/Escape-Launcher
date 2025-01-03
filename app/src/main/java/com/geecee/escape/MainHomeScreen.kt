@@ -1,7 +1,6 @@
 package com.geecee.escape
 
 import android.app.Application
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -11,10 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.view.animation.AnimationSet
-import android.view.animation.ScaleAnimation
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,7 +25,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -43,14 +37,14 @@ import com.geecee.escape.ui.views.HomeScreenPageManager
 import com.geecee.escape.ui.views.Onboarding
 import com.geecee.escape.ui.views.Settings
 import com.geecee.escape.utils.PrivateSpaceStateReceiver
+import com.geecee.escape.utils.ScreenOffReceiver
+import com.geecee.escape.utils.animateSplashScreen
+import com.geecee.escape.utils.configureAnalytics
 import com.geecee.escape.utils.getBooleanSetting
 import com.geecee.escape.utils.managers.ChallengesManager
 import com.geecee.escape.utils.managers.FavoriteAppsManager
 import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.managers.ScreenTimeManager
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -67,7 +61,6 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     fun getContext(): Context = appContext
 }
 
-@Suppress("DEPRECATION")
 class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
@@ -86,9 +79,15 @@ class MainHomeScreen : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         animateSplashScreen(splashScreen)
+
+        // Make full screen
         enableEdgeToEdge()
         configureFullScreenMode()
+
+        // Set up the screen time tracking
         ScreenTimeManager.initialize(this)
+
+        // Set up the application content
         setContent { SetUpContent() }
 
         // Register screen off receiver
@@ -146,6 +145,8 @@ class MainHomeScreen : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // Stop the receivers
         if (::privateSpaceReceiver.isInitialized) {
             unregisterReceiver(privateSpaceReceiver)
         }
@@ -155,57 +156,18 @@ class MainHomeScreen : ComponentActivity() {
     }
 
     // Makes it fullscreen
+    @Suppress("DEPRECATION")
     private fun configureFullScreenMode() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-            window.decorView.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
         }
-    }
-
-    //Splash Animation
-    private fun animateSplashScreen(splashScreen: SplashScreen) {
-        splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
-            // Create a scale animation (zoom effect)
-            val scaleAnimation = ScaleAnimation(
-                1f, 100f, // From normal size to 5x size
-                1f, 100f,
-                Animation.RELATIVE_TO_SELF, 0.5f, // Pivot at the center
-                Animation.RELATIVE_TO_SELF, 0.5f
-            ).apply {
-                duration = 1200 // Duration of the zoom animation in ms
-                fillAfter = true // Retain the final state
-            }
-
-            // Create a fade-out animation
-            val fadeOutAnimation = AlphaAnimation(1f, 0f).apply {
-                duration = 300 // Duration of the fade-out in ms
-                startOffset = 500 // Delay to start after zoom finishes
-                fillAfter = true // Retain the final state
-            }
-
-            // Combine the animations
-            val animationSet = AnimationSet(true).apply {
-                addAnimation(scaleAnimation)
-                addAnimation(fadeOutAnimation)
-            }
-
-            // Start the combined animation
-            splashScreenViewProvider.view.startAnimation(animationSet)
-
-            // Remove the splash screen view after the animation ends
-            animationSet.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation?) {}
-
-                override fun onAnimationEnd(animation: Animation?) {
-                    splashScreenViewProvider.remove()
-                }
-
-                override fun onAnimationRepeat(animation: Animation?) {}
-            })
+        else {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
     }
 
@@ -261,26 +223,4 @@ class MainHomeScreen : ComponentActivity() {
             }
         }
     }
-}
-
-class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-            // When the screen is off, stop screen time tracking
-            onScreenOff()
-        }
-    }
-}
-
-// Function to enable or disable analytics
-fun configureAnalytics(enabled: Boolean) {
-    val analytics = Firebase.analytics
-
-    analytics.setConsent(
-        mapOf(
-            FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE to if (enabled) FirebaseAnalytics.ConsentStatus.GRANTED else FirebaseAnalytics.ConsentStatus.DENIED,
-        )
-    )
-
-    analytics.setAnalyticsCollectionEnabled(enabled)
 }

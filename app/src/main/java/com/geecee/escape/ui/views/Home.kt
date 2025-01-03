@@ -74,20 +74,14 @@ fun HomeScreen(
 
     LazyColumn(
         state = scrollState,
-        verticalArrangement = if (homeScreenModel.sharedPreferences.getString(
-                stringResource(R.string.HomeVAlignment), "Center"
-            ) == "Center"
-        ) Arrangement.Center else if (homeScreenModel.sharedPreferences.getString(
-                stringResource(R.string.HomeVAlignment), "Center"
-            ) == "Top"
-        ) Arrangement.Top else Arrangement.Bottom,
-        horizontalAlignment = if (homeScreenModel.sharedPreferences.getString(
-                stringResource(R.string.HomeAlignment), "Center"
-            ) == "Center"
-        ) Alignment.CenterHorizontally else if (homeScreenModel.sharedPreferences.getString(
-                stringResource(R.string.HomeAlignment), "Center"
-            ) == "Left"
-        ) Alignment.Start else Alignment.End,
+        verticalArrangement = getHomeScreenVerticalArrangement(
+            homeScreenModel.sharedPreferences,
+            stringResource(R.string.HomeVAlignment)
+        ),
+        horizontalAlignment = getHomeScreenHorizontalArrangement(
+            homeScreenModel.sharedPreferences,
+            stringResource(R.string.HomeAlignment)
+        ),
         modifier = Modifier
             .fillMaxSize()
             .padding(30.dp, 0.dp)
@@ -379,5 +373,32 @@ fun FirstTimeHelp() {
                 )
             }
         }
+    }
+}
+
+fun getHomeScreenVerticalArrangement(
+    sharedPreferences: SharedPreferences,
+    preference: String
+): Arrangement.Vertical {
+    return when {
+        sharedPreferences.getString(preference, "Center") == "Center" -> Arrangement.Center
+        sharedPreferences.getString(preference, "Center") == "Top" -> Arrangement.Top
+        else -> Arrangement.Bottom
+    }
+}
+
+
+fun getHomeScreenHorizontalArrangement(
+    sharedPreferences: SharedPreferences,
+    preference: String
+): Alignment.Horizontal {
+    return when {
+        sharedPreferences.getString(
+            preference,
+            "Center"
+        ) == "Center" -> Alignment.CenterHorizontally
+
+        sharedPreferences.getString(preference, "Center") == "Left" -> Alignment.Start
+        else -> Alignment.End
     }
 }

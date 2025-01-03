@@ -150,7 +150,6 @@ fun HomeScreenPageManager(
                 },
                 indication = null, interactionSource = homeScreenModel.interactionSource
             )
-
     ) { page ->
         when (page) {
             0 -> ScreenTimeDashboard(mainAppModel.getContext())
@@ -279,17 +278,15 @@ fun HomeScreenItem(
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,
-        modifier = modifier
+        modifier = modifier.combinedClickable(
+            onClick = onAppClick,
+            onLongClick = onAppLongClick
+        )
     ) {
         // App name text with click and long click handlers
         Text(
             appName,
-            modifier = Modifier
-                .padding(vertical = 15.dp)
-                .combinedClickable(
-                    onClick = onAppClick,
-                    onLongClick = onAppLongClick
-                ),
+            modifier = Modifier.padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
@@ -300,18 +297,18 @@ fun HomeScreenItem(
                 AppUtils.formatScreenTime(screenTime),
                 modifier = Modifier
                     .padding(vertical = 15.dp, horizontal = 5.dp)
-                    .alpha(0.5f)
-                    .combinedClickable(
-                        onClick = onAppClick,
-                        onLongClick = onAppLongClick
-                    ),
+                    .alpha(0.5f),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodySmall
             )
         }
     }
-
 }
+
+data class AppAction(
+    val label: String,
+    val onClick: () -> Unit
+) // Actions that can be shown in the bottom sheet
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -362,8 +359,3 @@ fun HomeScreenBottomSheet(
         }
     }
 }
-
-data class AppAction(
-    val label: String,
-    val onClick: () -> Unit
-)

@@ -181,10 +181,10 @@ fun AppsList(
                 } else {
                     true
                 }
-            }) { app ->
-                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-
+            })
+            { app ->
                 // Fetch screen time in a coroutine
+                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
                 LaunchedEffect(app.activityInfo.packageName) {
                     withContext(Dispatchers.IO) {
                         appScreenTime.longValue = getUsageForApp(
@@ -194,46 +194,54 @@ fun AppsList(
                     }
                 }
 
-                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
-                        app.activityInfo.packageName
-                    )
-                ) HomeScreenItem(appName = AppUtils.getAppNameFromPackageName(
-                    mainAppModel.getContext(), app.activityInfo.packageName
-                ), screenTime = appScreenTime.longValue, onAppClick = {
-                    val packageName = app.activityInfo.packageName
-                    homeScreenModel.currentPackageName.value = packageName
+                // Draw app if its not hidden and not Escape itself
+                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(app.activityInfo.packageName)) {
+                    HomeScreenItem(
+                        appName = AppUtils.getAppNameFromPackageName(mainAppModel.getContext(), app.activityInfo.packageName),
+                        screenTime = appScreenTime.longValue,
+                        onAppClick = {
+                        val packageName = app.activityInfo.packageName
+                        homeScreenModel.currentPackageName.value = packageName
 
-                    AppUtils.openApp(
-                        packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
-                    )
-
-                    resetHome(homeScreenModel)
-                }, onAppLongClick = {
-                    homeScreenModel.showBottomSheet.value = true
-                    homeScreenModel.currentSelectedApp.value = AppUtils.getAppNameFromPackageName(
-                        mainAppModel.getContext(), app.activityInfo.packageName
-                    )
-                    homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                    homeScreenModel.isCurrentAppChallenged.value =
-                        mainAppModel.challengesManager.doesAppHaveChallenge(
-                            app.activityInfo.packageName
-                        )
-                    homeScreenModel.isCurrentAppHidden.value =
-                        mainAppModel.hiddenAppsManager.isAppHidden(
-                            app.activityInfo.packageName
-                        )
-                    homeScreenModel.isCurrentAppFavorite.value =
-                        mainAppModel.favoriteAppsManager.isAppFavorite(
-                            app.activityInfo.packageName
+                        AppUtils.openApp(
+                            packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
                         )
 
-                    if(getBooleanSetting(mainAppModel.getContext(), mainAppModel.getContext().resources.getString(R.string.Haptic), true)){
-                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                }, showScreenTime = getBooleanSetting(
-                    mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
-                ), modifier = Modifier
-                )
+                        resetHome(homeScreenModel)
+                    },
+                        onAppLongClick = {
+                        homeScreenModel.showBottomSheet.value = true
+                        homeScreenModel.currentSelectedApp.value =
+                            AppUtils.getAppNameFromPackageName(
+                                mainAppModel.getContext(), app.activityInfo.packageName
+                            )
+                        homeScreenModel.currentPackageName.value = app.activityInfo.packageName
+                        homeScreenModel.isCurrentAppChallenged.value =
+                            mainAppModel.challengesManager.doesAppHaveChallenge(
+                                app.activityInfo.packageName
+                            )
+                        homeScreenModel.isCurrentAppHidden.value =
+                            mainAppModel.hiddenAppsManager.isAppHidden(
+                                app.activityInfo.packageName
+                            )
+                        homeScreenModel.isCurrentAppFavorite.value =
+                            mainAppModel.favoriteAppsManager.isAppFavorite(
+                                app.activityInfo.packageName
+                            )
+
+                        if (getBooleanSetting(
+                                mainAppModel.getContext(),
+                                mainAppModel.getContext().resources.getString(R.string.Haptic),
+                                true
+                            )
+                        ) {
+                            homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                    },
+                        showScreenTime = getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)),
+                        modifier = Modifier
+                    )
+                }
             }
 
             //Private space
@@ -291,7 +299,6 @@ fun AppsList(
                 homeScreenModel.showPrivateSpaceSettings.value = false
             }
         }
-
     }
 }
 

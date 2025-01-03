@@ -203,6 +203,7 @@ fun openPrivateSpaceApp(privateSpaceApp: PrivateSpaceApp, context: Context, sour
 
     for (userInfo in profiles) {
         if (launcherApps.getLauncherUserInfo(userInfo)?.userType == "android.os.usertype.profile.PRIVATE") {
+            println("Context Type: ${context.javaClass.name}")
             val options = ActivityOptions.makeBasic()
             launcherApps.startMainActivity(
                 privateSpaceApp.componentName,

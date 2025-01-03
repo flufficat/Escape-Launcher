@@ -52,7 +52,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.MainAppViewModel as MainAppModel
 import com.geecee.escape.R
-import com.geecee.escape.configureAnalytics
+import com.geecee.escape.utils.configureAnalytics
 import com.geecee.escape.utils.changeLauncher
 import com.geecee.escape.utils.setBooleanSetting
 
