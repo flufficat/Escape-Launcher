@@ -967,16 +967,17 @@ fun ThemeOptions(
             GridCells.Adaptive(minSize = 128.dp)
         ) {
             item {
-                ThemeCard(0, context, activity)
-            }
-            item {
                 ThemeCard(1, context, activity)
             }
             item {
-                ThemeCard(2, context, activity)
+                ThemeCard(0, context, activity)
             }
+
             item {
                 ThemeCard(11, context, activity)
+            }
+            item {
+                ThemeCard(2, context, activity)
             }
             item {
                 ThemeCard(3, context, activity)

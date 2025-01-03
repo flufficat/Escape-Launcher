@@ -232,7 +232,7 @@ fun HigherRec(percent: Int, modifier: Modifier) {
     Box(
         modifier
             .clip(MaterialTheme.shapes.extraLarge)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(
             Modifier
@@ -265,7 +265,7 @@ fun DaySpent(percent: Int, modifier: Modifier) {
     Box(
         modifier
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(
             Modifier
@@ -347,7 +347,7 @@ fun AppUsages(modifier: Modifier, content: @Composable () -> Unit) {
         modifier
             .fillMaxSize()
             .clip(MaterialTheme.shapes.extraLarge)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(
             Modifier.padding(20.dp)

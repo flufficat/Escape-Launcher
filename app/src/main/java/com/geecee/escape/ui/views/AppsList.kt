@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -420,7 +421,13 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
     Card(
         Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
+            .clip(MaterialTheme.shapes.extraLarge),
+        colors = CardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.secondaryContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
