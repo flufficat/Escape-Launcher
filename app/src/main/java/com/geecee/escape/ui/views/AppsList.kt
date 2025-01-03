@@ -471,6 +471,8 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                                     0, 50
                                 )
                             }
+                            homeScreenModel.searchExpanded.value = false
+                            homeScreenModel.searchText.value = ""
                         }, Modifier, colors = IconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
