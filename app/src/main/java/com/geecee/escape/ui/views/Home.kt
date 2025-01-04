@@ -184,7 +184,7 @@ fun HomeScreen(
                     app, false, homeScreenModel.showOpenChallenge, mainAppModel
                 )
 
-                resetHome(homeScreenModel)
+                resetHome(homeScreenModel, mainAppModel)
             }, onAppLongClick = {
                 homeScreenModel.showBottomSheet.value = true
                 homeScreenModel.currentSelectedApp.value = AppUtils.getAppNameFromPackageName(

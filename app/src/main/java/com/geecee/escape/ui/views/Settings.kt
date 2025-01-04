@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -172,26 +173,27 @@ fun SettingsSwitch(
 fun SettingsNavigationItem(
     label: String, diagonalArrow: Boolean?, onClick: () -> Unit
 ) {
-    Box(
+    Row(
         Modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick)
+            .combinedClickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
-            Modifier.padding(0.dp, 15.dp),
+            Modifier.padding(0.dp, 15.dp).fillMaxWidth(0.9f).fillMaxHeight(),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Left,
         )
         if (!diagonalArrow!!) {
             Icon(
                 Icons.AutoMirrored.Default.KeyboardArrowRight,
                 "",
                 Modifier
-                    .align(Alignment.CenterEnd)
                     .size(48.dp)
-                    .fillMaxSize(),
+                    .fillMaxSize(0.1f)
+                    .fillMaxHeight(),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         } else {
@@ -199,9 +201,9 @@ fun SettingsNavigationItem(
                 Icons.AutoMirrored.Default.KeyboardArrowRight,
                 "",
                 Modifier
-                    .align(Alignment.CenterEnd)
                     .size(48.dp)
-                    .fillMaxSize()
+                    .fillMaxWidth(0.1f)
+                    .fillMaxHeight()
                     .rotate(-45f),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -681,7 +683,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Box(
+        Column(
             Modifier
                 .fillMaxWidth()
                 .padding(0.dp, 15.dp)
@@ -690,7 +692,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 stringResource(id = R.string.home),
                 Modifier
                     .padding(0.dp, 5.dp)
-                    .align(Alignment.CenterStart),
+                    .align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -709,7 +711,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
-                    .align(Alignment.CenterEnd)
+                    .align(Alignment.CenterHorizontally)
                     .width(275.dp)
             ) {
                 options.forEachIndexed { index, label ->
@@ -725,19 +727,13 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                     }
                 }
             }
-        }
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(0.dp, 15.dp)
-        ) {
-            var selectedIndex by remember {
+            var selectedVerticalIndex by remember {
                 mutableIntStateOf(
                     getHomeVAlignment(context)
                 )
             }
-            val options = listOf(
+            val optionsVertical = listOf(
                 stringResource(R.string.top),
                 stringResource(R.string.center),
                 stringResource(R.string.bottom)
@@ -745,17 +741,17 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
-                    .align(Alignment.CenterEnd)
+                    .align(Alignment.CenterHorizontally)
                     .width(275.dp)
             ) {
-                options.forEachIndexed { index, label ->
+                optionsVertical.forEachIndexed { index, label ->
                     SegmentedButton(
                         shape = SegmentedButtonDefaults.itemShape(
-                            index = index, count = options.size
+                            index = index, count = optionsVertical.size
                         ), onClick = {
-                            selectedIndex = index
-                            changeHomeVAlignment(context, selectedIndex)
-                        }, selected = index == selectedIndex
+                            selectedVerticalIndex = index
+                            changeHomeVAlignment(context, selectedVerticalIndex)
+                        }, selected = index == selectedVerticalIndex
                     ) {
                         Text(label)
                     }
@@ -763,7 +759,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             }
         }
 
-        Box(
+        Column(
             Modifier
                 .fillMaxWidth()
                 .padding(0.dp, 15.dp)
@@ -772,7 +768,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
                 stringResource(id = R.string.apps),
                 Modifier
                     .padding(0.dp, 5.dp)
-                    .align(Alignment.CenterStart),
+                    .align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -791,7 +787,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
             SingleChoiceSegmentedButtonRow(
                 Modifier
                     .padding(0.dp, 0.dp)
-                    .align(Alignment.CenterEnd)
+                    .align(Alignment.CenterHorizontally)
                     .width(275.dp)
             ) {
                 options.forEachIndexed { index, label ->
@@ -961,7 +957,7 @@ fun ThemeOptions(
     ) {
         SettingsHeader(goBack, stringResource(R.string.theme))
 
-        HorizontalDivider(Modifier.padding(0.dp, 15.dp))
+        HorizontalDivider(Modifier.padding(0.dp, 15.dp, 0.dp, 0.dp))
 
         LazyVerticalGrid(
             GridCells.Adaptive(minSize = 128.dp)
@@ -972,7 +968,6 @@ fun ThemeOptions(
             item {
                 ThemeCard(0, context, activity)
             }
-
             item {
                 ThemeCard(11, context, activity)
             }

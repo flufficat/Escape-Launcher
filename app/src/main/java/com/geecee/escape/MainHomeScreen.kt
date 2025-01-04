@@ -18,13 +18,22 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -33,9 +42,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escape.ui.theme.EscapeTheme
+import com.geecee.escape.ui.views.HomeScreenModel
 import com.geecee.escape.ui.views.HomeScreenPageManager
 import com.geecee.escape.ui.views.Onboarding
 import com.geecee.escape.ui.views.Settings
+import com.geecee.escape.utils.AppUtils
 import com.geecee.escape.utils.PrivateSpaceStateReceiver
 import com.geecee.escape.utils.ScreenOffReceiver
 import com.geecee.escape.utils.animateSplashScreen
@@ -57,6 +68,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     var isAppOpened: Boolean = false
     var currentPackageName: String? = null
     val showPrivateSpaceUnlockedUI: MutableState<Boolean> = mutableStateOf(false)
+    val shouldReloadAppUsage: MutableState<Boolean> = mutableStateOf(false)
 
     fun getContext(): Context = appContext
 }
@@ -64,6 +76,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
+    private lateinit var homeScreenModel: HomeScreenModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Setup analytics
@@ -141,6 +154,15 @@ class MainHomeScreen : ComponentActivity() {
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }
+
+        // Reset home
+        try {
+            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
+            AppUtils.resetHome(homeScreenModel, viewModel)
+            viewModel.shouldReloadAppUsage.value = true
+        } catch (ex: Exception) {
+            Log.e("ERROR", ex.toString())
+        }
     }
 
     override fun onDestroy() {
@@ -159,14 +181,15 @@ class MainHomeScreen : ComponentActivity() {
     @Suppress("DEPRECATION")
     private fun configureFullScreenMode() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.decorView.systemUiVisibility =
+                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
-        }
-        else {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+        } else {
+            window.decorView.systemUiVisibility =
+                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
     }
@@ -187,6 +210,42 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun SetUpHomeScreenModel(mainAppModel: MainAppViewModel) {
+        homeScreenModel = HomeScreenModel(
+            showBottomSheet = remember { mutableStateOf(false) },
+            sheetState = rememberModalBottomSheetState(),
+            currentSelectedApp = remember { mutableStateOf("") },
+            currentPackageName = remember { mutableStateOf("") },
+            isCurrentAppFavorite = remember { mutableStateOf(false) },
+            isCurrentAppChallenged = remember { mutableStateOf(false) },
+            isCurrentAppHidden = remember { mutableStateOf(false) },
+            haptics = LocalHapticFeedback.current,
+            sharedPreferences = mainAppModel.getContext().getSharedPreferences(
+                R.string.settings_pref_file_name.toString(),
+                Context.MODE_PRIVATE
+            ),
+            favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } },
+            interactionSource = remember { MutableInteractionSource() },
+            showOpenChallenge = remember { mutableStateOf(false) },
+            pagerState = rememberPagerState(1, 0f) { 3 },
+            coroutineScope = rememberCoroutineScope(),
+            installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager),
+            sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
+                .sortedBy {
+                    AppUtils.getAppNameFromPackageName(
+                        mainAppModel.getContext(),
+                        it.activityInfo.packageName
+                    )
+                },
+            appsListScrollState = rememberLazyListState(),
+            searchText = remember { mutableStateOf("") },
+            searchExpanded = remember { mutableStateOf(false) },
+            showPrivateSpaceSettings = remember { mutableStateOf(false) }
+        )
+    }
+
     // Navigation host
     @Composable
     private fun SetupNavHost(startDestination: String) {
@@ -194,6 +253,8 @@ class MainHomeScreen : ComponentActivity() {
         val mainAppViewModel: MainAppViewModel by viewModels {
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         }
+
+        SetUpHomeScreenModel(mainAppViewModel)
 
         Box(
             modifier = Modifier
@@ -204,7 +265,10 @@ class MainHomeScreen : ComponentActivity() {
                 composable("home",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    HomeScreenPageManager(mainAppViewModel) { navController.navigate("settings") }
+                    HomeScreenPageManager(
+                        mainAppViewModel,
+                        homeScreenModel
+                    ) { navController.navigate("settings") }
                 }
                 composable("settings",
                     enterTransition = { fadeIn(tween(300)) },

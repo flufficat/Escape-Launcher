@@ -83,7 +83,7 @@
 
     <!-- Screen time dashboard -->
     <string name="of_your_day_spent_on_your_phone">De ta journée passée sur ton téléphone</string>
-    <string name="higher_we_rec">Supérieur à celui que nous recommandons</string>
+    <string name="higher_we_rec">Plus élevé que ce que nous recommandons</string>
     <string name="no_apps_used">Aucune application ouverte pour le moment !</string>
     
     <!-- Themes -->

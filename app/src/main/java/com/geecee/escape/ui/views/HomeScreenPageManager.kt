@@ -1,6 +1,5 @@
 package com.geecee.escape.ui.views
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
@@ -18,10 +17,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,20 +28,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +65,7 @@ data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
     var showOpenChallenge: MutableState<Boolean>, // Whether there is an open challenge open rn
     var pagerState: PagerState, // I wonder what this does
     var coroutineScope: CoroutineScope, // Same applies
-    val installedApps: MutableList<ResolveInfo>, // List of installed apps
+    var installedApps: MutableList<ResolveInfo>, // List of installed apps
     var sortedInstalledApps: List<ResolveInfo>, // Sorted list of installed apps
     val appsListScrollState: LazyListState, // Scroll state of the apps list
     val searchText: MutableState<String>, // The current text in the search box
@@ -90,41 +81,9 @@ data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
 @Composable
 fun HomeScreenPageManager(
     mainAppModel: MainAppModel,
+    homeScreenModel: HomeScreenModel,
     onOpenSettings: () -> Unit
 ) {
-    //Set up variables
-    val homeScreenModel = HomeScreenModel(
-        showBottomSheet = remember { mutableStateOf(false) },
-        sheetState = rememberModalBottomSheetState(),
-        currentSelectedApp = remember { mutableStateOf("") },
-        currentPackageName = remember { mutableStateOf("") },
-        isCurrentAppFavorite = remember { mutableStateOf(false) },
-        isCurrentAppChallenged = remember { mutableStateOf(false) },
-        isCurrentAppHidden = remember { mutableStateOf(false) },
-        haptics = LocalHapticFeedback.current,
-        sharedPreferences = mainAppModel.getContext().getSharedPreferences(
-            R.string.settings_pref_file_name.toString(),
-            Context.MODE_PRIVATE
-        ),
-        favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } },
-        interactionSource = remember { MutableInteractionSource() },
-        showOpenChallenge = remember { mutableStateOf(false) },
-        pagerState = rememberPagerState(1, 0f) { 3 },
-        coroutineScope = rememberCoroutineScope(),
-        installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager),
-        sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
-            .sortedBy {
-                AppUtils.getAppNameFromPackageName(
-                    mainAppModel.getContext(),
-                    it.activityInfo.packageName
-                )
-            },
-        appsListScrollState = rememberLazyListState(),
-        searchText = remember { mutableStateOf("") },
-        searchExpanded = remember { mutableStateOf(false) },
-        showPrivateSpaceSettings = remember { mutableStateOf(false) }
-    )
-
     // Home Screen Pages
     HorizontalPager(
         state = homeScreenModel.pagerState,
@@ -152,7 +111,7 @@ fun HomeScreenPageManager(
             )
     ) { page ->
         when (page) {
-            0 -> ScreenTimeDashboard(mainAppModel.getContext())
+            0 -> ScreenTimeDashboard(mainAppModel.getContext(), mainAppModel)
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,

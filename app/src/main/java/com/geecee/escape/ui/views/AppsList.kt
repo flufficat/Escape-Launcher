@@ -140,7 +140,7 @@ fun AppsList(
                                 mainAppModel
                             )
 
-                            resetHome(homeScreenModel)
+                            resetHome(homeScreenModel, mainAppModel)
 
 
                         }
@@ -167,7 +167,7 @@ fun AppsList(
                                 mainAppModel
                             )
 
-                            resetHome(homeScreenModel)
+                            resetHome(homeScreenModel, mainAppModel)
                         }
                     }, expanded = homeScreenModel.searchExpanded
                     )
@@ -208,7 +208,7 @@ fun AppsList(
                             packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
                         )
 
-                        resetHome(homeScreenModel)
+                        resetHome(homeScreenModel, mainAppModel)
                     },
                         onAppLongClick = {
                         homeScreenModel.showBottomSheet.value = true

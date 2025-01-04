@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,12 +34,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.geecee.escape.MainAppViewModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.theme.EscapeTheme
 import com.geecee.escape.ui.theme.escapeGreen
@@ -69,14 +71,14 @@ fun calculateOveragePercentage(screenTime: Long): Int {
 }
 
 @Composable
-fun ScreenTimeDashboard(context: Context) {
+fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     val todayUsage = remember { mutableLongStateOf(0L) }
     val yesterdayUsage = remember { mutableLongStateOf(0L) }
     val appUsageToday = remember { mutableStateListOf<AppUsageEntity>() }
     val appUsageYesterday = remember { mutableStateListOf<AppUsageEntity>() }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
         try {
             withContext(Dispatchers.IO) {
                 val usage = getTotalUsageForDate(today)
@@ -119,6 +121,8 @@ fun ScreenTimeDashboard(context: Context) {
         } catch (e: Exception) {
             Log.e("ScreenTime", "Error fetching yesterday's usages: ${e.message}")
         }
+
+        mainAppModel.shouldReloadAppUsage.value = false
     }
 
     Column(
@@ -166,7 +170,11 @@ fun ScreenTimeDashboard(context: Context) {
         AppUsages(Modifier) {
             if (!appUsageToday.isEmpty()) {
                 appUsageToday.forEach { appScreenTime ->
-                    if (AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName) != "null") {
+                    if (AppUtils.getAppNameFromPackageName(
+                            context,
+                            appScreenTime.packageName
+                        ) != "null"
+                    ) {
                         val yesterdayAppUsage =
                             appUsageYesterday.find { it.packageName == appScreenTime.packageName }
                         val usageIncreased =
@@ -175,17 +183,20 @@ fun ScreenTimeDashboard(context: Context) {
                         AppUsage(
                             AppUtils.getAppNameFromPackageName(context, appScreenTime.packageName),
                             usageIncreased,
-                            if (appScreenTime.totalTime > 60000) AppUtils.formatScreenTime(appScreenTime.totalTime) else "<1m",
+                            if (appScreenTime.totalTime > 60000) AppUtils.formatScreenTime(
+                                appScreenTime.totalTime
+                            ) else "<1m",
                             Modifier
                         )
                     }
                 }
             } else {
-                Text(text = stringResource(R.string.no_apps_used),
-                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                     style = MaterialTheme.typography.bodyMedium,
-                     color = MaterialTheme.colorScheme.onPrimaryContainer
-                 )
+                Text(
+                    text = stringResource(R.string.no_apps_used),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
 
@@ -228,70 +239,91 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
 }
 
 @Composable
-fun HigherRec(percent: Int, modifier: Modifier) {
-    Box(
-        modifier
+fun HigherRec(percent: Int, modifier: Modifier = Modifier) {
+    BoxWithConstraints(
+        modifier = modifier
             .clip(MaterialTheme.shapes.extraLarge)
+            .aspectRatio(1f)
             .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
+        val padding = maxWidth * 0.1f
+        val titleFontSize = maxWidth * 0.3f
+        val bodyFontSize = maxWidth * 0.1f
+
         Column(
-            Modifier
+            modifier = Modifier
                 .align(Alignment.Center)
-                .padding(20.dp),
+                .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Percent Text
             Text(
-                "$percent%",
-                style = MaterialTheme.typography.titleMedium,
-                color = if (percent < 1) {
-                    escapeGreen
-                } else {
-                    escapeRed
-                },
-                fontWeight = FontWeight.SemiBold
+                text = "$percent%",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = with(LocalDensity.current) { titleFontSize.toSp() },
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = if (percent < 1) escapeGreen else escapeRed
             )
+
+            // Description Text
             Text(
                 text = stringResource(R.string.higher_we_rec),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                textAlign = TextAlign.Center
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = with(LocalDensity.current) { bodyFontSize.toSp() },
+                    lineHeight = with(LocalDensity.current) { (bodyFontSize + 5.dp).toSp() },
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
     }
 }
 
 @Composable
-fun DaySpent(percent: Int, modifier: Modifier) {
-    Box(
-        modifier
+fun DaySpent(percent: Int, modifier: Modifier = Modifier) {
+    BoxWithConstraints(
+        modifier = modifier
+            .aspectRatio(1f)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
+        val padding = maxWidth * 0.1f
+        val titleFontSize = maxWidth * 0.3f
+        val bodyFontSize = maxWidth * 0.08f
+
         Column(
-            Modifier
+            modifier = Modifier
                 .align(Alignment.Center)
-                .padding(20.dp),
+                .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Percent Text
             Text(
-                "$percent%",
-                style = MaterialTheme.typography.titleMedium,
-                color = if (percent < 10) {
-                    escapeGreen
-                } else {
-                    escapeRed
-                },
-                fontWeight = FontWeight.SemiBold
+                text = "$percent%",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = with(LocalDensity.current) { titleFontSize.toSp() },
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = if (percent < 10) escapeGreen else escapeRed
             )
+
+            // Description Text
             Text(
                 text = stringResource(R.string.of_your_day_spent_on_your_phone),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                textAlign = TextAlign.Center
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = with(LocalDensity.current) { bodyFontSize.toSp() },
+                    lineHeight = with(LocalDensity.current) { (bodyFontSize + 5.dp).toSp() },
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
     }
 }
+
 
 @Composable
 fun AppUsage(appName: String, increased: Boolean, time: String, modifier: Modifier) {
@@ -374,22 +406,6 @@ fun ScreenTimePrevDec() {
 fun ScreenTimePrev() {
     EscapeTheme {
         ScreenTime("3h 24m", true, Modifier)
-    }
-}
-
-@Composable
-@Preview
-fun ScreenTimeDashPreview() {
-    EscapeTheme {
-        ScreenTimeDashboard(LocalContext.current)
-    }
-}
-
-@Composable
-@Preview(device = "spec:parent=pixel_5,orientation=landscape")
-fun ScreenTimeDashPreviewLandscape() {
-    EscapeTheme {
-        ScreenTimeDashboard(LocalContext.current)
     }
 }
 

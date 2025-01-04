@@ -10,7 +10,7 @@ import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escape.MainAppViewModel
 import com.geecee.escape.R
 import com.geecee.escape.ui.views.HomeScreenModel
 import com.geecee.escape.utils.managers.ScreenTimeManager
@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 
 object AppUtils {
@@ -139,13 +140,23 @@ object AppUtils {
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
 
-    fun resetHome(homeScreenModel: HomeScreenModel) {
+    fun resetHome(homeScreenModel: HomeScreenModel, mainAppModel: MainAppViewModel) {
         homeScreenModel.coroutineScope.launch {
             delay(200)
             homeScreenModel.pagerState.animateScrollToPage(1)
             homeScreenModel.appsListScrollState.scrollToItem(0)
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
+            homeScreenModel.installedApps =
+                getAllInstalledApps(packageManager = mainAppModel.packageManager)
+            homeScreenModel.sortedInstalledApps =
+                getAllInstalledApps(packageManager = mainAppModel.packageManager)
+                    .sortedBy {
+                        getAppNameFromPackageName(
+                            mainAppModel.getContext(),
+                            it.activityInfo.packageName
+                        )
+                    }
         }
     }
 
@@ -157,10 +168,11 @@ object AppUtils {
         favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
     }
 
-    fun getYesterday():String{
+    fun getYesterday(): String {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -1)
-        val yesterdayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        val yesterdayDate =
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
         return yesterdayDate
     }
 }
