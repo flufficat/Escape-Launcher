@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit
 object ScreenTimeManager {
     private val appSessions = ConcurrentHashMap<String, Long>() // Thread-safe in-memory tracking
     lateinit var database: AppDatabase
-    private val retentionThreshold: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        .format(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)))
 
     fun initialize(context: Context) {
         database = AppDatabase.getDatabase(context)
@@ -61,9 +59,11 @@ object ScreenTimeManager {
     }
 
     fun clearOldData() {
+        val retentionThreshold: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            .format(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2)))
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                database.appUsageDao().clearOldData(retentionThreshold)
+                database.appUsageDao().clearOldData("%$retentionThreshold%")
             } catch (e: Exception) {
                 Log.e("ScreenTimeManager", "Error clearing old data: ${e.message}")
             }

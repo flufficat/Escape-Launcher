@@ -56,6 +56,7 @@ import com.geecee.escape.utils.managers.ChallengesManager
 import com.geecee.escape.utils.managers.FavoriteAppsManager
 import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.managers.ScreenTimeManager
+import com.geecee.escape.utils.managers.scheduleDailyCleanup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -103,6 +104,7 @@ class MainHomeScreen : ComponentActivity() {
 
         // Set up the screen time tracking
         ScreenTimeManager.initialize(this)
+        scheduleDailyCleanup(this)
 
         // Set up the application content
         setContent { SetUpContent() }
