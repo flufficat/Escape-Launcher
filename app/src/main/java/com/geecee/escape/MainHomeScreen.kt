@@ -72,6 +72,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     val shouldReloadAppUsageOnHome: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadAppUsageOnApps: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadTotalScreenTimeOnHomeScreen: MutableState<Boolean> = mutableStateOf(false)
+    val shouldGoHomeOnResume: MutableState<Boolean> = mutableStateOf(true)
 
     fun getContext(): Context = appContext
 }
@@ -161,7 +162,8 @@ class MainHomeScreen : ComponentActivity() {
         // Reset home
         try {
             val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
-            AppUtils.resetHome(homeScreenModel, viewModel)
+            AppUtils.resetHome(homeScreenModel, viewModel, viewModel.shouldGoHomeOnResume.value)
+            viewModel.shouldGoHomeOnResume.value = true
             viewModel.shouldReloadAppUsage.value = true
             viewModel.shouldReloadAppUsageOnHome.value = true
             viewModel.shouldReloadAppUsageOnApps.value = true

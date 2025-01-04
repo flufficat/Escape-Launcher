@@ -26,7 +26,6 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import com.geecee.escape.MainAppViewModel as MainAppModel
 
-
 object AppUtils {
     fun openApp(
         packageName: String,
@@ -140,11 +139,13 @@ object AppUtils {
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
 
-    fun resetHome(homeScreenModel: HomeScreenModel, mainAppModel: MainAppViewModel) {
+    fun resetHome(homeScreenModel: HomeScreenModel, mainAppModel: MainAppViewModel, shouldGoToFirstPage: Boolean? = true) {
         homeScreenModel.coroutineScope.launch {
             delay(200)
-            homeScreenModel.pagerState.animateScrollToPage(1)
-            homeScreenModel.appsListScrollState.scrollToItem(0)
+            if(shouldGoToFirstPage == true){
+                homeScreenModel.pagerState.scrollToPage(1)
+                homeScreenModel.appsListScrollState.scrollToItem(0)
+            }
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
             homeScreenModel.installedApps =
