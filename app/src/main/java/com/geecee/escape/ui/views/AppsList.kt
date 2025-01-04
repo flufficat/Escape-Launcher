@@ -186,60 +186,70 @@ fun AppsList(
             { app ->
                 // Fetch screen time in a coroutine
                 val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-                LaunchedEffect(app.activityInfo.packageName) {
+                LaunchedEffect(mainAppModel.shouldReloadAppUsageOnApps.value) {
                     withContext(Dispatchers.IO) {
                         appScreenTime.longValue = getUsageForApp(
                             app.activityInfo.packageName,
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         )
+                        mainAppModel.shouldReloadAppUsageOnApps.value = false
                     }
                 }
 
                 // Draw app if its not hidden and not Escape itself
-                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(app.activityInfo.packageName)) {
+                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
+                        app.activityInfo.packageName
+                    )
+                ) {
                     HomeScreenItem(
-                        appName = AppUtils.getAppNameFromPackageName(mainAppModel.getContext(), app.activityInfo.packageName),
+                        appName = AppUtils.getAppNameFromPackageName(
+                            mainAppModel.getContext(),
+                            app.activityInfo.packageName
+                        ),
                         screenTime = appScreenTime.longValue,
                         onAppClick = {
-                        val packageName = app.activityInfo.packageName
-                        homeScreenModel.currentPackageName.value = packageName
+                            val packageName = app.activityInfo.packageName
+                            homeScreenModel.currentPackageName.value = packageName
 
-                        AppUtils.openApp(
-                            packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
-                        )
+                            AppUtils.openApp(
+                                packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
+                            )
 
-                        resetHome(homeScreenModel, mainAppModel)
-                    },
+                            resetHome(homeScreenModel, mainAppModel)
+                        },
                         onAppLongClick = {
-                        homeScreenModel.showBottomSheet.value = true
-                        homeScreenModel.currentSelectedApp.value =
-                            AppUtils.getAppNameFromPackageName(
-                                mainAppModel.getContext(), app.activityInfo.packageName
-                            )
-                        homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                        homeScreenModel.isCurrentAppChallenged.value =
-                            mainAppModel.challengesManager.doesAppHaveChallenge(
-                                app.activityInfo.packageName
-                            )
-                        homeScreenModel.isCurrentAppHidden.value =
-                            mainAppModel.hiddenAppsManager.isAppHidden(
-                                app.activityInfo.packageName
-                            )
-                        homeScreenModel.isCurrentAppFavorite.value =
-                            mainAppModel.favoriteAppsManager.isAppFavorite(
-                                app.activityInfo.packageName
-                            )
+                            homeScreenModel.showBottomSheet.value = true
+                            homeScreenModel.currentSelectedApp.value =
+                                AppUtils.getAppNameFromPackageName(
+                                    mainAppModel.getContext(), app.activityInfo.packageName
+                                )
+                            homeScreenModel.currentPackageName.value = app.activityInfo.packageName
+                            homeScreenModel.isCurrentAppChallenged.value =
+                                mainAppModel.challengesManager.doesAppHaveChallenge(
+                                    app.activityInfo.packageName
+                                )
+                            homeScreenModel.isCurrentAppHidden.value =
+                                mainAppModel.hiddenAppsManager.isAppHidden(
+                                    app.activityInfo.packageName
+                                )
+                            homeScreenModel.isCurrentAppFavorite.value =
+                                mainAppModel.favoriteAppsManager.isAppFavorite(
+                                    app.activityInfo.packageName
+                                )
 
-                        if (getBooleanSetting(
-                                mainAppModel.getContext(),
-                                mainAppModel.getContext().resources.getString(R.string.Haptic),
-                                true
-                            )
-                        ) {
-                            homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }
-                    },
-                        showScreenTime = getBooleanSetting(mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)),
+                            if (getBooleanSetting(
+                                    mainAppModel.getContext(),
+                                    mainAppModel.getContext().resources.getString(R.string.Haptic),
+                                    true
+                                )
+                            ) {
+                                homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                        },
+                        showScreenTime = getBooleanSetting(
+                            mainAppModel.getContext(),
+                            stringResource(R.string.ScreenTimeOnApp)
+                        ),
                         modifier = Modifier
                     )
                 }

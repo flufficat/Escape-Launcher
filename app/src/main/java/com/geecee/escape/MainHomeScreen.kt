@@ -69,6 +69,9 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     var currentPackageName: String? = null
     val showPrivateSpaceUnlockedUI: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadAppUsage: MutableState<Boolean> = mutableStateOf(false)
+    val shouldReloadAppUsageOnHome: MutableState<Boolean> = mutableStateOf(false)
+    val shouldReloadAppUsageOnApps: MutableState<Boolean> = mutableStateOf(false)
+    val shouldReloadTotalScreenTimeOnHomeScreen: MutableState<Boolean> = mutableStateOf(false)
 
     fun getContext(): Context = appContext
 }
@@ -160,6 +163,9 @@ class MainHomeScreen : ComponentActivity() {
             val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             AppUtils.resetHome(homeScreenModel, viewModel)
             viewModel.shouldReloadAppUsage.value = true
+            viewModel.shouldReloadAppUsageOnHome.value = true
+            viewModel.shouldReloadAppUsageOnApps.value = true
+            viewModel.shouldReloadTotalScreenTimeOnHomeScreen.value = true
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }
