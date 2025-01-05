@@ -40,6 +40,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -1265,7 +1266,13 @@ fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableSta
                     onClick = { showPolicyDialog.value = false },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 8.dp),
+                    colors = ButtonColors(
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        MaterialTheme.colorScheme.background
+                    )
                 ) {
                     Text("OK")
                 }

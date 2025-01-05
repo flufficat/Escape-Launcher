@@ -69,10 +69,14 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     var isAppOpened: Boolean = false
     var currentPackageName: String? = null
     val showPrivateSpaceUnlockedUI: MutableState<Boolean> = mutableStateOf(false)
+
+    // These are for getting the launchedEffect with the screen time tracking to reload so the screen time updates
     val shouldReloadAppUsage: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadAppUsageOnHome: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadAppUsageOnApps: MutableState<Boolean> = mutableStateOf(false)
     val shouldReloadTotalScreenTimeOnHomeScreen: MutableState<Boolean> = mutableStateOf(false)
+
+
     val shouldGoHomeOnResume: MutableState<Boolean> = mutableStateOf(true)
 
     fun getContext(): Context = appContext

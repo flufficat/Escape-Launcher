@@ -47,7 +47,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,7 +72,6 @@ import com.geecee.escape.utils.managers.getUsageForApp
 import com.geecee.escape.utils.openPrivateSpaceApp
 import com.geecee.escape.utils.unlockPrivateSpace
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -473,15 +471,9 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                         )
                     }
 
-                    val scope = rememberCoroutineScope()
                     IconButton(
                         {
                             lockPrivateSpace(mainAppModel.getContext())
-                            scope.launch {
-                                homeScreenModel.appsListScrollState.animateScrollToItem(
-                                    0, 50
-                                )
-                            }
                             homeScreenModel.searchExpanded.value = false
                             homeScreenModel.searchText.value = ""
                         }, Modifier, colors = IconButtonColors(
@@ -505,6 +497,7 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
                     openPrivateSpaceApp(
                         privateSpaceApp = app, context = mainAppModel.getContext(), Rect()
                     )
+                    resetHome(homeScreenModel, mainAppModel)
                 }
             }
 
