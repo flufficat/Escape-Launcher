@@ -23,7 +23,6 @@ android {
             useSupportLibrary = true
         }
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -31,6 +30,28 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+    flavorDimensions += "version"
+    productFlavors{
+        create("dev"){
+            applicationIdSuffix = ".dev"
+            dimension = "version"
+            versionNameSuffix = "-dev"
+        }
+        create("prod"){
+            dimension = "version"
+            applicationIdSuffix = ""
+        }
+    }
+    androidComponents.beforeVariants { variantBuilder ->
+        val flavor = variantBuilder.productFlavors.firstOrNull()?.second
+        val buildType = variantBuilder.buildType
+
+        if ((flavor == "prod" && buildType == "debug") ||
+            (flavor == "dev" && buildType == "release")) {
+            variantBuilder.enable = false
         }
     }
     compileOptions {
@@ -108,4 +129,9 @@ dependencies {
     // Debugging Tools
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
