@@ -1,9 +1,9 @@
 [versions]
-agp = "8.7.3"
+agp = "8.8.0"
 coreSplashscreen = "1.0.1"
-firebaseBom = "33.7.0"
+firebaseBom = "33.9.0"
 graphicsShapes = "1.0.1"
-gson = "2.10.1"
+gson = "2.11.0"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -12,17 +12,18 @@ espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.12.01"
-navigationCompose = "2.8.5"
+activityCompose = "1.10.0"
+composeBom = "2025.01.01"
+navigationCompose = "2.8.6"
 composeMaterial = "1.4.0"
-firebaseCrashlyticsBuildtools = "3.0.2"
+firebaseCrashlyticsBuildtools = "3.0.3"
 roomCommon = "2.6.1"
 roomCompiler = "2.6.1"
 roomKtx = "2.6.1"
 roomRuntime = "2.6.1"
 workRuntimeKtx = "2.10.0"
-uiTextGoogleFonts = "1.7.6"
+uiTextGoogleFonts = "1.7.7"
+firebaseMessaging = "24.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,7 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-perf = { module = "com.google.firebase:firebase-perf" }
+google-firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -57,6 +59,7 @@ firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "fireb
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

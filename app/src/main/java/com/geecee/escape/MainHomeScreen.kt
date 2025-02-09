@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -57,6 +59,7 @@ import com.geecee.escape.utils.managers.FavoriteAppsManager
 import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.managers.ScreenTimeManager
 import com.geecee.escape.utils.managers.scheduleDailyCleanup
+import com.geecee.escape.utils.managers.sendNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -86,6 +89,11 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
     private lateinit var homeScreenModel: HomeScreenModel
+
+    private val pushNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Setup analytics
@@ -130,7 +138,6 @@ class MainHomeScreen : ComponentActivity() {
         val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
         registerReceiver(screenOffReceiver, filter)
 
-
         //Private space receiver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             privateSpaceReceiver = PrivateSpaceStateReceiver { isUnlocked ->
@@ -144,6 +151,14 @@ class MainHomeScreen : ComponentActivity() {
             }
             registerReceiver(privateSpaceReceiver, intentFilter)
         }
+
+        // Notification Perms
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/georgeclensy/escape"))
+        sendNotification(this, "TEST", "TEST NOTIFICATION", "updates", "Updates", notificationIntent)
     }
 
     override fun onResume() {

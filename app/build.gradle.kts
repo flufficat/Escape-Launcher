@@ -101,6 +101,7 @@ dependencies {
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.firebase.messaging)
     ksp(libs.androidx.room.compiler)
 
     // WorkManager
@@ -115,6 +116,8 @@ dependencies {
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.perf)
+    implementation(libs.google.firebase.messaging)
+
 
     // JSON Parsing
     implementation(libs.gson)

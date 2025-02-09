@@ -4,41 +4,14 @@
     <selectionStates>
       <SelectionState runConfigName="Escape">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-12-24T09:08:01.653273900Z">
+        <DropdownSelection timestamp="2025-02-09T09:14:39.771041600Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\georg\.android\avd\Pixel_9_Pro_XL_API_Baklava.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="app">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-01-05T11:31:29.987359200Z">
-          <Target type="DEFAULT_BOOT">
-            <template>
-              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=caiman/34" />
-            </template>
-          </Target>
-        </DropdownSelection>
-        <DialogSelection>
-          <targets>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />
-              </handle>
-            </Target>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="FirebaseDirectAccess" identifier="reservation=projects/geecee-escapelauncher/deviceSessions/session-v65rrb1sita1a" />
-              </handle>
-              <template>
-                <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=q5q/34" />
-              </template>
-            </Target>
-          </targets>
-        </DialogSelection>
       </SelectionState>
     </selectionStates>
   </component>
