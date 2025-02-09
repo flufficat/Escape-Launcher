@@ -28,7 +28,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (notification != null) {
             notification.title?.let {
                 notification.body?.let { it1 ->
-                    sendNotification(applicationContext, it1,
+                    sendNotification(
+                        this, it1,
                         it, "updates", "Updates", notificationIntent)
                 }
             }
