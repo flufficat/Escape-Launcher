@@ -7,6 +7,9 @@
   Welcome to Escape
 </h1>
 
+[Our (very empty) linktree](linktr.ee/escapelauncher)
+
+
 Escape is a minimalist android launcher for android 8.1 and higher. It has a modern, simple and customizable design with a list of apps on the home screen and optional clock with widgets coming soon, support for material ui colour schemes and features such as hidden apps.
 
 <br/>
