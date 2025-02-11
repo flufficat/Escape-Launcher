@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Escape">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-09T09:14:39.771041600Z">
+        <DropdownSelection timestamp="2025-02-11T19:33:34.471419900Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\georg\.android\avd\Pixel_9_Pro_XL_API_Baklava.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />
             </handle>
           </Target>
         </DropdownSelection>

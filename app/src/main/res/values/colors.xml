@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="Teal1">#CBF4F1</color>
-    <color name="ic_launcher_background">#CBF4F1</color>
+    <color name="OffBlack">#1e1e1e</color>
+    <color name="ic_launcher_background">#168395</color>
 </resources>

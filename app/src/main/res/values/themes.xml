@@ -5,9 +5,9 @@
 
     <style name="Theme.Escape.Splash" parent="Theme.SplashScreen">
         <!-- Set the background color -->
-        <item name="windowSplashScreenBackground">@color/Teal1</item>
+        <item name="windowSplashScreenBackground">@color/OffBlack</item>
         <!-- Set the logo -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/square_icon</item>
         <!-- Customize the icon animation duration -->
         <item name="windowSplashScreenAnimationDuration">500</item>
         <!-- Set the status bar color -->
