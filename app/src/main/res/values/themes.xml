@@ -5,7 +5,7 @@
 
     <style name="Theme.Escape.Splash" parent="Theme.SplashScreen">
         <!-- Set the background color -->
-        <item name="windowSplashScreenBackground">@color/OffBlack</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
         <!-- Set the logo -->
         <item name="windowSplashScreenAnimatedIcon">@drawable/square_icon</item>
         <!-- Customize the icon animation duration -->

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="Teal1">#CBF4F1</color>
-    <color name="OffBlack">#1e1e1e</color>
-    <color name="ic_launcher_background">#168395</color>
+    <color name="splash_background">#373737</color>
+    <color name="ic_launcher_background">#004C4C</color>
+    <color name="Teal1">#B2D8D8</color>
+    <color name="Teal2">#66B2B2</color>
+    <color name="Teal3">#008080</color>
+    <color name="Teal4">#006666</color>
+    <color name="Teal5">#004C4C</color>
+    <color name="OffBlack">#373737</color>
+    <color name="YellowOffWhite">#FEF9E2</color>
+    <color name="OffWhite">#F2E6E1</color>
 </resources>
