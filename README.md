@@ -1,4 +1,4 @@
-![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/Banner.png)
+![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/Banner/Banner.png)
 
 <!--suppress ALL -->
 <div align="center">
