@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -59,7 +58,6 @@ import com.geecee.escape.utils.managers.FavoriteAppsManager
 import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.managers.ScreenTimeManager
 import com.geecee.escape.utils.managers.scheduleDailyCleanup
-import com.geecee.escape.utils.managers.sendNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -157,9 +155,7 @@ class MainHomeScreen : ComponentActivity() {
             pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/georgeclensy/escape"))
-        sendNotification(this, "TEST", "TEST NOTIFICATION", "updates", "Updates", notificationIntent)
-    }
+       }
 
     override fun onResume() {
         super.onResume()
