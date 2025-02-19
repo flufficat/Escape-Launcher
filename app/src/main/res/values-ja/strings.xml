@@ -55,8 +55,6 @@
     <string name="theme">テーマ</string>
     <string name="light">ライト</string>
     <string name="dark">暗い</string>
-    <string name="material_dark">マテリアルダーク</string>
-    <string name="material_light">マテリアルライト</string>
     <string name="screen_time_on_app">アプリのスクリーンタイム</string>
     <string name="screen_time_on_home_screen">ホームスクリーンタイム</string>
     <string name="hide_private_space_in_search">隠れたプライベート空間</string>

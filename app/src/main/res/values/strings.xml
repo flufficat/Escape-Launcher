@@ -56,8 +56,6 @@
     <string name="theme">Theme</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>
-    <string name="material_dark">Material Dark</string>
-    <string name="material_light">Material Light</string>
     <string name="screen_time_on_app">Screen Time On Apps</string>
     <string name="screen_time_on_home_screen">Home Screen Time</string>
     <string name="hide_private_space_in_search">Hidden private space</string>

@@ -4,11 +4,11 @@
     <selectionStates>
       <SelectionState runConfigName="Escape">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-19T09:14:15.550872600Z">
+        <DropdownSelection timestamp="2025-02-19T09:36:57.928807500Z">
           <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />
-            </handle>
+            <template>
+              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=crownqlteue/29" />
+            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection />

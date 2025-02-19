@@ -56,8 +56,6 @@
     <string name="theme">Thème</string>
     <string name="light">Lumière</string>
     <string name="dark">Sombre</string>
-    <string name="material_dark">Matériau foncé</string>
-    <string name="material_light">Lumière matérielle</string>
     <string name="screen_time_on_app">Temps d\'écran sur les applications</string>
     <string name="screen_time_on_home_screen">Temps d\'écran d\'accueil</string>
     <string name="hide_private_space_in_search">Espace privé caché</string>
