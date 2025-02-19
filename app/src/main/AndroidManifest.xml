@@ -40,6 +40,14 @@
             <!-- Disable Analytics collection initially -->
             <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
 
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_icon"
+                android:resource="@drawable/notification_icon" />
+
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_channel_id"
+                android:value="updates"/>
+
             <!-- Set default consent states -->
             <meta-data android:name="google_analytics_default_allow_analytics_storage" android:value="false" />
 
@@ -60,13 +68,5 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
-        <receiver
-            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>

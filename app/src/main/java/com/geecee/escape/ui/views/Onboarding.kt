@@ -2,6 +2,8 @@ package com.geecee.escape.ui.views
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -50,14 +52,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escape.MainAppViewModel
 import com.geecee.escape.R
-import com.geecee.escape.utils.configureAnalytics
 import com.geecee.escape.utils.changeLauncher
+import com.geecee.escape.utils.configureAnalytics
 import com.geecee.escape.utils.setBooleanSetting
+import com.geecee.escape.MainAppViewModel as MainAppModel
 
 @Composable
-fun Onboarding(mainNavController: NavController, mainAppModel: MainAppModel) {
+fun Onboarding(
+    mainNavController: NavController,
+    mainAppModel: MainAppViewModel,
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "Page1") {
@@ -84,7 +91,12 @@ fun Onboarding(mainNavController: NavController, mainAppModel: MainAppModel) {
         composable("Page5",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
-            OnboardingPage5(mainNavController, mainAppModel)
+            OnboardingPage5(navController, mainNavController, mainAppModel)
+        }
+        composable("Notifications",
+            enterTransition = { fadeIn(tween(300)) },
+            exitTransition = { fadeOut(tween(300)) }) {
+            Notifications(mainNavController, mainAppModel, pushNotificationPermissionLauncher)
         }
     }
 }
@@ -442,7 +454,7 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
 }
 
 @Composable
-fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
+fun OnboardingPage5(navController: NavController, mainNavController: NavController, mainAppModel: MainAppModel) {
     val showPolicyDialog = remember { mutableStateOf(false) }
     val scrollState = rememberLazyListState()
 
@@ -508,15 +520,14 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Button(
                 onClick = {
-                    navController.navigate("home")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        navController.navigate("Notifications")
+                    } else {
+                        mainNavController.navigate("home")
+                    }
                     setBooleanSetting(
                         mainAppModel.getContext(),
                         mainAppModel.getContext().resources.getString(R.string.Analytics),
-                        false
-                    )
-                    setBooleanSetting(
-                        mainAppModel.getContext(),
-                        mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
                 }, modifier = Modifier, colors = ButtonDefaults.outlinedButtonColors(
@@ -539,16 +550,15 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
 
             Button(
                 onClick = {
-                    navController.navigate("home")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        navController.navigate("Notifications")
+                    } else {
+                        mainNavController.navigate("home")
+                    }
                     setBooleanSetting(
                         mainAppModel.getContext(),
                         mainAppModel.getContext().resources.getString(R.string.Analytics),
                         true
-                    )
-                    setBooleanSetting(
-                        mainAppModel.getContext(),
-                        mainAppModel.getContext().resources.getString(R.string.FirstTime),
-                        false
                     )
                     configureAnalytics(true)
                 }, modifier = Modifier, colors = ButtonColors(
@@ -574,4 +584,82 @@ fun OnboardingPage5(navController: NavController, mainAppModel: MainAppModel) {
     if (showPolicyDialog.value) {
         PrivacyPolicyDialog(mainAppModel, showPolicyDialog)
     }
+}
+
+@Composable
+fun Notifications(
+    navController: NavController,
+    mainAppModel: MainAppViewModel,
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+) {
+    val scrollState = rememberLazyListState()
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(30.dp, 0.dp, 30.dp, 30.dp)
+    ) {
+        LazyColumn(
+            state = scrollState
+        ) {
+            item {
+                Spacer(Modifier.height(120.dp))
+            }
+
+            item {
+                Text(
+                    stringResource(R.string.notifications),
+                    Modifier,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.Start
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    stringResource(R.string.please_allow_notifications),
+                    Modifier,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start,
+                    lineHeight = 32.sp
+                )
+            }
+        }
+
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+            Button(
+                onClick = {
+                    navController.navigate("home")
+                    setBooleanSetting(
+                        mainAppModel.getContext(),
+                        mainAppModel.getContext().resources.getString(R.string.FirstTime),
+                        false
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }, modifier = Modifier, colors = ButtonColors(
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    MaterialTheme.colorScheme.background
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.allow), maxLines = 1, // Prevent overflow
+                        overflow = TextOverflow.Ellipsis // Gracefully handle long text
+                    )
+                }
+            }
+        }
+    }
+
 }

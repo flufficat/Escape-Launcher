@@ -21,34 +21,32 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Get the notification data
-        val notification = remoteMessage.notification
+        // Extract data payload
+        val data = remoteMessage.data
+        Log.d("FCM", "Received data message: $data")
 
-        val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/georgeclensy/escape"))
-        if (notification != null) {
-            notification.title?.let {
-                notification.body?.let { it1 ->
-                    sendNotification(
-                        this, it1,
-                        it, "updates", "Updates", notificationIntent)
-                }
-            }
-        }
+        // Get title and message from data payload
+        val title = data["title"] ?: "Escape Launcher Update"
+        val message = data["message"] ?: "New update available!"
+        val url = data["url"] ?: "https://github.com/georgeclensy/escape"
+
+        // Intent to open the URL
+        val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+
+        // Send notification
+        sendNotification(this, title, message, "updates", "Updates", notificationIntent)
     }
 
-    // Override onNewToken to get the FCM token
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM", "New token: $token")
-        // Send the token to your server to store it
-        // ...
     }
 }
 
 fun sendNotification(context: Context, title: String, message: String, channelID: String, channelName: String, intent: Intent) {
     val notificationId = 1
 
-    // Create a notification channel (only needed for Android 8.0+)
+    // Create notification channel
     val channel = NotificationChannel(
         channelID,
         channelName,
@@ -63,7 +61,6 @@ fun sendNotification(context: Context, title: String, message: String, channelID
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
-
 
     // Register the channel with the system
     val notificationManager: NotificationManager =

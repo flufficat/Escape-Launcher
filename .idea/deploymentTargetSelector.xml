@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="Escape">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-11T19:33:34.471419900Z">
+        <DropdownSelection timestamp="2025-02-19T09:14:15.550872600Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=33311JEGR22894" />

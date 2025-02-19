@@ -58,6 +58,8 @@ import com.geecee.escape.utils.managers.FavoriteAppsManager
 import com.geecee.escape.utils.managers.HiddenAppsManager
 import com.geecee.escape.utils.managers.ScreenTimeManager
 import com.geecee.escape.utils.managers.scheduleDailyCleanup
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -150,12 +152,15 @@ class MainHomeScreen : ComponentActivity() {
             registerReceiver(privateSpaceReceiver, intentFilter)
         }
 
-        // Notification Perms
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        }
 
-       }
+        Firebase.messaging.subscribeToTopic("updates")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Subscribed to topic: updates")
+                }
+            }
+
+    }
 
     override fun onResume() {
         super.onResume()
@@ -307,7 +312,7 @@ class MainHomeScreen : ComponentActivity() {
                 composable("onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Onboarding(navController, mainAppViewModel)
+                    Onboarding(navController, mainAppViewModel, pushNotificationPermissionLauncher)
                 }
             }
         }

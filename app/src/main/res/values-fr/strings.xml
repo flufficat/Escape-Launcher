@@ -7,6 +7,8 @@
     <string name="read_privacy_policy">politique de confidentialité</string>
 
     <!-- All Apps strings -->
+    <string name="notifications">Notifications</string>
+    <string name="please_allow_notifications">Nous utilisons des notifications pour vous informer lorsqu\'une nouvelle version d\'Escape est disponible. Veuillez appuyer sur « Autoriser » dans la boîte de dialogue suivante pour activer les notifications.</string>
     <string name="all_apps">Toutes les applications</string>
     <string name="uninstall">Désinstaller</string>
     <string name="hide">Cacher</string>

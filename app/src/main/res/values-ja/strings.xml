@@ -7,6 +7,7 @@
     <string name="read_privacy_policy">プライバシーポリシー</string>
 
     <!-- All Apps strings -->
+    <string name="please_allow_notifications">Escape の新しいバージョンが利用可能になったときは、通知を使用してお知らせします。通知を有効にするには、次のダイアログで「許可」をタップしてください。</string>
     <string name="all_apps">すべてのアプリ</string>
     <string name="uninstall">アンインストール</string>
     <string name="hide">隠れる</string>
@@ -96,4 +97,5 @@
     <string name="light_green">ライトグリーン</string>
     <string name="dark_green">ダークグリーン</string>
     <string name="off_white">オフホワイト</string>
+    <string name="notifications">通知</string>
 </resources>
