@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#373737</color>
+    <color name="splash_background">@color/OffWhite</color>
     <color name="ic_launcher_background">#004C4C</color>
     <color name="Teal1">#B2D8D8</color>
     <color name="Teal2">#66B2B2</color>
