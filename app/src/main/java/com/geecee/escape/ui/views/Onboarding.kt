@@ -530,6 +530,7 @@ fun OnboardingPage5(navController: NavController, mainNavController: NavControll
                         mainAppModel.getContext().resources.getString(R.string.Analytics),
                         false
                     )
+                    configureAnalytics(false)
                 }, modifier = Modifier, colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -633,15 +634,15 @@ fun Notifications(
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Button(
                 onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
                     navController.navigate("home")
                     setBooleanSetting(
                         mainAppModel.getContext(),
                         mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    }
                 }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,
