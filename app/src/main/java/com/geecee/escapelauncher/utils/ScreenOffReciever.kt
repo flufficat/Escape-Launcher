@@ -1,4 +1,4 @@
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import android.content.BroadcastReceiver
 import android.content.Context

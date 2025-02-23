@@ -1,4 +1,4 @@
-package com.geecee.escape.utils.managers
+package com.geecee.escapelauncher.utils.managers
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -12,7 +12,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.geecee.escape.R
+import com.geecee.escapelauncher.R
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 

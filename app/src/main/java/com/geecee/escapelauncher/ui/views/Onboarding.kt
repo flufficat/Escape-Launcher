@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.views
+package com.geecee.escapelauncher.ui.views
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -52,12 +52,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.geecee.escape.MainAppViewModel
-import com.geecee.escape.R
-import com.geecee.escape.utils.changeLauncher
-import com.geecee.escape.utils.configureAnalytics
-import com.geecee.escape.utils.setBooleanSetting
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.MainAppViewModel
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.changeLauncher
+import com.geecee.escapelauncher.utils.configureAnalytics
+import com.geecee.escapelauncher.utils.setBooleanSetting
+import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 @Composable
 fun Onboarding(

@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Escape"
+rootProject.name = "Escape Launcher"
 include(":app")

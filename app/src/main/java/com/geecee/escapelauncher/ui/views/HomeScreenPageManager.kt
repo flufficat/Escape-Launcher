@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.views
+package com.geecee.escapelauncher.ui.views
 
 import android.content.Intent
 import android.content.SharedPreferences
@@ -41,15 +41,15 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.geecee.escape.R
-import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.AppUtils.updateFavorites
-import com.geecee.escape.utils.getBooleanSetting
-import com.geecee.escape.utils.managers.OpenChallenge
-import com.geecee.escape.utils.setBooleanSetting
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.updateFavorites
+import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.managers.OpenChallenge
+import com.geecee.escapelauncher.utils.setBooleanSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 // Model to be passed around home screen pages
 data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(

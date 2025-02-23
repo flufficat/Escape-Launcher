@@ -1,4 +1,4 @@
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
 import android.content.Context
@@ -10,10 +10,10 @@ import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import com.geecee.escape.MainAppViewModel
-import com.geecee.escape.R
-import com.geecee.escape.ui.views.HomeScreenModel
-import com.geecee.escape.utils.managers.ScreenTimeManager
+import com.geecee.escapelauncher.MainAppViewModel
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.views.HomeScreenModel
+import com.geecee.escapelauncher.utils.managers.ScreenTimeManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 object AppUtils {
     fun openApp(

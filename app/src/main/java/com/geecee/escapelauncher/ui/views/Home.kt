@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.views
+package com.geecee.escapelauncher.ui.views
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -44,25 +44,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.R
-import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.AppUtils.getCurrentTime
-import com.geecee.escape.utils.AppUtils.resetHome
-import com.geecee.escape.utils.WidgetsScreen
-import com.geecee.escape.utils.getBooleanSetting
-import com.geecee.escape.utils.getStringSetting
-import com.geecee.escape.utils.getWidgetHeight
-import com.geecee.escape.utils.getWidgetOffset
-import com.geecee.escape.utils.getWidgetWidth
-import com.geecee.escape.utils.managers.getTotalUsageForDate
-import com.geecee.escape.utils.managers.getUsageForApp
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.getCurrentTime
+import com.geecee.escapelauncher.utils.AppUtils.resetHome
+import com.geecee.escapelauncher.utils.WidgetsScreen
+import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.getStringSetting
+import com.geecee.escapelauncher.utils.getWidgetHeight
+import com.geecee.escapelauncher.utils.getWidgetOffset
+import com.geecee.escapelauncher.utils.getWidgetWidth
+import com.geecee.escapelauncher.utils.managers.getTotalUsageForDate
+import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 // Home Screen Page Inside the Pager
 @Composable

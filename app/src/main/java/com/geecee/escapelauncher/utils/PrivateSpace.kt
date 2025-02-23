@@ -1,4 +1,4 @@
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
 import android.content.BroadcastReceiver
@@ -31,9 +31,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
-import com.geecee.escape.R
-import com.geecee.escape.ui.theme.transparentHalf
-import com.geecee.escape.ui.views.SettingsSwitch
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.theme.transparentHalf
+import com.geecee.escapelauncher.ui.views.SettingsSwitch
 
 data class PrivateSpaceApp(
     var displayName: String,

@@ -1,4 +1,4 @@
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
@@ -20,7 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.edit
-import com.geecee.escape.R
+import com.geecee.escapelauncher.R
 
 @Composable
 fun WidgetsScreen(

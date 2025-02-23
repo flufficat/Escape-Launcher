@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.views
+package com.geecee.escapelauncher.ui.views
 
 import android.graphics.Rect
 import android.os.Build
@@ -59,24 +59,24 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.R
-import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.AppUtils.resetHome
-import com.geecee.escape.utils.PrivateAppItem
-import com.geecee.escape.utils.PrivateSpaceSettings
-import com.geecee.escape.utils.getBooleanSetting
-import com.geecee.escape.utils.getPrivateSpaceApps
-import com.geecee.escape.utils.isPrivateSpace
-import com.geecee.escape.utils.lockPrivateSpace
-import com.geecee.escape.utils.managers.getUsageForApp
-import com.geecee.escape.utils.openPrivateSpaceApp
-import com.geecee.escape.utils.unlockPrivateSpace
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.resetHome
+import com.geecee.escapelauncher.utils.PrivateAppItem
+import com.geecee.escapelauncher.utils.PrivateSpaceSettings
+import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.getPrivateSpaceApps
+import com.geecee.escapelauncher.utils.isPrivateSpace
+import com.geecee.escapelauncher.utils.lockPrivateSpace
+import com.geecee.escapelauncher.utils.managers.getUsageForApp
+import com.geecee.escapelauncher.utils.openPrivateSpaceApp
+import com.geecee.escapelauncher.utils.unlockPrivateSpace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.geecee.escape.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 //Apps list from the pager
 @Composable
@@ -195,7 +195,7 @@ fun AppsList(
                 }
 
                 // Draw app if its not hidden and not Escape itself
-                if (app.activityInfo.packageName != "com.geecee.escape" && !mainAppModel.hiddenAppsManager.isAppHidden(
+                if (!app.activityInfo.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(
                         app.activityInfo.packageName
                     )
                 ) {

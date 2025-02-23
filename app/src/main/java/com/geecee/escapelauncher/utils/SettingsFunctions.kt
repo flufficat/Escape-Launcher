@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import android.app.Activity
 import android.app.ActivityOptions
@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
-import com.geecee.escape.MainHomeScreen
-import com.geecee.escape.R
+import com.geecee.escapelauncher.MainHomeScreen
+import com.geecee.escapelauncher.R
 
 fun changeLauncher(activity: Context) {
     val intent = Intent(Settings.ACTION_HOME_SETTINGS).apply {

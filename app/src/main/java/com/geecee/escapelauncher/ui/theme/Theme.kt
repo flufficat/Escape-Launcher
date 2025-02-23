@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.theme
+package com.geecee.escapelauncher.ui.theme
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
-import com.geecee.escape.R
-import com.geecee.escape.utils.getStringSetting
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.getStringSetting
 
 val PitchDarkColorScheme = darkColorScheme(
     primary = primaryDark,

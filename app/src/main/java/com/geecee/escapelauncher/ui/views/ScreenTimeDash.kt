@@ -1,4 +1,4 @@
-package com.geecee.escape.ui.views
+package com.geecee.escapelauncher.ui.views
 
 import android.content.Context
 import android.util.Log
@@ -40,15 +40,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.geecee.escape.MainAppViewModel
-import com.geecee.escape.R
-import com.geecee.escape.ui.theme.EscapeTheme
-import com.geecee.escape.ui.theme.escapeGreen
-import com.geecee.escape.ui.theme.escapeRed
-import com.geecee.escape.utils.AppUtils
-import com.geecee.escape.utils.managers.AppUsageEntity
-import com.geecee.escape.utils.managers.getScreenTimeListSorted
-import com.geecee.escape.utils.managers.getTotalUsageForDate
+import com.geecee.escapelauncher.MainAppViewModel
+import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.theme.EscapeTheme
+import com.geecee.escapelauncher.ui.theme.escapeGreen
+import com.geecee.escapelauncher.ui.theme.escapeRed
+import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.managers.AppUsageEntity
+import com.geecee.escapelauncher.utils.managers.getScreenTimeListSorted
+import com.geecee.escapelauncher.utils.managers.getTotalUsageForDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat

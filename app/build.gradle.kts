@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.geecee.escape"
+    namespace = "com.geecee.escapelauncher"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.geecee.escape"
+        applicationId = "com.geecee.escapelauncher"
         minSdk = 26
         targetSdk = 35
         versionCode = 2

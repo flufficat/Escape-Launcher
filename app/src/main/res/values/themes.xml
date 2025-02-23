@@ -1,9 +1,9 @@
 <resources >
-    <style name="Theme.Escape" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.EscapeLauncher" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="android:statusBarColor">#CBF4F1</item>
     </style>
 
-    <style name="Theme.Escape.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.EscapeLauncher.Splash" parent="Theme.SplashScreen">
         <!-- Set the background color -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <!-- Set the logo -->
@@ -11,6 +11,6 @@
         <!-- Customize the icon animation duration -->
         <item name="windowSplashScreenAnimationDuration">500</item>
         <!-- Set the status bar color -->
-        <item name="postSplashScreenTheme">@style/Theme.Escape</item>
+        <item name="postSplashScreenTheme">@style/Theme.EscapeLauncher</item>
     </style>
 </resources>

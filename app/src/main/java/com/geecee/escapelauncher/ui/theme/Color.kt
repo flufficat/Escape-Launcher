@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.geecee.escape.ui.theme
+package com.geecee.escapelauncher.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val pitchBlackBackground = Color(0,0,0)

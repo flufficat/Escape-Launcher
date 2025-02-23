@@ -1,4 +1,4 @@
-package com.geecee.escape.utils
+package com.geecee.escapelauncher.utils
 
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics

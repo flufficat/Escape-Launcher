@@ -1,4 +1,4 @@
-package com.geecee.escape.utils.managers
+package com.geecee.escapelauncher.utils.managers
 
 import android.content.Context
 import com.google.gson.Gson
