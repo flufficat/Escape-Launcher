@@ -70,15 +70,25 @@ object AppUtils {
         ).toMutableList()
     }
 
+    // Cache to store package name to app name mappings
+    private val appNameCache = mutableMapOf<String, String>()
+
     fun getAppNameFromPackageName(context: Context, packageName: String): String {
-        return try {
+        // Check cache first for instant return
+        appNameCache[packageName]?.let { return it }
+        
+        // If not in cache, perform the operation directly but still cache the result
+        try {
             val packageManager: PackageManager = context.packageManager
-
             val applicationInfo: ApplicationInfo = packageManager.getApplicationInfo(packageName, 0)
-
-            packageManager.getApplicationLabel(applicationInfo).toString()
+            val appName = packageManager.getApplicationLabel(applicationInfo).toString()
+            
+            // Cache the result for future use
+            appNameCache[packageName] = appName
+            
+            return appName
         } catch (e: PackageManager.NameNotFoundException) {
-            "null"
+            return "null"
         }
     }
 
@@ -153,6 +163,7 @@ object AppUtils {
             homeScreenModel.sortedInstalledApps =
                 getAllInstalledApps(packageManager = mainAppModel.packageManager)
                     .sortedBy {
+                        // Use the non-suspending version with caching
                         getAppNameFromPackageName(
                             mainAppModel.getContext(),
                             it.activityInfo.packageName
