@@ -184,13 +184,13 @@ fun AppsList(
             { app ->
                 // Fetch screen time in a coroutine
                 val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-                LaunchedEffect(mainAppModel.shouldReloadAppUsageOnApps.value) {
+                LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
                     withContext(Dispatchers.IO) {
                         appScreenTime.longValue = getUsageForApp(
                             app.activityInfo.packageName,
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         )
-                        mainAppModel.shouldReloadAppUsageOnApps.value = false
+                        mainAppModel.shouldReloadAppUsage.value = false
                     }
                 }
 

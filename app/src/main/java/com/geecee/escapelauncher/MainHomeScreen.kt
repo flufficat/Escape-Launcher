@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -75,9 +76,6 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     // These are for getting the launchedEffect with the screen time tracking to reload so the screen time updates
     val shouldReloadAppUsage: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadAppUsageOnHome: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadAppUsageOnApps: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadTotalScreenTimeOnHomeScreen: MutableState<Boolean> = mutableStateOf(false)
 
 
     val shouldGoHomeOnResume: MutableState<Boolean> = mutableStateOf(true)
@@ -89,6 +87,7 @@ class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
     private lateinit var homeScreenModel: HomeScreenModel
+    private val viewModel: MainAppViewModel by viewModels()
 
     private val pushNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -124,7 +123,6 @@ class MainHomeScreen : ComponentActivity() {
         // Register screen off receiver
         screenOffReceiver = ScreenOffReceiver {
             // Screen turned off
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             if (viewModel.isAppOpened) {
                 if (viewModel.currentPackageName != null) {
                     lifecycleScope.launch(Dispatchers.IO) {
@@ -141,8 +139,6 @@ class MainHomeScreen : ComponentActivity() {
         //Private space receiver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             privateSpaceReceiver = PrivateSpaceStateReceiver { isUnlocked ->
-                val viewModel: MainAppViewModel =
-                    ViewModelProvider(this)[MainAppViewModel::class.java]
                 viewModel.showPrivateSpaceUnlockedUI.value = isUnlocked
             }
             val intentFilter = IntentFilter().apply {
@@ -167,7 +163,6 @@ class MainHomeScreen : ComponentActivity() {
 
         //Updates the screen time when you close an app
         try {
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             if (viewModel.isAppOpened) {
                 if (viewModel.currentPackageName != null) {
                     lifecycleScope.launch(Dispatchers.IO) {
@@ -183,13 +178,9 @@ class MainHomeScreen : ComponentActivity() {
 
         // Reset home
         try {
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             AppUtils.resetHome(homeScreenModel, viewModel, viewModel.shouldGoHomeOnResume.value)
             viewModel.shouldGoHomeOnResume.value = true
             viewModel.shouldReloadAppUsage.value = true
-            viewModel.shouldReloadAppUsageOnHome.value = true
-            viewModel.shouldReloadAppUsageOnApps.value = true
-            viewModel.shouldReloadTotalScreenTimeOnHomeScreen.value = true
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }
@@ -280,23 +271,20 @@ class MainHomeScreen : ComponentActivity() {
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()
-        val mainAppViewModel: MainAppViewModel by viewModels {
-            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
-        }
 
-        SetUpHomeScreenModel(mainAppViewModel)
+        SetUpHomeScreenModel(viewModel)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
+                .background(color = MaterialTheme.colorScheme.background)
         ) {
             NavHost(navController, startDestination = startDestination) {
                 composable("home",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     HomeScreenPageManager(
-                        mainAppViewModel,
+                        viewModel,
                         homeScreenModel
                     ) { navController.navigate("settings") }
                 }
@@ -304,7 +292,7 @@ class MainHomeScreen : ComponentActivity() {
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Settings(
-                        mainAppViewModel,
+                        viewModel,
                         { navController.navigate("home") },
                         this@MainHomeScreen,
                     )
@@ -312,7 +300,7 @@ class MainHomeScreen : ComponentActivity() {
                 composable("onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Onboarding(navController, mainAppViewModel, pushNotificationPermissionLauncher)
+                    Onboarding(navController, viewModel, pushNotificationPermissionLauncher)
                 }
             }
         }

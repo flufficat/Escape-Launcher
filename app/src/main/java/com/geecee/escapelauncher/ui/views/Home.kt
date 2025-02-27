@@ -110,7 +110,7 @@ fun HomeScreen(
                 val todayUsage = remember { mutableLongStateOf(0L) }
 
                 LaunchedEffect(
-                    mainAppModel.shouldReloadTotalScreenTimeOnHomeScreen.value
+                    mainAppModel.shouldReloadAppUsage.value
                 ) {
                     try {
                         withContext(Dispatchers.IO) {
@@ -118,7 +118,7 @@ fun HomeScreen(
                             withContext(Dispatchers.Main) {
                                 todayUsage.longValue = usage
                             }
-                            mainAppModel.shouldReloadTotalScreenTimeOnHomeScreen.value = false
+                            mainAppModel.shouldReloadAppUsage.value = false
                         }
                     } catch (e: Exception) {
                         Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
@@ -170,12 +170,12 @@ fun HomeScreen(
             val appScreenTime = remember { mutableLongStateOf(0L) }
 
             // Fetch screen time in a coroutine
-            LaunchedEffect(mainAppModel.shouldReloadAppUsageOnHome.value) {
+            LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
                 withContext(Dispatchers.IO) {
                     appScreenTime.longValue = getUsageForApp(
                         app, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     )
-                    mainAppModel.shouldReloadAppUsageOnHome.value = false
+                    mainAppModel.shouldReloadAppUsage.value = false
                 }
             }
 
