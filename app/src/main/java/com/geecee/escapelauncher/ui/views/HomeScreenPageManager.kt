@@ -47,7 +47,7 @@ import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
-import com.geecee.escapelauncher.utils.AppUtils.updateFavorites
+import com.geecee.escapelauncher.utils.AppUtils.getAppNameFromPackageName
 import com.geecee.escapelauncher.utils.managers.OpenChallenge
 import com.geecee.escapelauncher.utils.setBooleanSetting
 import kotlinx.coroutines.launch
@@ -78,24 +78,31 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
 
     init {
         loadApps()
+        reloadFavouriteApps()
     }
 
-    private fun loadApps() {
+    fun loadApps() {
         val packageManager = getApplication<Application>().packageManager
         installedApps.clear()
         installedApps.addAll(AppUtils.getAllInstalledApps(packageManager).sortedBy {
-            AppUtils.getAppNameFromPackageName(getApplication(), it.activityInfo.packageName)
+            getAppNameFromPackageName(getApplication(), it.activityInfo.packageName)
         })
     }
 
     fun reloadFavouriteApps() {
+        favoriteApps.clear()
         favoriteApps.addAll(mainAppViewModel.favoriteAppsManager.getFavoriteApps())
     }
 
     fun updateSelectedApp(packageName: String) {
         currentPackageName.value = packageName
-        currentSelectedApp.value = packageName
+        currentSelectedApp.value =
+            getAppNameFromPackageName(mainAppViewModel.getContext(), packageName)
         isCurrentAppFavorite.value = favoriteApps.contains(packageName)
+        isCurrentAppChallenged.value =
+            mainAppViewModel.challengesManager.doesAppHaveChallenge(packageName)
+        isCurrentAppHidden.value = mainAppViewModel.hiddenAppsManager.isAppHidden(packageName)
+
     }
 }
 
@@ -151,7 +158,8 @@ fun HomeScreenPageManager(
         when (page) {
             0 -> ScreenTimeDashboard(
                 context = mainAppModel.getContext(),
-                mainAppModel = mainAppModel)
+                mainAppModel = mainAppModel
+            )
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,
@@ -198,7 +206,7 @@ fun HomeScreenPageManager(
                             homeScreenModel.pagerState.scrollToPage(1, 0f)
                         }
                     }
-                    updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
+                    homeScreenModel.reloadFavouriteApps()
                 }
             ),
             AppAction(
@@ -250,17 +258,20 @@ fun HomeScreenPageManager(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        OpenChallenge(LocalHapticFeedback.current, {
-            AppUtils.openApp(
-                homeScreenModel.currentPackageName.value,
-                true,
-                null,
-                mainAppModel
-            )
-            homeScreenModel.showOpenChallenge.value = false
-        }, {
-            homeScreenModel.showOpenChallenge.value = false
-        })
+        OpenChallenge(
+            haptics = LocalHapticFeedback.current,
+            openApp = {
+                AppUtils.openApp(
+                    homeScreenModel.currentPackageName.value,
+                    true,
+                    null,
+                    mainAppModel
+                )
+                homeScreenModel.showOpenChallenge.value = false
+            },
+            goBack = {
+                homeScreenModel.showOpenChallenge.value = false
+            })
     }
 }
 

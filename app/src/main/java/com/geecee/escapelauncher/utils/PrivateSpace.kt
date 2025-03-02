@@ -56,6 +56,9 @@ class PrivateSpaceStateReceiver(private val onStateChange: (Boolean) -> Unit) :
     }
 }
 
+/**
+ * Find out if private space is unlocked
+ */
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 fun isPrivateSpace(context: Context): Boolean {
     val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps

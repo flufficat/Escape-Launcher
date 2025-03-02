@@ -29,14 +29,17 @@ import java.util.concurrent.TimeUnit
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 object AppUtils {
+    /**
+    * Function to open app.
+    * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the [OpenChallenge] function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
+     */
     fun openApp(
         packageName: String,
         overrideOpenChallenge: Boolean,
         openChallengeShow: MutableState<Boolean>?,
         mainAppModel: MainAppModel
     ) {
-        val launchIntent =
-            mainAppModel.packageManager.getLaunchIntentForPackage(packageName)
+        val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent != null) {
             if (!mainAppModel.challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -94,6 +97,9 @@ object AppUtils {
         }
     }
 
+    /**
+     * Filters and sorts a list of ResolveInfo
+     */
     fun filterAndSortApps(
         apps: List<ResolveInfo>,
         searchText: String,
@@ -141,6 +147,9 @@ object AppUtils {
         return fileContent
     }
 
+    /**
+     * Finds out if Escape Launcher is the default launcher
+     */
     fun isDefaultLauncher(context: Context): Boolean {
         val packageManager = context.packageManager
         val intent = Intent(Intent.ACTION_MAIN).apply {
@@ -151,7 +160,10 @@ object AppUtils {
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
 
-    fun resetHome(homeScreenModel: HomeScreenModel, mainAppModel: MainAppViewModel, shouldGoToFirstPage: Boolean? = true) {
+    /**
+     * Reset home screen for when app is closed
+     */
+    fun resetHome(homeScreenModel: HomeScreenModel, shouldGoToFirstPage: Boolean? = true) {
         homeScreenModel.coroutineScope.launch {
             delay(200)
             if(shouldGoToFirstPage == true){
@@ -160,26 +172,9 @@ object AppUtils {
             }
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
-            homeScreenModel.installedApps =
-                getAllInstalledApps(packageManager = mainAppModel.packageManager)
-            homeScreenModel.sortedInstalledApps =
-                getAllInstalledApps(packageManager = mainAppModel.packageManager)
-                    .sortedBy {
-                        // Use the non-suspending version with caching
-                        getAppNameFromPackageName(
-                            mainAppModel.getContext(),
-                            it.activityInfo.packageName
-                        )
-                    }
+            homeScreenModel.loadApps()
+            homeScreenModel.reloadFavouriteApps()
         }
-    }
-
-    fun updateFavorites(
-        mainAppModel: MainAppModel,
-        favoriteApps: SnapshotStateList<String>
-    ) {
-        favoriteApps.clear()
-        favoriteApps.addAll(mainAppModel.favoriteAppsManager.getFavoriteApps())
     }
 
     fun getYesterday(): String {

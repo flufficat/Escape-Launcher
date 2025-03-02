@@ -170,7 +170,7 @@ class MainHomeScreen : ComponentActivity() {
 
         // Reset home
         try {
-            AppUtils.resetHome(homeScreenModel, viewModel, viewModel.shouldGoHomeOnResume.value)
+            AppUtils.resetHome(homeScreenModel, viewModel.shouldGoHomeOnResume.value)
             viewModel.shouldGoHomeOnResume.value = true
             viewModel.shouldReloadAppUsage.value = true
         } catch (ex: Exception) {
@@ -262,7 +262,7 @@ class MainHomeScreen : ComponentActivity() {
                 composable("onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Onboarding(navController, viewModel, pushNotificationPermissionLauncher)
+                    Onboarding(navController, viewModel, pushNotificationPermissionLauncher, homeScreenModel)
                 }
             }
         }

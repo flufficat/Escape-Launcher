@@ -96,10 +96,10 @@ import com.geecee.escapelauncher.utils.changeHomeAlignment
 import com.geecee.escapelauncher.utils.changeHomeVAlignment
 import com.geecee.escapelauncher.utils.changeLauncher
 import com.geecee.escapelauncher.utils.changeTheme
-import com.geecee.escapelauncher.utils.getAppsAlignment
+import com.geecee.escapelauncher.utils.getAppsAlignmentAsInt
 import com.geecee.escapelauncher.utils.getBooleanSetting
-import com.geecee.escapelauncher.utils.getHomeAlignment
-import com.geecee.escapelauncher.utils.getHomeVAlignment
+import com.geecee.escapelauncher.utils.getHomeAlignmentAsInt
+import com.geecee.escapelauncher.utils.getHomeVAlignmentAsInt
 import com.geecee.escapelauncher.utils.getSavedWidgetId
 import com.geecee.escapelauncher.utils.getWidgetHeight
 import com.geecee.escapelauncher.utils.getWidgetOffset
@@ -701,7 +701,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
             var selectedIndex by remember {
                 mutableIntStateOf(
-                    getHomeAlignment(context)
+                    getHomeAlignmentAsInt(context)
                 )
             }
             val options = listOf(
@@ -731,7 +731,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
             var selectedVerticalIndex by remember {
                 mutableIntStateOf(
-                    getHomeVAlignment(context)
+                    getHomeVAlignmentAsInt(context)
                 )
             }
             val optionsVertical = listOf(
@@ -777,7 +777,7 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 
             var selectedIndex by remember {
                 mutableIntStateOf(
-                    getAppsAlignment(context)
+                    getAppsAlignmentAsInt(context)
                 )
             }
             val options = listOf(

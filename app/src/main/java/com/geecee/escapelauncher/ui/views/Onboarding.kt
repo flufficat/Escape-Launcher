@@ -63,7 +63,8 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 fun Onboarding(
     mainNavController: NavController,
     mainAppModel: MainAppViewModel,
-    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>,
+    homeScreenModel: HomeScreenModel
 ) {
     val navController = rememberNavController()
 
@@ -96,7 +97,7 @@ fun Onboarding(
         composable("Notifications",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
-            Notifications(mainNavController, mainAppModel, pushNotificationPermissionLauncher)
+            Notifications(mainNavController, mainAppModel, pushNotificationPermissionLauncher,homeScreenModel)
         }
     }
 }
@@ -274,7 +275,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
     }
 
     val nonFavoritedApps = installedApps.value.filter { appInfo ->
-        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
+        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && !appInfo.activityInfo.packageName.contains("com.geecee.escapelauncher")
     }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
 
     Box(
@@ -591,7 +592,8 @@ fun OnboardingPage5(navController: NavController, mainNavController: NavControll
 fun Notifications(
     navController: NavController,
     mainAppModel: MainAppViewModel,
-    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>,
+    homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
 
@@ -634,15 +636,16 @@ fun Notifications(
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Button(
                 onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                    navController.navigate("home")
                     setBooleanSetting(
                         mainAppModel.getContext(),
                         mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
+                    homeScreenModel.reloadFavouriteApps()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    navController.navigate("home")
                 }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,

@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
 import com.geecee.escapelauncher.MainHomeScreen
 import com.geecee.escapelauncher.R
 
@@ -53,7 +55,7 @@ fun changeHomeAlignment(context: Context, alignment: Int) {
     editor.apply()
 }
 
-fun getHomeAlignment(context: Context): Int {
+fun getHomeAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -75,6 +77,28 @@ fun getHomeAlignment(context: Context): Int {
     }
 }
 
+fun getHomeAlignment(context: Context): Alignment.Horizontal {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Left"
+    ) {
+        Alignment.Start
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Alignment.CenterHorizontally
+    } else {
+        Alignment.End
+    }
+}
+
 fun changeHomeVAlignment(context: Context, alignment: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
@@ -92,7 +116,7 @@ fun changeHomeVAlignment(context: Context, alignment: Int) {
     editor.apply()
 }
 
-fun getHomeVAlignment(context: Context): Int {
+fun getHomeVAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -114,6 +138,28 @@ fun getHomeVAlignment(context: Context): Int {
     }
 }
 
+fun getHomeVAlignment(context: Context): Arrangement.Vertical {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Top"
+    ) {
+        Arrangement.Top
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Arrangement.Center
+    } else {
+        Arrangement.Bottom
+    }
+}
+
 fun changeAppsAlignment(context: Context, alignment: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
@@ -131,7 +177,7 @@ fun changeAppsAlignment(context: Context, alignment: Int) {
     editor.apply()
 }
 
-fun getAppsAlignment(context: Context): Int {
+fun getAppsAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -150,6 +196,28 @@ fun getAppsAlignment(context: Context): Int {
         1
     } else {
         2
+    }
+}
+
+fun getAppsAlignment(context: Context): Alignment.Horizontal {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Left"
+    ) {
+        Alignment.Start
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Alignment.CenterHorizontally
+    } else {
+        Alignment.End
     }
 }
 
