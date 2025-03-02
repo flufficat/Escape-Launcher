@@ -19,32 +19,24 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
+import com.geecee.escapelauncher.ui.views.HomeScreenModelFactory
 import com.geecee.escapelauncher.ui.views.HomeScreenPageManager
 import com.geecee.escapelauncher.ui.views.Onboarding
 import com.geecee.escapelauncher.ui.views.Settings
@@ -231,43 +223,13 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun SetUpHomeScreenModel(mainAppModel: MainAppViewModel) {
-        homeScreenModel = HomeScreenModel(
-            showBottomSheet = remember { mutableStateOf(false) },
-            sheetState = rememberModalBottomSheetState(),
-            currentSelectedApp = remember { mutableStateOf("") },
-            currentPackageName = remember { mutableStateOf("") },
-            isCurrentAppFavorite = remember { mutableStateOf(false) },
-            isCurrentAppChallenged = remember { mutableStateOf(false) },
-            isCurrentAppHidden = remember { mutableStateOf(false) },
-            haptics = LocalHapticFeedback.current,
-            sharedPreferences = mainAppModel.getContext().getSharedPreferences(
-                R.string.settings_pref_file_name.toString(),
-                Context.MODE_PRIVATE
-            ),
-            favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } },
-            interactionSource = remember { MutableInteractionSource() },
-            showOpenChallenge = remember { mutableStateOf(false) },
-            pagerState = rememberPagerState(1, 0f) { 3 },
-            coroutineScope = rememberCoroutineScope(),
-            installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager),
-            sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
-                .sortedBy {
-                    AppUtils.getAppNameFromPackageName(
-                        mainAppModel.getContext(),
-                        it.activityInfo.packageName
-                    )
-                },
-            appsListScrollState = rememberLazyListState(),
-            searchText = remember { mutableStateOf("") },
-            searchExpanded = remember { mutableStateOf(false) },
-            showPrivateSpaceSettings = remember { mutableStateOf(false) }
+        homeScreenModel = viewModel(
+            factory = HomeScreenModelFactory(mainAppModel.getContext().applicationContext as Application, mainAppModel)
         )
     }
 
-    // Navigation host
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()

@@ -10,6 +10,8 @@ import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
@@ -186,5 +188,16 @@ object AppUtils {
         val yesterdayDate =
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
         return yesterdayDate
+    }
+
+    fun doHapticFeedBack(context: Context, hapticFeedback: HapticFeedback){
+        if (getBooleanSetting(
+                context,
+                context.resources.getString(R.string.Haptic),
+                true
+            )
+        ) {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
     }
 }

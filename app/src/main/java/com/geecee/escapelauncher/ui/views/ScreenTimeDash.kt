@@ -55,6 +55,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * This function works out if the screen time is over the recommended and if it is finds out how many percent over it is
+ */
 fun calculateOveragePercentage(screenTime: Long): Int {
     val recommendedTime: Long = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
 
@@ -70,15 +73,21 @@ fun calculateOveragePercentage(screenTime: Long): Int {
     return percentage.toInt()
 }
 
+/**
+ * Parent UI for ScreenTimeDashboard
+ * Also contains code to retrieve total screen time today, total screen time yesterday, app screen time list today and apps screen time list yesterday
+ */
 @Composable
 fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    // Retrieves data in in a subroutine
     val todayUsage = remember { mutableLongStateOf(0L) }
     val yesterdayUsage = remember { mutableLongStateOf(0L) }
     val appUsageToday = remember { mutableStateListOf<AppUsageEntity>() }
     val appUsageYesterday = remember { mutableStateListOf<AppUsageEntity>() }
-
     LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
+        // Get total usage for today
         try {
             withContext(Dispatchers.IO) {
                 val usage = getTotalUsageForDate(today)
@@ -90,6 +99,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
             Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
         }
 
+        // Get app usage list for today
         try {
             withContext(Dispatchers.IO) {
                 val usageList = getScreenTimeListSorted(today)
@@ -102,6 +112,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
             Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
         }
 
+        // Get app usage list for yesterday
         try {
             withContext(Dispatchers.IO) {
                 val usageList = getScreenTimeListSorted(AppUtils.getYesterday())
@@ -114,6 +125,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
             Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
         }
 
+        // Get total usage for Yesterday
         try {
             withContext(Dispatchers.IO) {
                 yesterdayUsage.longValue = getTotalUsageForDate(AppUtils.getYesterday())
@@ -122,9 +134,12 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
             Log.e("ScreenTime", "Error fetching yesterday's usages: ${e.message}")
         }
 
+        // Make sure the LaunchedEffect runs again next time shouldReloadAppUsage
+        // is set to true by making sure its not already set to true
         mainAppModel.shouldReloadAppUsage.value = false
     }
 
+    // UI for ScreenTime screen
     Column(
         Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -204,6 +219,9 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
     }
 }
 
+/**
+ * Screen time with an arrow indicating whether it's increased or decreased
+ */
 @Composable
 fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
     Row {
@@ -226,7 +244,6 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
 
         Spacer(Modifier.width(5.dp))
 
-
         Text(
             text = time,
             style = MaterialTheme.typography.titleMedium,
@@ -238,6 +255,9 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
     }
 }
 
+/**
+* Square shaped composable showing how many percent higher screen time is than recommended using [calculateOveragePercentage] function
+*/
 @Composable
 fun HigherRec(percent: Int, modifier: Modifier = Modifier) {
     BoxWithConstraints(
@@ -281,6 +301,9 @@ fun HigherRec(percent: Int, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Circular composable showing what percent of your day was spent on your phone
+ */
 @Composable
 fun DaySpent(percent: Int, modifier: Modifier = Modifier) {
     BoxWithConstraints(
@@ -324,7 +347,9 @@ fun DaySpent(percent: Int, modifier: Modifier = Modifier) {
     }
 }
 
-
+/**
+ * Shows usage for a specific app with an arrow to whether its increased or decreased
+ */
 @Composable
 fun AppUsage(appName: String, increased: Boolean, time: String, modifier: Modifier) {
     Box(
@@ -373,6 +398,9 @@ fun AppUsage(appName: String, increased: Boolean, time: String, modifier: Modifi
     }
 }
 
+/**
+ * Box with [AppUsage]s in it
+ */
 @Composable
 fun AppUsages(modifier: Modifier, content: @Composable () -> Unit) {
     Box(
@@ -389,10 +417,9 @@ fun AppUsages(modifier: Modifier, content: @Composable () -> Unit) {
     }
 }
 
-// = = = = = = = = = = = = = = = = //
-//             Previews            //
-// = = = = = = = = = = = = = = = = //
-
+/**
+ * Previews
+ */
 @Composable
 @Preview
 fun ScreenTimePrevDec() {
