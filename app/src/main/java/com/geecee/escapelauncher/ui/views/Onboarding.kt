@@ -55,7 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.changeLauncher
-import com.geecee.escapelauncher.utils.configureAnalytics
+import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
 import com.geecee.escapelauncher.utils.setBooleanSetting
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
