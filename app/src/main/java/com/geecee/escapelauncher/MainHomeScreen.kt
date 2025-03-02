@@ -41,10 +41,10 @@ import com.geecee.escapelauncher.ui.views.HomeScreenPageManager
 import com.geecee.escapelauncher.ui.views.Onboarding
 import com.geecee.escapelauncher.ui.views.Settings
 import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.animateSplashScreen
 import com.geecee.escapelauncher.utils.PrivateSpaceStateReceiver
 import com.geecee.escapelauncher.utils.ScreenOffReceiver
-import com.geecee.escapelauncher.utils.animateSplashScreen
-import com.geecee.escapelauncher.utils.configureAnalytics
+import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.managers.ChallengesManager
 import com.geecee.escapelauncher.utils.managers.FavoriteAppsManager

@@ -1,19 +1,26 @@
 package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.view.animation.ScaleAnimation
 import androidx.compose.runtime.MutableState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.core.splashscreen.SplashScreen
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
 import com.geecee.escapelauncher.utils.managers.ScreenTimeManager
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -25,6 +32,15 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
+
+class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+            // When the screen is off, stop screen time tracking
+            onScreenOff()
+        }
+    }
+}
 
 object AppUtils {
     /**
@@ -178,5 +194,59 @@ object AppUtils {
         ) {
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
         }
+    }
+
+    fun animateSplashScreen(splashScreen: SplashScreen) {
+        splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
+            // Create a scale animation (zoom effect)
+            val scaleAnimation = ScaleAnimation(
+                1f, 100f, // From normal size to 5x size
+                1f, 100f,
+                Animation.RELATIVE_TO_SELF, 0.5f, // Pivot at the center
+                Animation.RELATIVE_TO_SELF, 0.5f
+            ).apply {
+                duration = 1200 // Duration of the zoom animation in ms
+                fillAfter = true // Retain the final state
+            }
+
+            // Create a fade-out animation
+            val fadeOutAnimation = AlphaAnimation(1f, 0f).apply {
+                duration = 300 // Duration of the fade-out in ms
+                startOffset = 500 // Delay to start after zoom finishes
+                fillAfter = true // Retain the final state
+            }
+
+            // Combine the animations
+            val animationSet = AnimationSet(true).apply {
+                addAnimation(scaleAnimation)
+                addAnimation(fadeOutAnimation)
+            }
+
+            // Start the combined animation
+            splashScreenViewProvider.view.startAnimation(animationSet)
+
+            // Remove the splash screen view after the animation ends
+            animationSet.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {}
+
+                override fun onAnimationEnd(animation: Animation?) {
+                    splashScreenViewProvider.remove()
+                }
+
+                override fun onAnimationRepeat(animation: Animation?) {}
+            })
+        }
+    }
+
+    fun configureAnalytics(enabled: Boolean) {
+        val analytics = Firebase.analytics
+
+        analytics.setConsent(
+            mapOf(
+                FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE to if (enabled) FirebaseAnalytics.ConsentStatus.GRANTED else FirebaseAnalytics.ConsentStatus.DENIED,
+            )
+        )
+
+        analytics.setAnalyticsCollectionEnabled(enabled)
     }
 }
