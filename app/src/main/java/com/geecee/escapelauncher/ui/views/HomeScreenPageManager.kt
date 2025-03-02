@@ -63,6 +63,7 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
     var currentPackageName = mutableStateOf("")
     var isCurrentAppFavorite = mutableStateOf(false)
     var isCurrentAppChallenged = mutableStateOf(false)
+    @Suppress("MemberVisibilityCanBePrivate")
     var isCurrentAppHidden = mutableStateOf(false)
     var showOpenChallenge = mutableStateOf(false)
     var searchText = mutableStateOf("")
@@ -214,6 +215,7 @@ fun HomeScreenPageManager(
                 onClick = {
                     mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentPackageName.value)
                     homeScreenModel.showBottomSheet.value = false
+                    AppUtils.resetHome(homeScreenModel, false)
                 }
             ),
             AppAction(

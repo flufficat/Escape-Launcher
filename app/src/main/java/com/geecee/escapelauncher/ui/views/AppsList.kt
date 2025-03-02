@@ -201,7 +201,7 @@ fun AppsList(
                 }
 
                 // Draw app if its not hidden and not Escape itself
-                if (!app.activityInfo.packageName.contains("com.geecee.escapelauncher") && !homeScreenModel.isCurrentAppHidden.value) {
+                if (!app.activityInfo.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.activityInfo.packageName)) {
                     HomeScreenItem(
                         appName = AppUtils.getAppNameFromPackageName(
                             context = mainAppModel.getContext(),

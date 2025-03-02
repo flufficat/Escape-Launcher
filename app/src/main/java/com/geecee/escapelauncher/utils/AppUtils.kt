@@ -8,11 +8,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
 import com.geecee.escapelauncher.utils.managers.ScreenTimeManager
@@ -31,7 +29,7 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 object AppUtils {
     /**
     * Function to open app.
-    * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the [OpenChallenge] function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
+    * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the OpenChallenge function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
      */
     fun openApp(
         packageName: String,
@@ -111,20 +109,6 @@ object AppUtils {
             appName.contains(searchText, ignoreCase = true)
         }.sortedBy { (_, appName) -> appName }
             .map { (appInfo, _) -> appInfo }
-    }
-
-    fun getAppsListAlignmentFromPreferences(
-        preferences: SharedPreferences,
-        context: Context
-    ): Alignment.Horizontal {
-        return when (preferences.getString(
-            context.resources.getString(R.string.AppsAlignment),
-            "Center"
-        )) {
-            "Center" -> Alignment.CenterHorizontally
-            "Left" -> Alignment.Start
-            else -> Alignment.End
-        }
     }
 
     fun getCurrentTime(): String {
