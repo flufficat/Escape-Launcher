@@ -20,7 +20,7 @@
     <string name="lock_private_space">プライベートスペースをロックする</string>
     <string name="private_space">プライベートスペース</string>
     <string name="private_space_settings">プライベートスペースの設定</string>
-    <string name="private_space_search_term">で</string>
+    <string name="private_space_search_term">pri</string>
 
     <!-- Hidden Apps strings-->
     <string name="hidden_apps">隠しアプリ</string>

@@ -39,9 +39,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.getCurrentTime
@@ -116,7 +118,7 @@ fun HomeScreen(
                 // Find out screen time for today
                 val todayUsage = remember { mutableLongStateOf(0L) }
                 LaunchedEffect(
-                    mainAppModel.shouldReloadAppUsage.value
+                    mainAppModel.shouldReloadScreenTime.value
                 ) {
                     try {
                         withContext(Dispatchers.IO) {
@@ -124,7 +126,7 @@ fun HomeScreen(
                             withContext(Dispatchers.Main) {
                                 todayUsage.longValue = usage
                             }
-                            mainAppModel.shouldReloadAppUsage.value = false
+                            mainAppModel.shouldReloadScreenTime.value = false
                         }
                     } catch (e: Exception) {
                         Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
@@ -174,12 +176,12 @@ fun HomeScreen(
             val appScreenTime = remember { mutableLongStateOf(0L) }
 
             // Fetch screen time in a coroutine
-            LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
+            LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
                 withContext(Dispatchers.IO) {
                     appScreenTime.longValue = getUsageForApp(
                         app, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     )
-                    mainAppModel.shouldReloadAppUsage.value = false
+                    mainAppModel.shouldReloadScreenTime.value = false
                 }
             }
 
@@ -365,5 +367,13 @@ fun FirstTimeHelp() {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PrevFirstTimeHelp(){
+    EscapeTheme {
+        FirstTimeHelp()
     }
 }

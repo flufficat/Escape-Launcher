@@ -86,7 +86,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
     val yesterdayUsage = remember { mutableLongStateOf(0L) }
     val appUsageToday = remember { mutableStateListOf<AppUsageEntity>() }
     val appUsageYesterday = remember { mutableStateListOf<AppUsageEntity>() }
-    LaunchedEffect(mainAppModel.shouldReloadAppUsage.value) {
+    LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
         // Get total usage for today
         try {
             withContext(Dispatchers.IO) {
@@ -136,7 +136,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
 
         // Make sure the LaunchedEffect runs again next time shouldReloadAppUsage
         // is set to true by making sure its not already set to true
-        mainAppModel.shouldReloadAppUsage.value = false
+        mainAppModel.shouldReloadScreenTime.value = false
     }
 
     // UI for ScreenTime screen
@@ -260,15 +260,16 @@ fun ScreenTime(time: String, increased: Boolean, modifier: Modifier) {
 */
 @Composable
 fun HigherRec(percent: Int, modifier: Modifier = Modifier) {
-    BoxWithConstraints(
+    BoxWithConstraints (
         modifier = modifier
             .clip(MaterialTheme.shapes.extraLarge)
             .aspectRatio(1f)
             .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
-        val padding = maxWidth * 0.1f
-        val titleFontSize = maxWidth * 0.3f
-        val bodyFontSize = maxWidth * 0.1f
+        val boxWithConstraintsScope = this
+        val padding = boxWithConstraintsScope.maxWidth * 0.1f
+        val titleFontSize = boxWithConstraintsScope.maxWidth * 0.3f
+        val bodyFontSize = boxWithConstraintsScope.maxWidth * 0.1f
 
         Column(
             modifier = Modifier
@@ -312,9 +313,10 @@ fun DaySpent(percent: Int, modifier: Modifier = Modifier) {
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
-        val padding = maxWidth * 0.1f
-        val titleFontSize = maxWidth * 0.3f
-        val bodyFontSize = maxWidth * 0.08f
+        val boxWithConstraintsScope = this
+        val padding = boxWithConstraintsScope.maxWidth * 0.1f
+        val titleFontSize = boxWithConstraintsScope.maxWidth * 0.3f
+        val bodyFontSize = boxWithConstraintsScope.maxWidth * 0.08f
 
         Column(
             modifier = Modifier

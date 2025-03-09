@@ -118,12 +118,17 @@ import com.geecee.escapelauncher.utils.setWidgetWidth
 import com.geecee.escapelauncher.utils.toggleBooleanSetting
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
+/**
+ * Settings title header with back button
+ *
+ * @param title The text shown on the header
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SettingsHeader(goHome: () -> Unit, title: String) {
+fun SettingsHeader(goBack: () -> Unit, title: String) {
     Row(
         modifier = Modifier
-            .combinedClickable(onClick = { goHome() })
+            .combinedClickable(onClick = { goBack() })
             .padding(0.dp, 120.dp, 0.dp, 0.dp)
             .height(70.dp) // Set a fixed height for the header
     ) {
@@ -146,6 +151,13 @@ fun SettingsHeader(goHome: () -> Unit, title: String) {
     }
 }
 
+/**
+ * Switch for setting with a label on the left
+ *
+ * @param label The text for the label
+ * @param checked Whether the switch is on or not
+ * @param onCheckedChange Function with Boolean passed thats executed when the switch is pressed
+ */
 @Composable
 fun SettingsSwitch(
     label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit
@@ -169,6 +181,13 @@ fun SettingsSwitch(
     }
 }
 
+/**
+ * Settings navigation item with label and arrow
+ *
+ * @param label The text to be shown
+ * @param diagonalArrow Whether the arrow should be pointed upwards to signal that pressing this will take you out of Escape Launcher
+ * @param onClick When composable is clicked
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsNavigationItem(
@@ -212,10 +231,17 @@ fun SettingsNavigationItem(
     }
 }
 
+/**
+ * Main Settings window you see when settings is first opened
+ *
+ * @param mainAppModel This is needed to get packageManager, context, ect
+ * @param goBack When back button is pressed
+ * @param activity This is needed for some settings
+ */
 @Composable
 fun Settings(
     mainAppModel: MainAppModel,
-    goHome: () -> Unit,
+    goBack: () -> Unit,
     activity: Activity,
 ) {
     val showPolicyDialog = remember { mutableStateOf(false) }
@@ -234,7 +260,7 @@ fun Settings(
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 MainSettingsPage(
-                    { goHome() },
+                    { goBack() },
                     { showPolicyDialog.value = true },
                     navController,
                     mainAppModel
@@ -292,10 +318,20 @@ fun Settings(
     }
 }
 
+/**
+ * Fist page of settings, contains navigation to all the other pages
+ *
+ * @param goBack When back button is pressed
+ * @param showPolicyDialog When the show privacy policy button is pressed
+ * @param navController Settings nav controller with "personalization", "hiddenApps", "openChallenges"
+ * @param mainAppModel This is required for settings to be changed
+ *
+ * @see Settings
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainSettingsPage(
-    goHome: () -> Unit,
+    goBack: () -> Unit,
     showPolicyDialog: () -> Unit,
     navController: NavController,
     mainAppModel: MainAppModel
@@ -308,7 +344,7 @@ fun MainSettingsPage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        SettingsHeader(goHome, stringResource(R.string.settings))
+        SettingsHeader(goBack, stringResource(R.string.settings))
 
         SettingsNavigationItem(label = stringResource(id = R.string.personalization),
             false,
@@ -358,6 +394,16 @@ fun MainSettingsPage(
     }
 }
 
+/**
+ * Personalization options in settings
+ *
+ * @param mainAppModel This is required for settings to be changed
+ * @param navController Settings nav controller with "alignmentOptions", "chooseFont", "theme", "widget"
+ * @param goBack When back button is pressed
+ *
+ * @see Settings
+ * @see MainSettingsPage
+ */
 @Composable
 fun PersonalizationOptions(
     mainAppModel: MainAppViewModel,
@@ -475,6 +521,14 @@ fun PersonalizationOptions(
     }
 }
 
+/**
+ * Widget Setup
+ *
+ * @param context Context is required for some functions
+ * @param goBack When back button is pressed
+ *
+ * @see Settings
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WidgetOptions(context: Context, goBack: () -> Unit) {
@@ -671,6 +725,14 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
     }
 }
 
+/**
+ * Alignment Options in Settings
+ *
+ * @param context Context is required by some functions used withing AlignmentOptions
+ * @param goBack When back button is pressed
+ *
+ * @see Settings
+ */
 @Composable
 fun AlignmentOptions(context: Context, goBack: () -> Unit) {
     Column(
@@ -808,6 +870,13 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
     }
 }
 
+/**
+ * Theme select card
+ *
+ * @param theme The theme ID number (see: Theme.kt)
+ *
+ * @see com.geecee.escapelauncher.ui.theme.EscapeTheme
+ */
 @Composable
 fun ThemeCard(
     theme: Int, context: Context, activity: Activity
@@ -947,6 +1016,15 @@ fun ThemeCard(
     }
 }
 
+/**
+ * Theme options in settings
+ *
+ * @param context Needed to run some functions used within ThemeOptions
+ * @param activity Needed to reload app after changing theme
+ * @param goBack When back button is pressed
+ *
+ * @see Settings
+ */
 @Composable
 fun ThemeOptions(
     context: Context, activity: Activity, goBack: () -> Unit
@@ -1003,6 +1081,14 @@ fun ThemeOptions(
     }
 }
 
+/**
+ * Page that lets you manage hidden apps
+ *
+ * @param mainAppModel Needed for context & hidden apps manager
+ * @param goBack Function run when back button is pressed
+ *
+ * @see Settings
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HiddenApps(
@@ -1066,6 +1152,14 @@ fun HiddenApps(
     }
 }
 
+/**
+ * Page that lets you manage apps with open challenge
+ *
+ * @param mainAppModel Needed for context & open challenge apps manager
+ * @param goBack Function run when back button is pressed
+ *
+ * @see Settings
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OpenChallenges(
@@ -1130,6 +1224,15 @@ fun OpenChallenges(
     }
 }
 
+/**
+ * Font options in settings
+ *
+ * @param context Needed to run some functions used within ThemeOptions
+ * @param activity Needed to reload app after changing theme
+ * @param goBack When back button is pressed
+ *
+ * @see Settings
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
@@ -1193,6 +1296,9 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
     }
 }
 
+/**
+ * Developer options in settings
+ */
 @Composable
 fun DevOptions(context: Context, goBack: () -> Unit) {
     Column(
@@ -1233,6 +1339,12 @@ fun DevOptions(context: Context, goBack: () -> Unit) {
     }
 }
 
+/**
+ * Privacy Policy dialog
+ *
+ * @param mainAppModel Needed for context
+ * @param showPolicyDialog Pass the MutableState<Boolean> your using to show and hide this dialog so that it can be hidden from within it
+ */
 @Composable
 fun PrivacyPolicyDialog(mainAppModel: MainAppModel, showPolicyDialog: MutableState<Boolean>) {
     val scrollState = rememberScrollState()
