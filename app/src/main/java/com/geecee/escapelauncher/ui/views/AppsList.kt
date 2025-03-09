@@ -65,10 +65,11 @@ import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.PrivateAppItem
 import com.geecee.escapelauncher.utils.PrivateSpaceSettings
+import com.geecee.escapelauncher.utils.doesPrivateSpaceExist
 import com.geecee.escapelauncher.utils.getAppsAlignment
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getPrivateSpaceApps
-import com.geecee.escapelauncher.utils.isPrivateSpace
+import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 import com.geecee.escapelauncher.utils.lockPrivateSpace
 import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
@@ -236,7 +237,7 @@ fun AppsList(
             }
 
             //Private space
-            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && doesPrivateSpaceExist(mainAppModel.getContext())) {
                 // Spacing
                 item {
                     Spacer(modifier = Modifier.height(20.dp))

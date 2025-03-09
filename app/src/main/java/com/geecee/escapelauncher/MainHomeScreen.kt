@@ -9,6 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -69,10 +71,8 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
         null // todo: How is this different to like the same thing within the HomeScreeViewModel
     val showPrivateSpaceUnlockedUI: MutableState<Boolean> =
         mutableStateOf(false) // todo: WHAT IS THIS!? WHO ADDED THIS
-
     val shouldReloadScreenTime: MutableState<Boolean> =
         mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
-
     val shouldGoHomeOnResume: MutableState<Boolean> =
         mutableStateOf(true) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
 
@@ -200,24 +200,31 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
-    // Makes it fullscreen
+    /**
+     * Puts the app into full screen
+     */
     @Suppress("DEPRECATION")
     private fun configureFullScreenMode() {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-            window.decorView.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            window.insetsController?.apply {
+                hide(WindowInsets.Type.systemBars())
+                systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
         } else {
-            window.decorView.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
     }
 
-    // Set content
+    /**
+     * The main parent composable for the app
+     * Contains EscapeTheme & SetupNavHost
+     */
     @Composable
     private fun SetUpContent() {
         EscapeTheme {
@@ -225,14 +232,29 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
-    // Finds which screen to start on
+    /**
+     * Determines the start location for the NavHost
+     *
+     * @param context The context of the app
+     *
+     * @author George Clensy
+     *
+     * @see Settings
+     *
+     * @return Returns "home" if it is not the first time and "onboarding" if it is
+     */
     private fun determineStartDestination(context: Context): String {
         return when {
-            getBooleanSetting(context, "FirstTime", true) -> "onboarding"
+            getBooleanSetting(context, context.resources.getString(R.string.FirstTime), true) -> "onboarding"
             else -> "home"
         }
     }
 
+    /**
+     * Sets up main navigation host for the app
+     *
+     * @param startDestination Where to start
+     */
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()

@@ -33,6 +33,10 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
+/**
+ * Broadcast receiver to detect when the screen turns off,
+ * This is used in Escape Launcher to stop screen time counting if the screen turns off
+ */
 class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Intent.ACTION_SCREEN_OFF) {
@@ -42,10 +46,23 @@ class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver
     }
 }
 
+/**
+ * Set of functions used throughout Escape Launcher app
+ *
+ * @author George Clensy
+ */
 object AppUtils {
+
     /**
-    * Function to open app.
-    * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the OpenChallenge function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
+     * Function to open app.
+     * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the OpenChallenge function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
+     *
+     * @param packageName The name of the package being opened
+     * @param overrideOpenChallenge Whether the open challenge should be skipped
+     * @param openChallengeShow This is set to true if the app has an open challenge, We recommend having a composable that shows when thats true to act as the open challenge
+     * @param mainAppModel Main view model, needed for open challenge manager, package manager, context
+     *
+     * @author George Clensy
      */
     fun openApp(
         packageName: String,
@@ -72,6 +89,15 @@ object AppUtils {
         }
     }
 
+    /**
+     * Formats screen time into string in the style of 5h 3m
+     *
+     * @param milliseconds The amount of time to return formatted
+     *
+     * @author George Clensy
+     *
+     * @return Returns a string that looks like this: 5h 3m
+     */
     fun formatScreenTime(milliseconds: Long): String {
         val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
         val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds) % 60
@@ -82,6 +108,13 @@ object AppUtils {
         }
     }
 
+    /**
+     * Returns a list of all installed apps on the device
+     *
+     * @param packageManager Package manager to get apps from
+     *
+     * @return Mutable list of resoleInfo of all the installed applications
+     */
     fun getAllInstalledApps(packageManager: PackageManager): MutableList<ResolveInfo> {
         return packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
@@ -89,30 +122,46 @@ object AppUtils {
         ).toMutableList()
     }
 
-    // Cache to store package name to app name mappings
+    /**
+     *  Cache to store package name to app name mappings
+     */
     private val appNameCache = mutableMapOf<String, String>()
 
+    /**
+     * Returns the app name from its package
+     *
+     * @param context Context is required
+     * @param packageName Name of the package thats app name will be returned
+     *
+     * @return String app name
+     */
     fun getAppNameFromPackageName(context: Context, packageName: String): String {
         // Check cache first for instant return
         appNameCache[packageName]?.let { return it }
-        
+
         // If not in cache, perform the operation directly but still cache the result
         try {
             val packageManager: PackageManager = context.packageManager
             val applicationInfo: ApplicationInfo = packageManager.getApplicationInfo(packageName, 0)
             val appName = packageManager.getApplicationLabel(applicationInfo).toString()
-            
+
             // Cache the result for future use
             appNameCache[packageName] = appName
-            
+
             return appName
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             return "null"
         }
     }
 
     /**
-     * Filters and sorts a list of ResolveInfo
+     * Filters and sorts a list of ResolveInfo by alphabetical order and removes any that don't contain [searchText]
+     *
+     * @param apps List of apps as ResolveInfo
+     * @param searchText Filter text
+     * @param packageManager This is to load the apps label
+     *
+     * @return List of ResolveInfo in the correct order and with anything that doesn't match the search query removed
      */
     fun filterAndSortApps(
         apps: List<ResolveInfo>,
@@ -127,12 +176,25 @@ object AppUtils {
             .map { (appInfo, _) -> appInfo }
     }
 
+    /**
+     * Returns the current time as a string
+     *
+     * @return String the time with the format HH:mm
+     */
     fun getCurrentTime(): String {
         val now = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("HH:mm") // Format as hours:minutes:seconds
         return now.format(formatter)
     }
 
+    /**
+     * Loads text from a file in Assets
+     *
+     * @param context Context
+     * @param fileName Name of the file text will be loaded from
+     *
+     * @return Returns a String? with the text from the file
+     */
     fun loadTextFromAssets(context: Context, fileName: String): String? {
         var inputStream: InputStream? = null
         var fileContent: String? = null
@@ -149,6 +211,8 @@ object AppUtils {
 
     /**
      * Finds out if Escape Launcher is the default launcher
+     *
+     * @return Boolean which will be true if it is the default launcher
      */
     fun isDefaultLauncher(context: Context): Boolean {
         val packageManager = context.packageManager
@@ -166,7 +230,7 @@ object AppUtils {
     fun resetHome(homeScreenModel: HomeScreenModel, shouldGoToFirstPage: Boolean? = true) {
         homeScreenModel.coroutineScope.launch {
             delay(200)
-            if(shouldGoToFirstPage == true){
+            if (shouldGoToFirstPage == true) {
                 homeScreenModel.pagerState.scrollToPage(1)
                 homeScreenModel.appsListScrollState.scrollToItem(0)
             }
@@ -177,6 +241,11 @@ object AppUtils {
         }
     }
 
+    /**
+     * Returns the date yesterday as a string
+     *
+     * @return String formatted yyyy-MM-dd
+     */
     fun getYesterday(): String {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -1)
@@ -185,7 +254,10 @@ object AppUtils {
         return yesterdayDate
     }
 
-    fun doHapticFeedBack(context: Context, hapticFeedback: HapticFeedback){
+    /**
+     * Performs haptic feedback
+     */
+    fun doHapticFeedBack(context: Context, hapticFeedback: HapticFeedback) {
         if (getBooleanSetting(
                 context,
                 context.resources.getString(R.string.Haptic),
@@ -196,6 +268,11 @@ object AppUtils {
         }
     }
 
+    /**
+     * Splash screen zoom animation
+     *
+     * @param splashScreen The splash screen to run the animation on
+     */
     fun animateSplashScreen(splashScreen: SplashScreen) {
         splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
             // Create a scale animation (zoom effect)
@@ -238,6 +315,11 @@ object AppUtils {
         }
     }
 
+    /**
+     * Disable or enable analytics,
+     *
+     * @param enabled Pass as true to enable analytics
+     */
     fun configureAnalytics(enabled: Boolean) {
         val analytics = Firebase.analytics
 
