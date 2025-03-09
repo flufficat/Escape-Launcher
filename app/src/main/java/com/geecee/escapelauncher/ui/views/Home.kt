@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -156,19 +155,20 @@ fun HomeScreen(
             }
             widgetOffset += getWidgetOffset(mainAppModel.getContext()).toInt()
 
-            WidgetsScreen(context = mainAppModel.getContext(), modifier = Modifier
-                .offset {
-                    IntOffset(
-                        (widgetOffset.dp)
-                            .toPx()
-                            .toInt(), 0
+            WidgetsScreen(
+                context = mainAppModel.getContext(), modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            (widgetOffset.dp)
+                                .toPx()
+                                .toInt(), 0
+                        )
+                    }
+                    .size(
+                        (getWidgetWidth(mainAppModel.getContext())).dp,
+                        (getWidgetHeight(mainAppModel.getContext())).dp
                     )
-                }
-                .size(
-                    (getWidgetWidth(mainAppModel.getContext())).dp,
-                    (getWidgetHeight(mainAppModel.getContext())).dp
-                )
-                .padding(0.dp, 7.dp))
+                    .padding(0.dp, 7.dp))
         }
 
         //Apps
@@ -305,13 +305,21 @@ fun Clock(
 fun HomeScreenScreenTime(
     screenTime: String
 ) {
-    Text(
-        text = screenTime,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.alpha(0.5F)
-    )
+    Box(
+        Modifier
+            .clip(
+                MaterialTheme.shapes.extraLarge
+            )
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Text(
+            text = screenTime,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(25.dp)
+        )
+    }
 }
 
 /**
@@ -372,8 +380,8 @@ fun FirstTimeHelp() {
 
 @Preview
 @Composable
-fun PrevFirstTimeHelp(){
+fun PrevHomeScreenTime() {
     EscapeTheme {
-        FirstTimeHelp()
+        HomeScreenScreenTime("3h 47m")
     }
 }
