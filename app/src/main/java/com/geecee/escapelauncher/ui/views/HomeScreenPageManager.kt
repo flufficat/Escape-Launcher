@@ -3,7 +3,6 @@ package com.geecee.escapelauncher.ui.views
 import android.app.Application
 import android.content.Intent
 import android.content.pm.ResolveInfo
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -39,6 +38,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -182,7 +182,7 @@ fun HomeScreenPageManager(
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_DELETE,
-                        Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                        "package:${homeScreenModel.currentPackageName.value}".toUri()
                     )
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     mainAppModel.getContext().startActivity(intent)
@@ -222,7 +222,7 @@ fun HomeScreenPageManager(
                 label = stringResource(id = R.string.app_info),
                 onClick = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                        data = "package:${homeScreenModel.currentPackageName.value}".toUri()
                     }.apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
@@ -285,12 +285,12 @@ fun HomeScreenPageManager(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreenItem(
+    modifier: Modifier = Modifier,
     appName: String,
     screenTime: Long? = null,
     onAppClick: () -> Unit,
     onAppLongClick: () -> Unit,
-    showScreenTime: Boolean = false,
-    modifier: Modifier = Modifier
+    showScreenTime: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,
