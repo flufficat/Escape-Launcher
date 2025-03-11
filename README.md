@@ -1,4 +1,4 @@
-![Banner](https://github.com/georgeclensy/Escape/blob/master/branding/Banner/Banner With Screenshots.png)
+![Banner](https://github.com/GeorgeClensy/Escape-Launcher/blob/master/branding/Banner/Banner%20With%20Screenshots.png)
 
 <!--suppress ALL -->
 <div align="center">
