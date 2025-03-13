@@ -1116,7 +1116,7 @@ fun HiddenApps(
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
                             val launchIntent =
-                                mainAppModel.packageManager.getLaunchIntentForPackage(app)
+                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
@@ -1188,7 +1188,7 @@ fun OpenChallenges(
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
                             val launchIntent =
-                                mainAppModel.packageManager.getLaunchIntentForPackage(app)
+                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(app)
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()

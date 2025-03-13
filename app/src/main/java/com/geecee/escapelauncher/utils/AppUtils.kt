@@ -79,6 +79,7 @@ object AppUtils {
     fun openApp(
         app: InstalledApp,
         mainAppModel: MainAppModel,
+        homeScreenModel: HomeScreenModel,
         overrideOpenChallenge: Boolean,
         openChallengeShow: MutableState<Boolean>?
     ) {
@@ -96,8 +97,8 @@ object AppUtils {
             ScreenTimeManager.onAppOpened(app.packageName)
 
             mainAppModel.isAppOpened = true
-            mainAppModel.currentPackageName = app.packageName
             mainAppModel.shouldGoHomeOnResume.value = true
+            homeScreenModel.updateSelectedApp(app)
         } else {
             if (openChallengeShow != null) {
                 openChallengeShow.value = true

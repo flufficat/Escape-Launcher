@@ -1,10 +1,10 @@
 package com.geecee.escapelauncher
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -44,6 +44,7 @@ import com.geecee.escapelauncher.ui.views.Settings
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.animateSplashScreen
 import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
+import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.PrivateSpaceStateReceiver
 import com.geecee.escapelauncher.utils.ScreenOffReceiver
 import com.geecee.escapelauncher.utils.getBooleanSetting
@@ -59,18 +60,19 @@ import kotlinx.coroutines.launch
 
 class MainAppViewModel(application: Application) : AndroidViewModel(application) {
     private val appContext: Context = application.applicationContext // The app context
-    val packageManager: PackageManager =
-        application.packageManager // Package manager for retrieving apps
+
     val favoriteAppsManager: FavoriteAppsManager =
         FavoriteAppsManager(application) // Favorite apps manager
     val hiddenAppsManager: HiddenAppsManager = HiddenAppsManager(application) // Hidden apps manager
     val challengesManager: ChallengesManager =
         ChallengesManager(application) // Manager for challenges
-    var isAppOpened: Boolean = false // Set to true when an app is opened and false when it is closed again
-    var currentPackageName: String? =
-        null // todo: How is this different to like the same thing within the HomeScreeViewModel
-    val showPrivateSpaceUnlockedUI: MutableState<Boolean> =
-        mutableStateOf(false) // todo: WHAT IS THIS!? WHO ADDED THIS
+
+    var isAppOpened: Boolean =
+        false // Set to true when an app is opened and false when it is closed again
+
+    val isPrivateSpaceUnlocked: MutableState<Boolean> =
+        mutableStateOf(false) // If the private space is unlocked, set by a registered receiver when the private space is closed or opened
+
     val shouldReloadScreenTime: MutableState<Boolean> =
         mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
     val shouldGoHomeOnResume: MutableState<Boolean> =
@@ -125,12 +127,12 @@ class MainHomeScreen : ComponentActivity() {
         screenOffReceiver = ScreenOffReceiver {
             // Screen turned off
             if (viewModel.isAppOpened) {
-                if (viewModel.currentPackageName != null) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        ScreenTimeManager.onAppClosed(viewModel.currentPackageName!!)
-                        viewModel.currentPackageName = null
-                    }
+                lifecycleScope.launch(Dispatchers.IO) {
+                    ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                    homeScreenModel.currentSelectedApp =
+                        mutableStateOf(InstalledApp("", "", ComponentName("", "")))
                 }
+
                 viewModel.isAppOpened = false
             }
         }
@@ -140,7 +142,7 @@ class MainHomeScreen : ComponentActivity() {
         //Private space receiver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             privateSpaceReceiver = PrivateSpaceStateReceiver { isUnlocked ->
-                viewModel.showPrivateSpaceUnlockedUI.value = isUnlocked
+                viewModel.isPrivateSpaceUnlocked.value = isUnlocked
             }
             val intentFilter = IntentFilter().apply {
                 addAction(Intent.ACTION_PROFILE_AVAILABLE)
@@ -166,12 +168,11 @@ class MainHomeScreen : ComponentActivity() {
         //Updates the screen time when you close an app
         try {
             if (viewModel.isAppOpened) {
-                if (viewModel.currentPackageName != null) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        ScreenTimeManager.onAppClosed(viewModel.currentPackageName!!)
-                        viewModel.currentPackageName = null
+                        ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                        homeScreenModel.currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
                     }
-                }
+
                 viewModel.isAppOpened = false
             }
         } catch (ex: Exception) {
@@ -245,7 +246,12 @@ class MainHomeScreen : ComponentActivity() {
      */
     private fun determineStartDestination(context: Context): String {
         return when {
-            getBooleanSetting(context, context.resources.getString(R.string.FirstTime), true) -> "onboarding"
+            getBooleanSetting(
+                context,
+                context.resources.getString(R.string.FirstTime),
+                true
+            ) -> "onboarding"
+
             else -> "home"
         }
     }
@@ -265,7 +271,8 @@ class MainHomeScreen : ComponentActivity() {
                 .background(color = MaterialTheme.colorScheme.background)
         ) {
             NavHost(navController, startDestination = startDestination) {
-                composable("home",
+                composable(
+                    "home",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     HomeScreenPageManager(
@@ -273,7 +280,8 @@ class MainHomeScreen : ComponentActivity() {
                         homeScreenModel
                     ) { navController.navigate("settings") }
                 }
-                composable("settings",
+                composable(
+                    "settings",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Settings(
@@ -282,7 +290,8 @@ class MainHomeScreen : ComponentActivity() {
                         this@MainHomeScreen,
                     )
                 }
-                composable("onboarding",
+                composable(
+                    "onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Onboarding(

@@ -273,6 +273,7 @@ fun HomeScreenPageManager(
                 AppUtils.openApp(
                     homeScreenModel.currentSelectedApp.value,
                     mainAppModel,
+                    homeScreenModel,
                     true,
                     null
                 )

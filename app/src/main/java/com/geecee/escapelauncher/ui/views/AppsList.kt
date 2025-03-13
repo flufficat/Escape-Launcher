@@ -136,11 +136,11 @@ fun AppsList(
                             )
                             if (autoOpen && filteredApps.size == 1) {
                                 val appInfo = filteredApps.first()
-                                homeScreenModel.updateSelectedApp(appInfo)
 
                                 AppUtils.openApp(
                                     appInfo,
                                     mainAppModel,
+                                    homeScreenModel,
                                     false,
                                     homeScreenModel.showOpenChallenge
                                 )
@@ -159,11 +159,10 @@ fun AppsList(
                             ) {
                                 val firstAppInfo = filteredApps.first()
 
-                                homeScreenModel.updateSelectedApp(firstAppInfo)
-
                                 AppUtils.openApp(
                                     firstAppInfo,
                                     mainAppModel,
+                                    homeScreenModel,
                                     false,
                                     homeScreenModel.showOpenChallenge
                                 )
@@ -212,7 +211,8 @@ fun AppsList(
                                 app = app,
                                 overrideOpenChallenge = false,
                                 openChallengeShow = homeScreenModel.showOpenChallenge,
-                                mainAppModel = mainAppModel
+                                mainAppModel = mainAppModel,
+                                homeScreenModel = homeScreenModel
                             )
 
                             resetHome(homeScreenModel)
@@ -239,15 +239,15 @@ fun AppsList(
                 }
 
                 // Stores whether the private space is unlocked and whether to try and show it
-                mainAppModel.showPrivateSpaceUnlockedUI.value = isPrivateSpace(mainAppModel.getContext())
+                mainAppModel.isPrivateSpaceUnlocked.value = isPrivateSpace(mainAppModel.getContext())
 
                 item {
                     // Private space is locked, shows button to unlock it
-                    if ((!mainAppModel.showPrivateSpaceUnlockedUI.value && !getBooleanSetting(
+                    if ((!mainAppModel.isPrivateSpaceUnlocked.value && !getBooleanSetting(
                             mainAppModel.getContext(),
                             stringResource(R.string.SearchHiddenPrivateSpace),
                             false
-                        )) || (!mainAppModel.showPrivateSpaceUnlockedUI.value && homeScreenModel.searchText.value.contains(
+                        )) || (!mainAppModel.isPrivateSpaceUnlocked.value && homeScreenModel.searchText.value.contains(
                             stringResource(R.string.private_space_search_term)
                         ) && getBooleanSetting(
                             mainAppModel.getContext(),
@@ -264,7 +264,7 @@ fun AppsList(
 
                     // Private space itself
                     AnimatedVisibility(
-                        visible = mainAppModel.showPrivateSpaceUnlockedUI.value,
+                        visible = mainAppModel.isPrivateSpaceUnlocked.value,
                         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
@@ -280,7 +280,7 @@ fun AppsList(
 
         // Private space settings
         AnimatedVisibility(
-            visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.showPrivateSpaceUnlockedUI.value,
+            visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.isPrivateSpaceUnlocked.value,
             enter = fadeIn(),
             exit = fadeOut()
         ) {

@@ -189,15 +189,13 @@ fun HomeScreen(
                 appName = app.displayName,
                 screenTime = appScreenTime.longValue,
                 onAppClick = {
-                    homeScreenModel.updateSelectedApp(app)
-
                     AppUtils.openApp(
                         app = app,
                         overrideOpenChallenge = false,
                         openChallengeShow = homeScreenModel.showOpenChallenge,
-                        mainAppModel = mainAppModel
+                        mainAppModel = mainAppModel,
+                        homeScreenModel = homeScreenModel
                     )
-
                     resetHome(homeScreenModel)
                 },
                 onAppLongClick = {
