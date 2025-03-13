@@ -74,7 +74,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     val shouldReloadScreenTime: MutableState<Boolean> =
         mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
     val shouldGoHomeOnResume: MutableState<Boolean> =
-        mutableStateOf(true) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
+        mutableStateOf(false) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
 
     fun getContext(): Context = appContext // Returns the context
 }
@@ -181,7 +181,7 @@ class MainHomeScreen : ComponentActivity() {
         // Reset home
         try {
             AppUtils.resetHome(homeScreenModel, viewModel.shouldGoHomeOnResume.value)
-            viewModel.shouldGoHomeOnResume.value = true
+            viewModel.shouldGoHomeOnResume.value = false
             viewModel.shouldReloadScreenTime.value = true
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())

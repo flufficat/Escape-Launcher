@@ -59,23 +59,26 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
  */
 class HomeScreenModel(application: Application, private val mainAppViewModel: MainAppViewModel) :
     AndroidViewModel(application) {
-    var showBottomSheet = mutableStateOf(false)
     var currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
-    var isCurrentAppFavorite = mutableStateOf(false)
-    var isCurrentAppChallenged = mutableStateOf(false)
-
     @Suppress("MemberVisibilityCanBePrivate")
     var isCurrentAppHidden = mutableStateOf(false)
+    var isCurrentAppChallenged = mutableStateOf(false)
+    var isCurrentAppFavorite = mutableStateOf(false)
+
     var showOpenChallenge = mutableStateOf(false)
-    var searchText = mutableStateOf("")
-    var searchExpanded = mutableStateOf(false)
+    var showBottomSheet = mutableStateOf(false)
     var showPrivateSpaceSettings = mutableStateOf(false)
 
+    var searchText = mutableStateOf("")
+    var searchExpanded = mutableStateOf(false)
+
     val coroutineScope = viewModelScope
+    val interactionSource = MutableInteractionSource()
+
     val installedApps = mutableStateListOf<InstalledApp>()
     val favoriteApps = mutableStateListOf<InstalledApp>()
+
     val appsListScrollState = LazyListState()
-    val interactionSource = MutableInteractionSource()
     val pagerState = PagerState(1, 0f) { 3 }
 
     init {
@@ -123,7 +126,6 @@ class HomeScreenModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
 
 /**
  *  Main composable for home screen:
@@ -231,7 +233,6 @@ fun HomeScreenPageManager(
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     mainAppModel.getContext().startActivity(intent)
-                    mainAppModel.shouldGoHomeOnResume.value = false
                     resetHome(homeScreenModel,false)
                 }
             )

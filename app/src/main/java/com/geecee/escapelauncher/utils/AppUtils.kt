@@ -97,6 +97,7 @@ object AppUtils {
 
             mainAppModel.isAppOpened = true
             mainAppModel.currentPackageName = app.packageName
+            mainAppModel.shouldGoHomeOnResume.value = true
         } else {
             if (openChallengeShow != null) {
                 openChallengeShow.value = true

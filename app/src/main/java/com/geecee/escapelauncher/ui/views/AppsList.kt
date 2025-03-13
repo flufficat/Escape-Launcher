@@ -257,7 +257,6 @@ fun AppsList(
                     ) {
                         Button({
                             unlockPrivateSpace(mainAppModel.getContext())
-                            mainAppModel.shouldGoHomeOnResume.value = false
                         }) {
                             Text(stringResource(R.string.unlock_private_space))
                         }
