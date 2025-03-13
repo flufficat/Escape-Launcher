@@ -137,12 +137,14 @@ fun AppsList(
                             if (autoOpen && filteredApps.size == 1) {
                                 val appInfo = filteredApps.first()
 
+                                homeScreenModel.updateSelectedApp(appInfo)
+
                                 AppUtils.openApp(
-                                    appInfo,
-                                    mainAppModel,
-                                    homeScreenModel,
-                                    false,
-                                    homeScreenModel.showOpenChallenge
+                                    app = appInfo,
+                                    overrideOpenChallenge = false,
+                                    openChallengeShow = homeScreenModel.showOpenChallenge,
+                                    mainAppModel = mainAppModel,
+                                    homeScreenModel = homeScreenModel
                                 )
 
                                 resetHome(homeScreenModel)
@@ -159,13 +161,17 @@ fun AppsList(
                             ) {
                                 val firstAppInfo = filteredApps.first()
 
+                                homeScreenModel.updateSelectedApp(firstAppInfo)
+
                                 AppUtils.openApp(
-                                    firstAppInfo,
-                                    mainAppModel,
-                                    homeScreenModel,
-                                    false,
-                                    homeScreenModel.showOpenChallenge
+                                    app = firstAppInfo,
+                                    overrideOpenChallenge = false,
+                                    openChallengeShow = homeScreenModel.showOpenChallenge,
+                                    mainAppModel = mainAppModel,
+                                    homeScreenModel = homeScreenModel
                                 )
+
+                                resetHome(homeScreenModel)
                             }
                         },
                         expanded = homeScreenModel.searchExpanded
