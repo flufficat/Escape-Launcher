@@ -7,7 +7,6 @@ package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
@@ -41,15 +40,6 @@ import com.geecee.escapelauncher.ui.theme.transparentHalf
 import com.geecee.escapelauncher.ui.views.SettingsSwitch
 
 private const val PRIVATE_SPACE_USER_TYPE = "android.os.usertype.profile.PRIVATE"
-
-/**
- * Data class representing an app within Private Space.
- */
-data class PrivateSpaceApp(
-    var displayName: String,
-    var packageName: String,
-    var componentName: ComponentName
-)
 
 /**
  * BroadcastReceiver that listens for Private Space state changes (locked/unlocked).
@@ -112,7 +102,7 @@ fun unlockPrivateSpace(context: Context) {
  * Retrieves a list of installed apps in Private Space.
  */
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-fun getPrivateSpaceApps(context: Context): List<PrivateSpaceApp> {
+fun getPrivateSpaceApps(context: Context): List<InstalledApp> {
     val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps
         ?: return emptyList()
     val userManager = getSystemService(context, UserManager::class.java) ?: return emptyList()
@@ -121,7 +111,7 @@ fun getPrivateSpaceApps(context: Context): List<PrivateSpaceApp> {
     } ?: return emptyList()
 
     return launcherApps.getActivityList(null, privateUser).map {
-        PrivateSpaceApp(
+        InstalledApp(
             displayName = it.label?.toString() ?: "Unknown App",
             packageName = it.applicationInfo.packageName,
             componentName = it.componentName
@@ -200,17 +190,16 @@ fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
  * Opens app in Private space
  */
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-fun openPrivateSpaceApp(privateSpaceApp: PrivateSpaceApp, context: Context, sourceBounds: Rect) {
+fun openPrivateSpaceApp(installedApp: InstalledApp, context: Context, sourceBounds: Rect) {
     val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     val userManager = getSystemService(context, UserManager::class.java) as UserManager
     val profiles = userManager.userProfiles
 
     for (userInfo in profiles) {
         if (launcherApps.getLauncherUserInfo(userInfo)?.userType == "android.os.usertype.profile.PRIVATE") {
-            println("Context Type: ${context.javaClass.name}")
             val options = ActivityOptions.makeBasic()
             launcherApps.startMainActivity(
-                privateSpaceApp.componentName,
+                installedApp.componentName,
                 userInfo,
                 sourceBounds,
                 options.toBundle()

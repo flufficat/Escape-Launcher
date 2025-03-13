@@ -125,8 +125,7 @@ fun AppsList(
                             // Get the list of installed apps with the results filtered
                             val filteredApps = AppUtils.filterAndSortApps(
                                 homeScreenModel.installedApps,
-                                homeScreenModel.searchText.value,
-                                mainAppModel.packageManager
+                                homeScreenModel.searchText.value
                             )
 
                             // If autoOpen is enabled then open the app like you would normally
@@ -137,13 +136,13 @@ fun AppsList(
                             )
                             if (autoOpen && filteredApps.size == 1) {
                                 val appInfo = filteredApps.first()
-                                homeScreenModel.updateSelectedApp(appInfo.activityInfo.packageName)
+                                homeScreenModel.updateSelectedApp(appInfo)
 
                                 AppUtils.openApp(
-                                    homeScreenModel.currentPackageName.value,
+                                    appInfo,
+                                    mainAppModel,
                                     false,
-                                    homeScreenModel.showOpenChallenge,
-                                    mainAppModel
+                                    homeScreenModel.showOpenChallenge
                                 )
 
                                 resetHome(homeScreenModel)
@@ -155,19 +154,18 @@ fun AppsList(
                             val filteredApps = AppUtils.filterAndSortApps(
                                 homeScreenModel.installedApps,
                                 homeScreenModel.searchText.value,
-                                mainAppModel.packageManager
                             )
                             if (filteredApps.isNotEmpty()
                             ) {
                                 val firstAppInfo = filteredApps.first()
 
-                                homeScreenModel.updateSelectedApp(firstAppInfo.activityInfo.packageName)
+                                homeScreenModel.updateSelectedApp(firstAppInfo)
 
                                 AppUtils.openApp(
-                                    homeScreenModel.currentPackageName.value,
+                                    firstAppInfo,
+                                    mainAppModel,
                                     false,
-                                    homeScreenModel.showOpenChallenge,
-                                    mainAppModel
+                                    homeScreenModel.showOpenChallenge
                                 )
                             }
                         },
@@ -180,7 +178,7 @@ fun AppsList(
             items(
                 // All installed apps filtered with search term
                 homeScreenModel.installedApps.filter { appInfo ->
-                    val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
+                    val appName = appInfo.displayName
                     if (homeScreenModel.searchExpanded.value) {
                         appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
                     } else {
@@ -195,7 +193,7 @@ fun AppsList(
                 shouldReloadScreenTime.value) {
                     withContext(Dispatchers.IO) {
                         appScreenTime.longValue = getUsageForApp(
-                            app.activityInfo.packageName,
+                            app.packageName,
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         )
                         mainAppModel.shouldReloadScreenTime.value = false
@@ -203,18 +201,15 @@ fun AppsList(
                 }
 
                 // Draw app if its not hidden and not Escape itself
-                if (!app.activityInfo.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.activityInfo.packageName)) {
+                if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.packageName)) {
                     HomeScreenItem(
-                        appName = AppUtils.getAppNameFromPackageName(
-                            context = mainAppModel.getContext(),
-                            packageName = app.activityInfo.packageName
-                        ),
+                        appName = app.displayName,
                         screenTime = appScreenTime.longValue,
                         onAppClick = {
-                            homeScreenModel.updateSelectedApp(app.activityInfo.packageName)
+                            homeScreenModel.updateSelectedApp(app)
 
                             AppUtils.openApp(
-                                packageName = app.activityInfo.packageName,
+                                app = app,
                                 overrideOpenChallenge = false,
                                 openChallengeShow = homeScreenModel.showOpenChallenge,
                                 mainAppModel = mainAppModel
@@ -224,7 +219,7 @@ fun AppsList(
                         },
                         onAppLongClick = {
                             homeScreenModel.showBottomSheet.value = true
-                            homeScreenModel.updateSelectedApp(app.activityInfo.packageName)
+                            homeScreenModel.updateSelectedApp(app)
                             doHapticFeedBack(mainAppModel.getContext(), haptics)
                         },
                         showScreenTime = getBooleanSetting(
@@ -489,7 +484,7 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
 
                 }) {
                     openPrivateSpaceApp(
-                        privateSpaceApp = app, context = mainAppModel.getContext(), Rect()
+                        installedApp = app, context = mainAppModel.getContext(), Rect()
                     )
                     resetHome(homeScreenModel)
                 }

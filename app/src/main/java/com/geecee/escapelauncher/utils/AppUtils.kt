@@ -2,11 +2,14 @@ package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
+import android.graphics.Rect
+import android.os.Process.myUserHandle
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.AnimationSet
@@ -47,6 +50,15 @@ class ScreenOffReceiver(private val onScreenOff: () -> Unit) : BroadcastReceiver
 }
 
 /**
+ * Data class representing an app
+ */
+data class InstalledApp(
+    var displayName: String,
+    var packageName: String,
+    var componentName: ComponentName
+)
+
+/**
  * Set of functions used throughout Escape Launcher app
  *
  * @author George Clensy
@@ -57,7 +69,7 @@ object AppUtils {
      * Function to open app.
      * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the OpenChallenge function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
      *
-     * @param packageName The name of the package being opened
+     * @param app The app info being opened
      * @param overrideOpenChallenge Whether the open challenge should be skipped
      * @param openChallengeShow This is set to true if the app has an open challenge, We recommend having a composable that shows when thats true to act as the open challenge
      * @param mainAppModel Main view model, needed for open challenge manager, package manager, context
@@ -65,28 +77,71 @@ object AppUtils {
      * @author George Clensy
      */
     fun openApp(
-        packageName: String,
+        app: InstalledApp,
+        mainAppModel: MainAppModel,
         overrideOpenChallenge: Boolean,
-        openChallengeShow: MutableState<Boolean>?,
-        mainAppModel: MainAppModel
+        openChallengeShow: MutableState<Boolean>?
     ) {
-        val launchIntent = mainAppModel.packageManager.getLaunchIntentForPackage(packageName)
-        if (launchIntent != null) {
-            if (!mainAppModel.challengesManager.doesAppHaveChallenge(packageName) || overrideOpenChallenge) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                val options = ActivityOptions.makeBasic()
-                mainAppModel.getContext().startActivity(launchIntent, options.toBundle())
+        val launcherApps = mainAppModel.getContext()
+            .getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        val options = ActivityOptions.makeBasic()
 
-                ScreenTimeManager.onAppOpened(packageName)
+        if (!mainAppModel.challengesManager.doesAppHaveChallenge(app.packageName) || overrideOpenChallenge) {
+            launcherApps.startMainActivity(
+                app.componentName,
+                myUserHandle(),
+                Rect(),
+                options.toBundle()
+            )
+            ScreenTimeManager.onAppOpened(app.packageName)
 
-                mainAppModel.isAppOpened = true
-                mainAppModel.currentPackageName = packageName
-            } else {
-                if (openChallengeShow != null) {
-                    openChallengeShow.value = true
-                }
+            mainAppModel.isAppOpened = true
+            mainAppModel.currentPackageName = app.packageName
+        } else {
+            if (openChallengeShow != null) {
+                openChallengeShow.value = true
             }
         }
+    }
+
+    /**
+     * Returns a list of all installed apps on the device
+     *
+     * @param context Context
+     *
+     * @return InstalledApp list with all installed apps
+     */
+    fun getAllInstalledApps(context: Context): List<InstalledApp> {
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps
+            ?: return emptyList()
+
+        return launcherApps.getActivityList(null, myUserHandle()).map {
+            InstalledApp(
+                displayName = it.label?.toString() ?: "Unknown App",
+                packageName = it.applicationInfo.packageName,
+                componentName = it.componentName
+            )
+        }
+    }
+
+    /**
+     * Filters and sorts a list of ResolveInfo by alphabetical order and removes any that don't contain [searchText]
+     *
+     * @param apps List of apps as ResolveInfo
+     * @param searchText Filter text
+     *
+     * @return List of ResolveInfo in the correct order and with anything that doesn't match the search query removed
+     */
+    fun filterAndSortApps(
+        apps: List<InstalledApp>,
+        searchText: String
+    ): List<InstalledApp> {
+        return apps.map { appInfo ->
+            appInfo to appInfo.displayName
+        }.filter { (_, appName) ->
+            appName.contains(searchText, ignoreCase = true)
+        }.sortedBy { (_, appName) -> appName }
+            .map { (appInfo, _) -> appInfo }
     }
 
     /**
@@ -106,20 +161,6 @@ object AppUtils {
         } else {
             "${minutes}m"
         }
-    }
-
-    /**
-     * Returns a list of all installed apps on the device
-     *
-     * @param packageManager Package manager to get apps from
-     *
-     * @return Mutable list of resoleInfo of all the installed applications
-     */
-    fun getAllInstalledApps(packageManager: PackageManager): MutableList<ResolveInfo> {
-        return packageManager.queryIntentActivities(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
-            PackageManager.GET_ACTIVITIES
-        ).toMutableList()
     }
 
     /**
@@ -152,28 +193,6 @@ object AppUtils {
         } catch (_: PackageManager.NameNotFoundException) {
             return "null"
         }
-    }
-
-    /**
-     * Filters and sorts a list of ResolveInfo by alphabetical order and removes any that don't contain [searchText]
-     *
-     * @param apps List of apps as ResolveInfo
-     * @param searchText Filter text
-     * @param packageManager This is to load the apps label
-     *
-     * @return List of ResolveInfo in the correct order and with anything that doesn't match the search query removed
-     */
-    fun filterAndSortApps(
-        apps: List<ResolveInfo>,
-        searchText: String,
-        packageManager: PackageManager
-    ): List<ResolveInfo> {
-        return apps.map { appInfo ->
-            appInfo to appInfo.loadLabel(packageManager).toString()
-        }.filter { (_, appName) ->
-            appName.contains(searchText, ignoreCase = true)
-        }.sortedBy { (_, appName) -> appName }
-            .map { (appInfo, _) -> appInfo }
     }
 
     /**
@@ -236,6 +255,7 @@ object AppUtils {
             }
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
+            homeScreenModel.showBottomSheet.value = false
             homeScreenModel.loadApps()
             homeScreenModel.reloadFavouriteApps()
         }

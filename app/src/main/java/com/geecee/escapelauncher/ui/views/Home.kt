@@ -179,23 +179,20 @@ fun HomeScreen(
             LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
                 withContext(Dispatchers.IO) {
                     appScreenTime.longValue = getUsageForApp(
-                        app, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        app.packageName, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     )
                     mainAppModel.shouldReloadScreenTime.value = false
                 }
             }
 
             HomeScreenItem(
-                appName = AppUtils.getAppNameFromPackageName(
-                    context = mainAppModel.getContext(),
-                    packageName = app
-                ),
+                appName = app.displayName,
                 screenTime = appScreenTime.longValue,
                 onAppClick = {
                     homeScreenModel.updateSelectedApp(app)
 
                     AppUtils.openApp(
-                        packageName = app,
+                        app = app,
                         overrideOpenChallenge = false,
                         openChallengeShow = homeScreenModel.showOpenChallenge,
                         mainAppModel = mainAppModel
