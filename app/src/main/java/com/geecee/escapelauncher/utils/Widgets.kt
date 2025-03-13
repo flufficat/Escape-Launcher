@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -148,11 +147,11 @@ fun setWidgetOffset(context: Context, sliderPosition: Float) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putFloat("WidgetOffset", sliderPosition)
+        putFloat("WidgetOffset", sliderPosition)
 
-    editor.apply()
+    }
 }
 
 fun getWidgetOffset(context: Context): Float {
@@ -167,11 +166,11 @@ fun setWidgetHeight(context: Context, sliderPosition: Float) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putFloat("WidgetHeight", sliderPosition)
+        putFloat("WidgetHeight", sliderPosition)
 
-    editor.apply()
+    }
 }
 
 fun getWidgetWidth(context: Context): Float {
@@ -186,11 +185,11 @@ fun setWidgetWidth(context: Context, sliderPosition: Float) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putFloat("WidgetWidth", sliderPosition)
+        putFloat("WidgetWidth", sliderPosition)
 
-    editor.apply()
+    }
 }
 
 fun getWidgetHeight(context: Context): Float {

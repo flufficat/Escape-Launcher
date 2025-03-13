@@ -1,10 +1,7 @@
 package com.geecee.escapelauncher.ui.views
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,20 +33,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.getCurrentTime
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.WidgetsScreen
 import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.getHomeAlignment
+import com.geecee.escapelauncher.utils.getHomeVAlignment
 import com.geecee.escapelauncher.utils.getStringSetting
 import com.geecee.escapelauncher.utils.getWidgetHeight
 import com.geecee.escapelauncher.utils.getWidgetOffset
@@ -64,28 +65,27 @@ import java.util.Date
 import java.util.Locale
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
-// Home Screen Page Inside the Pager
+/**
+ * Parent main home screen composable
+ */
 @Composable
 fun HomeScreen(
     mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
     val noApps = remember { mutableStateOf(true) }
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    val haptics = LocalHapticFeedback.current
 
     LazyColumn(
         state = scrollState,
-        verticalArrangement = getHomeScreenVerticalArrangement(
-            homeScreenModel.sharedPreferences,
-            stringResource(R.string.HomeVAlignment)
-        ),
-        horizontalAlignment = getHomeScreenHorizontalArrangement(
-            homeScreenModel.sharedPreferences,
-            stringResource(R.string.HomeAlignment)
-        ),
+        verticalArrangement = getHomeVAlignment(mainAppModel.getContext()),
+        horizontalAlignment = getHomeAlignment(mainAppModel.getContext()),
         modifier = Modifier
             .fillMaxSize()
             .padding(30.dp, 0.dp)
     ) {
+        //Top padding
         item {
             Spacer(Modifier.height(90.dp))
         }
@@ -96,7 +96,15 @@ fun HomeScreen(
                     mainAppModel.getContext(), stringResource(R.string.ShowClock), true
                 )
             ) {
-                Clock(homeScreenModel.sharedPreferences, mainAppModel.getContext(), noApps)
+                Clock(
+                    bigClock = getBooleanSetting(
+                        context = mainAppModel.getContext(),
+                        stringResource(R.string.BigClock),
+                        false
+                    ),
+                    noApps = noApps,
+                    homeAlignment = getHomeAlignment(mainAppModel.getContext())
+                )
             }
         }
 
@@ -106,11 +114,10 @@ fun HomeScreen(
                     mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
                 )
             ) {
-                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                // Find out screen time for today
                 val todayUsage = remember { mutableLongStateOf(0L) }
-
                 LaunchedEffect(
-                    mainAppModel.shouldReloadTotalScreenTimeOnHomeScreen.value
+                    mainAppModel.shouldReloadScreenTime.value
                 ) {
                     try {
                         withContext(Dispatchers.IO) {
@@ -118,22 +125,20 @@ fun HomeScreen(
                             withContext(Dispatchers.Main) {
                                 todayUsage.longValue = usage
                             }
-                            mainAppModel.shouldReloadTotalScreenTimeOnHomeScreen.value = false
+                            mainAppModel.shouldReloadScreenTime.value = false
                         }
                     } catch (e: Exception) {
                         Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
                     }
                 }
 
-                HomeScreenScreenTime(
-                    AppUtils.formatScreenTime(todayUsage.longValue),
-                    homeScreenModel.sharedPreferences
-                )
+                HomeScreenScreenTime(AppUtils.formatScreenTime(todayUsage.longValue))
             }
         }
 
         //Widgets
         item {
+            // Find out offset of widget
             var widgetOffset by remember { mutableIntStateOf(0) }
             widgetOffset = if (getStringSetting(
                     mainAppModel.getContext(), "HomeAlignment", "Center"
@@ -150,19 +155,20 @@ fun HomeScreen(
             }
             widgetOffset += getWidgetOffset(mainAppModel.getContext()).toInt()
 
-            WidgetsScreen(context = mainAppModel.getContext(), modifier = Modifier
-                .offset {
-                    IntOffset(
-                        (widgetOffset.dp)
-                            .toPx()
-                            .toInt(), 0
+            WidgetsScreen(
+                context = mainAppModel.getContext(), modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            (widgetOffset.dp)
+                                .toPx()
+                                .toInt(), 0
+                        )
+                    }
+                    .size(
+                        (getWidgetWidth(mainAppModel.getContext())).dp,
+                        (getWidgetHeight(mainAppModel.getContext())).dp
                     )
-                }
-                .size(
-                    (getWidgetWidth(mainAppModel.getContext())).dp,
-                    (getWidgetHeight(mainAppModel.getContext())).dp
-                )
-                .padding(0.dp, 7.dp))
+                    .padding(0.dp, 7.dp))
         }
 
         //Apps
@@ -170,57 +176,42 @@ fun HomeScreen(
             val appScreenTime = remember { mutableLongStateOf(0L) }
 
             // Fetch screen time in a coroutine
-            LaunchedEffect(mainAppModel.shouldReloadAppUsageOnHome.value) {
+            LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
                 withContext(Dispatchers.IO) {
                     appScreenTime.longValue = getUsageForApp(
-                        app, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        app.packageName, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                     )
-                    mainAppModel.shouldReloadAppUsageOnHome.value = false
+                    mainAppModel.shouldReloadScreenTime.value = false
                 }
             }
 
-            HomeScreenItem(appName = AppUtils.getAppNameFromPackageName(
-                context = mainAppModel.getContext(), packageName = app
-            ), screenTime = appScreenTime.longValue, onAppClick = {
-                homeScreenModel.currentPackageName.value = app
-
-                AppUtils.openApp(
-                    app, false, homeScreenModel.showOpenChallenge, mainAppModel
-                )
-
-                resetHome(homeScreenModel, mainAppModel)
-            }, onAppLongClick = {
-                homeScreenModel.showBottomSheet.value = true
-                homeScreenModel.currentSelectedApp.value = AppUtils.getAppNameFromPackageName(
-                    mainAppModel.getContext(), app
-                )
-                homeScreenModel.currentPackageName.value = app
-                homeScreenModel.isCurrentAppChallenged.value =
-                    mainAppModel.challengesManager.doesAppHaveChallenge(
-                        app
+            HomeScreenItem(
+                appName = app.displayName,
+                screenTime = appScreenTime.longValue,
+                onAppClick = {
+                    AppUtils.openApp(
+                        app = app,
+                        overrideOpenChallenge = false,
+                        openChallengeShow = homeScreenModel.showOpenChallenge,
+                        mainAppModel = mainAppModel,
+                        homeScreenModel = homeScreenModel
                     )
-                homeScreenModel.isCurrentAppHidden.value =
-                    mainAppModel.hiddenAppsManager.isAppHidden(
-                        app
-                    )
-                homeScreenModel.isCurrentAppFavorite.value =
-                    mainAppModel.favoriteAppsManager.isAppFavorite(
-                        app
-                    )
-                if (getBooleanSetting(
-                        mainAppModel.getContext(),
-                        mainAppModel.getContext().resources.getString(R.string.Haptic),
-                        true
-                    )
-                ) {
-                    homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                }
-            }, showScreenTime = getBooleanSetting(
-                mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
-            ), modifier = Modifier
+                    resetHome(homeScreenModel)
+                },
+                onAppLongClick = {
+                    homeScreenModel.showBottomSheet.value = true
+                    homeScreenModel.updateSelectedApp(app)
+                    doHapticFeedBack(mainAppModel.getContext(), hapticFeedback = haptics)
+                },
+                showScreenTime = getBooleanSetting(
+                    context = mainAppModel.getContext(),
+                    setting = stringResource(R.string.ScreenTimeOnApp)
+                ),
+                modifier = Modifier
             )
         }
 
+        //First time help
         if (getBooleanSetting(
                 mainAppModel.getContext(),
                 mainAppModel.getContext().resources.getString(R.string.FirstTimeAppDrawHelp),
@@ -242,10 +233,12 @@ fun HomeScreen(
     }
 }
 
-// Home Screen Clock
+/**
+ * Clock to be shown on home screen
+ */
 @Composable
 fun Clock(
-    sharedPreferencesSettings: SharedPreferences, context: Context, noApps: MutableState<Boolean>
+    bigClock: Boolean, noApps: MutableState<Boolean>, homeAlignment: Alignment.Horizontal
 ) {
     var time by remember { mutableStateOf(getCurrentTime()) }
     val parts = time.split(":")
@@ -259,10 +252,7 @@ fun Clock(
         }
     }
 
-    if (getBooleanSetting(
-            context = context, stringResource(R.string.BigClock), false
-        )
-    ) {
+    if (bigClock) {
         Column {
             Text(
                 text = hours,
@@ -294,39 +284,42 @@ fun Clock(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = if (sharedPreferencesSettings.getString(
-                    stringResource(R.string.HomeAlignment), "Center"
-                ) == "Left"
-            ) TextAlign.Start else if (sharedPreferencesSettings.getString(
-                    stringResource(R.string.HomeAlignment), "Center"
-                ) == "Right"
-            ) TextAlign.End else TextAlign.Center
+            textAlign = when (homeAlignment) {
+                Alignment.Start -> TextAlign.Start
+                Alignment.End -> TextAlign.End
+                else -> TextAlign.Center
+            }
         )
     }
 }
 
-// Screen time on home screen
+/**
+ * Screen time on home screen
+ */
 @Composable
 fun HomeScreenScreenTime(
-    screenTime: String, sharedPreferencesSettings: SharedPreferences
+    screenTime: String
 ) {
-    val alignModifier = if (sharedPreferencesSettings.getString(
-            stringResource(R.string.HomeAlignment), "Center"
-        ) == "Left"
-    ) Modifier.offset((0).dp) else if (sharedPreferencesSettings.getString(
-            stringResource(R.string.HomeAlignment), "Center"
-        ) == "Right"
-    ) Modifier.offset(0.dp) else Modifier.offset(0.dp)
-
-    Text(
-        text = screenTime,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.SemiBold,
-        modifier = alignModifier.alpha(0.5f)
-    )
+    Box(
+        Modifier
+            .clip(
+                MaterialTheme.shapes.extraLarge
+            )
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Text(
+            text = screenTime,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(25.dp)
+        )
+    }
 }
 
+/**
+ * Block with tips for first time users
+ */
 @Composable
 fun FirstTimeHelp() {
     Box(
@@ -380,29 +373,10 @@ fun FirstTimeHelp() {
     }
 }
 
-fun getHomeScreenVerticalArrangement(
-    sharedPreferences: SharedPreferences,
-    preference: String
-): Arrangement.Vertical {
-    return when {
-        sharedPreferences.getString(preference, "Center") == "Center" -> Arrangement.Center
-        sharedPreferences.getString(preference, "Center") == "Top" -> Arrangement.Top
-        else -> Arrangement.Bottom
-    }
-}
-
-
-fun getHomeScreenHorizontalArrangement(
-    sharedPreferences: SharedPreferences,
-    preference: String
-): Alignment.Horizontal {
-    return when {
-        sharedPreferences.getString(
-            preference,
-            "Center"
-        ) == "Center" -> Alignment.CenterHorizontally
-
-        sharedPreferences.getString(preference, "Center") == "Left" -> Alignment.Start
-        else -> Alignment.End
+@Preview
+@Composable
+fun PrevHomeScreenTime() {
+    EscapeTheme {
+        HomeScreenScreenTime("3h 47m")
     }
 }

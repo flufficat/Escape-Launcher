@@ -1,9 +1,8 @@
 package com.geecee.escapelauncher.ui.views
 
+import android.app.Application
+import android.content.ComponentName
 import android.content.Intent
-import android.content.SharedPreferences
-import android.content.pm.ResolveInfo
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -28,54 +27,110 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
-import com.geecee.escapelauncher.utils.AppUtils.updateFavorites
-import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
+import com.geecee.escapelauncher.utils.AppUtils.resetHome
+import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.managers.OpenChallenge
 import com.geecee.escapelauncher.utils.setBooleanSetting
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
-// Model to be passed around home screen pages
-data class HomeScreenModel @OptIn(ExperimentalMaterial3Api::class) constructor(
-    var showBottomSheet: MutableState<Boolean>, // Whether or not the Bottom sheet should be shown
-    var sheetState: SheetState, // The bottom sheet state
-    var currentSelectedApp: MutableState<String>, // The currently selected app, set when pressed or long held, used for things like bottom sheet
-    var currentPackageName: MutableState<String>, // Similar idea to currentSelectedApp
-    var isCurrentAppFavorite: MutableState<Boolean>, // If the currentSelectedApp is a favourite
-    var isCurrentAppChallenged: MutableState<Boolean>, // If the currentSelectedApp is challenged
-    var isCurrentAppHidden: MutableState<Boolean>, // If the currentSelectedApp is hidden (don't know how you've managed to do that if it is lol)
-    var haptics: HapticFeedback, // Haptic feedback (self explanatory)
-    var sharedPreferences: SharedPreferences, // The sharedPreferences
-    var favoriteApps: SnapshotStateList<String>, // List of apps that are favourites
-    var interactionSource: MutableInteractionSource, // Something to do with clicking stuff idk
-    var showOpenChallenge: MutableState<Boolean>, // Whether there is an open challenge open rn
-    var pagerState: PagerState, // I wonder what this does
-    var coroutineScope: CoroutineScope, // Same applies
-    var installedApps: MutableList<ResolveInfo>, // List of installed apps
-    var sortedInstalledApps: List<ResolveInfo>, // Sorted list of installed apps
-    val appsListScrollState: LazyListState, // Scroll state of the apps list
-    val searchText: MutableState<String>, // The current text in the search box
-    val searchExpanded: MutableState<Boolean>, // If the search box is currently expanded
-    val showPrivateSpaceSettings: MutableState<Boolean> // Whether the private space settings are open
-)
+/**
+ * Home Screen View Model
+ */
+class HomeScreenModel(application: Application, private val mainAppViewModel: MainAppViewModel) :
+    AndroidViewModel(application) {
+    var currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
+    @Suppress("MemberVisibilityCanBePrivate")
+    var isCurrentAppHidden = mutableStateOf(false)
+    var isCurrentAppChallenged = mutableStateOf(false)
+    var isCurrentAppFavorite = mutableStateOf(false)
 
-// Main composable for home screen - contains a pager with all the pages inside of it
+    var showOpenChallenge = mutableStateOf(false)
+    var showBottomSheet = mutableStateOf(false)
+    var showPrivateSpaceSettings = mutableStateOf(false)
+
+    var searchText = mutableStateOf("")
+    var searchExpanded = mutableStateOf(false)
+
+    val coroutineScope = viewModelScope
+    val interactionSource = MutableInteractionSource()
+
+    val installedApps = mutableStateListOf<InstalledApp>()
+    val favoriteApps = mutableStateListOf<InstalledApp>()
+
+    val appsListScrollState = LazyListState()
+    val pagerState = PagerState(1, 0f) { 3 }
+
+    init {
+        loadApps()
+        reloadFavouriteApps()
+    }
+
+    fun loadApps() {
+        coroutineScope.launch {
+            installedApps.clear()
+            installedApps.addAll(
+                AppUtils.getAllInstalledApps(mainAppViewModel.getContext()).sortedBy {
+                    it.displayName
+                })
+        }
+    }
+
+    fun reloadFavouriteApps() {
+        favoriteApps.clear()
+        favoriteApps.addAll(
+            mainAppViewModel.favoriteAppsManager.getFavoriteApps().mapNotNull { packageName ->
+                installedApps.find { it.packageName == packageName }
+            })
+    }
+
+    fun updateSelectedApp(app: InstalledApp) {
+        currentSelectedApp.value = app
+        isCurrentAppFavorite.value = favoriteApps.contains(app)
+        isCurrentAppChallenged.value =
+            mainAppViewModel.challengesManager.doesAppHaveChallenge(app.packageName)
+        isCurrentAppHidden.value = mainAppViewModel.hiddenAppsManager.isAppHidden(app.packageName)
+
+    }
+}
+
+class HomeScreenModelFactory(
+    private val application: Application,
+    private val mainAppViewModel: MainAppViewModel
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeScreenModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HomeScreenModel(application, mainAppViewModel) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+/**
+ *  Main composable for home screen:
+ *  contains a pager with all the pages inside of it, contains bottom sheet, contains open challenge UI
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class
@@ -86,16 +141,7 @@ fun HomeScreenPageManager(
     homeScreenModel: HomeScreenModel,
     onOpenSettings: () -> Unit
 ) {
-    homeScreenModel.installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
-    homeScreenModel.sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
-        .sortedBy {
-            AppUtils.getAppNameFromPackageName(
-                mainAppModel.getContext(),
-                it.activityInfo.packageName
-            )
-        }
-    homeScreenModel.favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } }
-
+    val hapticFeedback = LocalHapticFeedback.current
 
     // Home Screen Pages
     HorizontalPager(
@@ -105,14 +151,7 @@ fun HomeScreenPageManager(
             .combinedClickable(
                 onClick = {}, onLongClickLabel = {}.toString(),
                 onLongClick = {
-                    if (getBooleanSetting(
-                            mainAppModel.getContext(),
-                            mainAppModel.getContext().resources.getString(R.string.Haptic),
-                            true
-                        )
-                    ) {
-                        homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
+                    doHapticFeedBack(mainAppModel.getContext(), hapticFeedback)
                     onOpenSettings()
                     setBooleanSetting(
                         mainAppModel.getContext(),
@@ -124,7 +163,10 @@ fun HomeScreenPageManager(
             )
     ) { page ->
         when (page) {
-            0 -> ScreenTimeDashboard(mainAppModel.getContext(), mainAppModel)
+            0 -> ScreenTimeDashboard(
+                context = mainAppModel.getContext(),
+                mainAppModel = mainAppModel
+            )
 
             1 -> HomeScreen(
                 mainAppModel = mainAppModel,
@@ -138,7 +180,6 @@ fun HomeScreenPageManager(
         }
     }
 
-
     //Bottom Sheet
     if (homeScreenModel.showBottomSheet.value) {
         var actions = listOf(
@@ -147,7 +188,7 @@ fun HomeScreenPageManager(
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_DELETE,
-                        Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                        "package:${homeScreenModel.currentSelectedApp.value.packageName}".toUri()
                     )
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     mainAppModel.getContext().startActivity(intent)
@@ -158,13 +199,13 @@ fun HomeScreenPageManager(
                 onClick = {
                     if (homeScreenModel.isCurrentAppFavorite.value) {
                         mainAppModel.favoriteAppsManager.removeFavoriteApp(
-                            homeScreenModel.currentPackageName.value
+                            homeScreenModel.currentSelectedApp.value.packageName
                         )
                         homeScreenModel.isCurrentAppFavorite.value = false
                         homeScreenModel.showBottomSheet.value = false
                     } else {
                         mainAppModel.favoriteAppsManager.addFavoriteApp(
-                            homeScreenModel.currentPackageName.value
+                            homeScreenModel.currentSelectedApp.value.packageName
                         )
                         homeScreenModel.isCurrentAppFavorite.value = true
                         homeScreenModel.showBottomSheet.value = false
@@ -172,25 +213,27 @@ fun HomeScreenPageManager(
                             homeScreenModel.pagerState.scrollToPage(1, 0f)
                         }
                     }
-                    updateFavorites(mainAppModel, homeScreenModel.favoriteApps)
+                    homeScreenModel.reloadFavouriteApps()
                 }
             ),
             AppAction(
                 label = stringResource(R.string.hide),
                 onClick = {
-                    mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentPackageName.value)
+                    mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentSelectedApp.value.packageName)
                     homeScreenModel.showBottomSheet.value = false
+                    resetHome(homeScreenModel, false)
                 }
             ),
             AppAction(
                 label = stringResource(id = R.string.app_info),
                 onClick = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.parse("package:${homeScreenModel.currentPackageName.value}")
+                        data = "package:${homeScreenModel.currentSelectedApp.value.packageName}".toUri()
                     }.apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     mainAppModel.getContext().startActivity(intent)
+                    resetHome(homeScreenModel,false)
                 }
             )
         )
@@ -201,7 +244,7 @@ fun HomeScreenPageManager(
                         label = stringResource(R.string.add_open_challenge),
                         onClick = {
                             mainAppModel.challengesManager.addChallengeApp(
-                                homeScreenModel.currentPackageName.value
+                                homeScreenModel.currentSelectedApp.value.packageName
                             )
                             homeScreenModel.showBottomSheet.value = false
                             homeScreenModel.isCurrentAppChallenged.value = true
@@ -211,10 +254,10 @@ fun HomeScreenPageManager(
 
 
         HomeScreenBottomSheet(
-            title = homeScreenModel.currentSelectedApp.value,
+            title = homeScreenModel.currentSelectedApp.value.displayName,
             actions = actions,
             onDismissRequest = { homeScreenModel.showBottomSheet.value = false },
-            sheetState = homeScreenModel.sheetState
+            sheetState = rememberModalBottomSheetState()
         )
     }
 
@@ -224,29 +267,38 @@ fun HomeScreenPageManager(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        OpenChallenge(homeScreenModel.haptics, {
-            AppUtils.openApp(
-                homeScreenModel.currentPackageName.value,
-                true,
-                null,
-                mainAppModel
-            )
-            homeScreenModel.showOpenChallenge.value = false
-        }, {
-            homeScreenModel.showOpenChallenge.value = false
-        })
+        OpenChallenge(
+            haptics = LocalHapticFeedback.current,
+            openApp = {
+                AppUtils.openApp(
+                    homeScreenModel.currentSelectedApp.value,
+                    mainAppModel,
+                    homeScreenModel,
+                    true,
+                    null
+                )
+                homeScreenModel.showOpenChallenge.value = false
+            },
+            goBack = {
+                homeScreenModel.showOpenChallenge.value = false
+            })
     }
 }
 
+/**
+ * An item displayed on the HomeScreen or Apps list
+ *
+ * If [showScreenTime] is enabled and [screenTime] is not null the screen time is written next to the app name.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreenItem(
+    modifier: Modifier = Modifier,
     appName: String,
     screenTime: Long? = null,
     onAppClick: () -> Unit,
     onAppLongClick: () -> Unit,
-    showScreenTime: Boolean = false,
-    modifier: Modifier = Modifier
+    showScreenTime: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,
@@ -277,11 +329,17 @@ fun HomeScreenItem(
     }
 }
 
+/**
+ * Action that can be shown in the bottom sheet
+ * */
 data class AppAction(
     val label: String,
     val onClick: () -> Unit
-) // Actions that can be shown in the bottom sheet
+)
 
+/**
+ * Bottom Sheet home screen
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreenBottomSheet(

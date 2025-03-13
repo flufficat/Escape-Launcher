@@ -1,14 +1,16 @@
 package com.geecee.escapelauncher
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,39 +21,32 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
+import com.geecee.escapelauncher.ui.views.HomeScreenModelFactory
 import com.geecee.escapelauncher.ui.views.HomeScreenPageManager
 import com.geecee.escapelauncher.ui.views.Onboarding
 import com.geecee.escapelauncher.ui.views.Settings
 import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.animateSplashScreen
+import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
+import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.PrivateSpaceStateReceiver
 import com.geecee.escapelauncher.utils.ScreenOffReceiver
-import com.geecee.escapelauncher.utils.animateSplashScreen
-import com.geecee.escapelauncher.utils.configureAnalytics
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.managers.ChallengesManager
 import com.geecee.escapelauncher.utils.managers.FavoriteAppsManager
@@ -64,37 +59,44 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainAppViewModel(application: Application) : AndroidViewModel(application) {
-    private val appContext: Context = application.applicationContext
-    val packageManager: PackageManager = application.packageManager
-    val favoriteAppsManager: FavoriteAppsManager = FavoriteAppsManager(application)
-    val hiddenAppsManager: HiddenAppsManager = HiddenAppsManager(application)
-    val challengesManager: ChallengesManager = ChallengesManager(application)
-    var isAppOpened: Boolean = false
-    var currentPackageName: String? = null
-    val showPrivateSpaceUnlockedUI: MutableState<Boolean> = mutableStateOf(false)
+    private val appContext: Context = application.applicationContext // The app context
 
-    // These are for getting the launchedEffect with the screen time tracking to reload so the screen time updates
-    val shouldReloadAppUsage: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadAppUsageOnHome: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadAppUsageOnApps: MutableState<Boolean> = mutableStateOf(false)
-    val shouldReloadTotalScreenTimeOnHomeScreen: MutableState<Boolean> = mutableStateOf(false)
+    val favoriteAppsManager: FavoriteAppsManager =
+        FavoriteAppsManager(application) // Favorite apps manager
+    val hiddenAppsManager: HiddenAppsManager = HiddenAppsManager(application) // Hidden apps manager
+    val challengesManager: ChallengesManager =
+        ChallengesManager(application) // Manager for challenges
 
+    var isAppOpened: Boolean =
+        false // Set to true when an app is opened and false when it is closed again
 
-    val shouldGoHomeOnResume: MutableState<Boolean> = mutableStateOf(true)
+    val isPrivateSpaceUnlocked: MutableState<Boolean> =
+        mutableStateOf(false) // If the private space is unlocked, set by a registered receiver when the private space is closed or opened
 
-    fun getContext(): Context = appContext
+    val shouldReloadScreenTime: MutableState<Boolean> =
+        mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
+    val shouldGoHomeOnResume: MutableState<Boolean> =
+        mutableStateOf(false) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
+
+    fun getContext(): Context = appContext // Returns the context
 }
 
 class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
-    private lateinit var homeScreenModel: HomeScreenModel
+    private val homeScreenModel by viewModels<HomeScreenModel> {
+        HomeScreenModelFactory(application, viewModel)
+    }
+    private val viewModel: MainAppViewModel by viewModels()
 
     private val pushNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
     }
 
+    /**
+     * Main Entry point
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         // Setup analytics
         configureAnalytics(
@@ -124,14 +126,13 @@ class MainHomeScreen : ComponentActivity() {
         // Register screen off receiver
         screenOffReceiver = ScreenOffReceiver {
             // Screen turned off
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             if (viewModel.isAppOpened) {
-                if (viewModel.currentPackageName != null) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        ScreenTimeManager.onAppClosed(viewModel.currentPackageName!!)
-                        viewModel.currentPackageName = null
-                    }
+                lifecycleScope.launch(Dispatchers.IO) {
+                    ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                    homeScreenModel.currentSelectedApp =
+                        mutableStateOf(InstalledApp("", "", ComponentName("", "")))
                 }
+
                 viewModel.isAppOpened = false
             }
         }
@@ -141,9 +142,7 @@ class MainHomeScreen : ComponentActivity() {
         //Private space receiver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             privateSpaceReceiver = PrivateSpaceStateReceiver { isUnlocked ->
-                val viewModel: MainAppViewModel =
-                    ViewModelProvider(this)[MainAppViewModel::class.java]
-                viewModel.showPrivateSpaceUnlockedUI.value = isUnlocked
+                viewModel.isPrivateSpaceUnlocked.value = isUnlocked
             }
             val intentFilter = IntentFilter().apply {
                 addAction(Intent.ACTION_PROFILE_AVAILABLE)
@@ -152,14 +151,15 @@ class MainHomeScreen : ComponentActivity() {
             registerReceiver(privateSpaceReceiver, intentFilter)
         }
 
-
-        Firebase.messaging.subscribeToTopic("updates")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Subscribed to topic: updates")
+        // Subscribe to notifications this is done in a coroutine
+        lifecycleScope.launch(Dispatchers.IO) {
+            Firebase.messaging.subscribeToTopic("updates")
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("FCM", "Subscribed to topic: updates")
+                    }
                 }
-            }
-
+        }
     }
 
     override fun onResume() {
@@ -167,14 +167,12 @@ class MainHomeScreen : ComponentActivity() {
 
         //Updates the screen time when you close an app
         try {
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
             if (viewModel.isAppOpened) {
-                if (viewModel.currentPackageName != null) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        ScreenTimeManager.onAppClosed(viewModel.currentPackageName!!)
-                        viewModel.currentPackageName = null
+                        ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                        homeScreenModel.currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
                     }
-                }
+
                 viewModel.isAppOpened = false
             }
         } catch (ex: Exception) {
@@ -183,13 +181,9 @@ class MainHomeScreen : ComponentActivity() {
 
         // Reset home
         try {
-            val viewModel: MainAppViewModel = ViewModelProvider(this)[MainAppViewModel::class.java]
-            AppUtils.resetHome(homeScreenModel, viewModel, viewModel.shouldGoHomeOnResume.value)
-            viewModel.shouldGoHomeOnResume.value = true
-            viewModel.shouldReloadAppUsage.value = true
-            viewModel.shouldReloadAppUsageOnHome.value = true
-            viewModel.shouldReloadAppUsageOnApps.value = true
-            viewModel.shouldReloadTotalScreenTimeOnHomeScreen.value = true
+            AppUtils.resetHome(homeScreenModel, viewModel.shouldGoHomeOnResume.value)
+            viewModel.shouldGoHomeOnResume.value = false
+            viewModel.shouldReloadScreenTime.value = true
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }
@@ -207,24 +201,31 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
-    // Makes it fullscreen
+    /**
+     * Puts the app into full screen
+     */
     @Suppress("DEPRECATION")
     private fun configureFullScreenMode() {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-            window.decorView.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            window.insetsController?.apply {
+                hide(WindowInsets.Type.systemBars())
+                systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
         } else {
-            window.decorView.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
     }
 
-    // Set content
+    /**
+     * The main parent composable for the app
+     * Contains EscapeTheme & SetupNavHost
+     */
     @Composable
     private fun SetUpContent() {
         EscapeTheme {
@@ -232,87 +233,73 @@ class MainHomeScreen : ComponentActivity() {
         }
     }
 
-    // Finds which screen to start on
+    /**
+     * Determines the start location for the NavHost
+     *
+     * @param context The context of the app
+     *
+     * @author George Clensy
+     *
+     * @see Settings
+     *
+     * @return Returns "home" if it is not the first time and "onboarding" if it is
+     */
     private fun determineStartDestination(context: Context): String {
         return when {
-            getBooleanSetting(context, "FirstTime", true) -> "onboarding"
+            getBooleanSetting(
+                context,
+                context.resources.getString(R.string.FirstTime),
+                true
+            ) -> "onboarding"
+
             else -> "home"
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun SetUpHomeScreenModel(mainAppModel: MainAppViewModel) {
-        homeScreenModel = HomeScreenModel(
-            showBottomSheet = remember { mutableStateOf(false) },
-            sheetState = rememberModalBottomSheetState(),
-            currentSelectedApp = remember { mutableStateOf("") },
-            currentPackageName = remember { mutableStateOf("") },
-            isCurrentAppFavorite = remember { mutableStateOf(false) },
-            isCurrentAppChallenged = remember { mutableStateOf(false) },
-            isCurrentAppHidden = remember { mutableStateOf(false) },
-            haptics = LocalHapticFeedback.current,
-            sharedPreferences = mainAppModel.getContext().getSharedPreferences(
-                R.string.settings_pref_file_name.toString(),
-                Context.MODE_PRIVATE
-            ),
-            favoriteApps = remember { mutableStateListOf<String>().apply { addAll(mainAppModel.favoriteAppsManager.getFavoriteApps()) } },
-            interactionSource = remember { MutableInteractionSource() },
-            showOpenChallenge = remember { mutableStateOf(false) },
-            pagerState = rememberPagerState(1, 0f) { 3 },
-            coroutineScope = rememberCoroutineScope(),
-            installedApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager),
-            sortedInstalledApps = AppUtils.getAllInstalledApps(packageManager = mainAppModel.packageManager)
-                .sortedBy {
-                    AppUtils.getAppNameFromPackageName(
-                        mainAppModel.getContext(),
-                        it.activityInfo.packageName
-                    )
-                },
-            appsListScrollState = rememberLazyListState(),
-            searchText = remember { mutableStateOf("") },
-            searchExpanded = remember { mutableStateOf(false) },
-            showPrivateSpaceSettings = remember { mutableStateOf(false) }
-        )
-    }
-
-    // Navigation host
+    /**
+     * Sets up main navigation host for the app
+     *
+     * @param startDestination Where to start
+     */
     @Composable
     private fun SetupNavHost(startDestination: String) {
         val navController = rememberNavController()
-        val mainAppViewModel: MainAppViewModel by viewModels {
-            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
-        }
-
-        SetUpHomeScreenModel(mainAppViewModel)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = androidx.compose.material3.MaterialTheme.colorScheme.background)
+                .background(color = MaterialTheme.colorScheme.background)
         ) {
             NavHost(navController, startDestination = startDestination) {
-                composable("home",
+                composable(
+                    "home",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     HomeScreenPageManager(
-                        mainAppViewModel,
+                        viewModel,
                         homeScreenModel
                     ) { navController.navigate("settings") }
                 }
-                composable("settings",
+                composable(
+                    "settings",
                     enterTransition = { fadeIn(tween(300)) },
                     exitTransition = { fadeOut(tween(300)) }) {
                     Settings(
-                        mainAppViewModel,
+                        viewModel,
                         { navController.navigate("home") },
                         this@MainHomeScreen,
                     )
                 }
-                composable("onboarding",
+                composable(
+                    "onboarding",
                     enterTransition = { fadeIn(tween(900)) },
                     exitTransition = { fadeOut(tween(300)) }) {
-                    Onboarding(navController, mainAppViewModel, pushNotificationPermissionLauncher)
+                    Onboarding(
+                        navController,
+                        viewModel,
+                        pushNotificationPermissionLauncher,
+                        homeScreenModel
+                    )
                 }
             }
         }

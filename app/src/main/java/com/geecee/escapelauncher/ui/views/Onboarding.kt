@@ -1,7 +1,5 @@
 package com.geecee.escapelauncher.ui.views
 
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.animation.core.tween
@@ -11,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,8 +54,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
 import com.geecee.escapelauncher.utils.changeLauncher
-import com.geecee.escapelauncher.utils.configureAnalytics
 import com.geecee.escapelauncher.utils.setBooleanSetting
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
@@ -63,40 +64,52 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 fun Onboarding(
     mainNavController: NavController,
     mainAppModel: MainAppViewModel,
-    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>,
+    homeScreenModel: HomeScreenModel
 ) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "Page1") {
-        composable("Page1",
+        composable(
+            "Page1",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
             OnboardingPage1(navController)
         }
-        composable("Page2",
+        composable(
+            "Page2",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
             OnboardingPage2(navController)
         }
-        composable("Page3",
+        composable(
+            "Page3",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
             OnboardingPage3(navController, mainAppModel)
         }
-        composable("Page4",
+        composable(
+            "Page4",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
             OnboardingPage4(navController, mainAppModel)
         }
-        composable("Page5",
+        composable(
+            "Page5",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
             OnboardingPage5(navController, mainNavController, mainAppModel)
         }
-        composable("Notifications",
+        composable(
+            "Notifications",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
-            Notifications(mainNavController, mainAppModel, pushNotificationPermissionLauncher)
+            Notifications(
+                mainNavController,
+                mainAppModel,
+                pushNotificationPermissionLauncher,
+                homeScreenModel
+            )
         }
     }
 }
@@ -249,33 +262,40 @@ fun OnboardingPage2(navController: NavController) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
-    fun getInstalledApps(): List<android.content.pm.ResolveInfo> {
-        return mainAppModel.packageManager.queryIntentActivities(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
-            PackageManager.GET_ACTIVITIES
-        )
-    }
+    val installedApps =
+        remember { mutableStateOf(AppUtils.getAllInstalledApps(mainAppModel.getContext())) }
 
-    val installedApps = remember { mutableStateOf(getInstalledApps()) }
+    val favoritesVersion =
+        remember { mutableIntStateOf(0) } // Add a state to track changes to favorites
+    val noRippleInteractionSource = remember { MutableInteractionSource() }
+
     fun updateFavoriteStatus(packageName: String, isFavorite: Boolean) {
-        installedApps.value = getInstalledApps() // Refresh the list
         if (isFavorite) {
             mainAppModel.favoriteAppsManager.addFavoriteApp(packageName)
         } else {
             mainAppModel.favoriteAppsManager.removeFavoriteApp(packageName)
         }
+        installedApps.value = AppUtils.getAllInstalledApps(mainAppModel.getContext())
+        favoritesVersion.intValue++ // Increment the version to trigger recomposition
     }
 
-    val favoritedApps = installedApps.value.filter { appInfo ->
-        mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName)
-    }.sortedBy { appInfo ->
-        // Retrieve the index from the favoriteAppsManager
-        mainAppModel.favoriteAppsManager.getFavoriteIndex(appInfo.activityInfo.packageName)
+    // Derive the filtered apps lists from state to ensure recomposition
+    val favoritedApps = remember(installedApps.value, favoritesVersion.intValue) {
+        installedApps.value.filter { appInfo ->
+            mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.packageName)
+        }.sortedBy { appInfo ->
+            // Retrieve the index from the favoriteAppsManager
+            mainAppModel.favoriteAppsManager.getFavoriteIndex(appInfo.packageName)
+        }
     }
 
-    val nonFavoritedApps = installedApps.value.filter { appInfo ->
-        !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.activityInfo.packageName) && appInfo.activityInfo.packageName != "com.geecee.escape"
-    }.sortedBy { it.loadLabel(mainAppModel.packageManager).toString() }
+    val nonFavoritedApps = remember(installedApps.value, favoritesVersion.intValue) {
+        installedApps.value.filter { appInfo ->
+            !mainAppModel.favoriteAppsManager.isAppFavorite(appInfo.packageName) && !appInfo.packageName.contains(
+                "com.geecee.escapelauncher"
+            )
+        }.sortedBy { it.displayName }
+    }
 
     Box(
         Modifier
@@ -312,13 +332,16 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
             Column {
                 favoritedApps.forEach { appInfo ->
                     Text(
-                        text = appInfo.loadLabel(mainAppModel.packageManager).toString(),
+                        text = appInfo.displayName,
                         modifier = Modifier
                             .padding(vertical = 15.dp)
-                            .combinedClickable(onClick = {
-                                mainAppModel.favoriteAppsManager.removeFavoriteApp(appInfo.activityInfo.packageName)
-                                updateFavoriteStatus(appInfo.activityInfo.packageName, false)
-                            }),
+                            .combinedClickable(
+                                interactionSource = noRippleInteractionSource,
+                                indication = null,
+                                onClick = {
+                                    updateFavoriteStatus(appInfo.packageName, false)
+                                }
+                            ),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -334,13 +357,16 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
             Column {
                 nonFavoritedApps.forEach { appInfo ->
                     Text(
-                        appInfo.loadLabel(mainAppModel.packageManager).toString(),
+                        appInfo.displayName,
                         modifier = Modifier
                             .padding(0.dp, 15.dp)
-                            .combinedClickable(onClick = {
-                                mainAppModel.favoriteAppsManager.addFavoriteApp(appInfo.activityInfo.packageName)
-                                updateFavoriteStatus(appInfo.activityInfo.packageName, true)
-                            }),
+                            .combinedClickable(
+                                interactionSource = noRippleInteractionSource,
+                                indication = null,
+                                onClick = {
+                                    updateFavoriteStatus(appInfo.packageName, true)
+                                }
+                            ),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -454,7 +480,11 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
 }
 
 @Composable
-fun OnboardingPage5(navController: NavController, mainNavController: NavController, mainAppModel: MainAppModel) {
+fun OnboardingPage5(
+    navController: NavController,
+    mainNavController: NavController,
+    mainAppModel: MainAppModel
+) {
     val showPolicyDialog = remember { mutableStateOf(false) }
     val scrollState = rememberLazyListState()
 
@@ -591,7 +621,8 @@ fun OnboardingPage5(navController: NavController, mainNavController: NavControll
 fun Notifications(
     navController: NavController,
     mainAppModel: MainAppViewModel,
-    pushNotificationPermissionLauncher: ActivityResultLauncher<String>
+    pushNotificationPermissionLauncher: ActivityResultLauncher<String>,
+    homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
 
@@ -634,15 +665,16 @@ fun Notifications(
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Button(
                 onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                    navController.navigate("home")
                     setBooleanSetting(
                         mainAppModel.getContext(),
                         mainAppModel.getContext().resources.getString(R.string.FirstTime),
                         false
                     )
+                    homeScreenModel.reloadFavouriteApps()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    navController.navigate("home")
                 }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,

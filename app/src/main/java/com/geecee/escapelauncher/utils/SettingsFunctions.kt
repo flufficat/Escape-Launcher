@@ -6,11 +6,16 @@ import android.app.Activity
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.core.content.edit
 import com.geecee.escapelauncher.MainHomeScreen
 import com.geecee.escapelauncher.R
 
+/**
+ * Change the default launcher
+ */
 fun changeLauncher(activity: Context) {
     val intent = Intent(Settings.ACTION_HOME_SETTINGS).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -18,15 +23,18 @@ fun changeLauncher(activity: Context) {
     activity.startActivity(intent)
 }
 
+/**
+ * Change the app theme
+ */
 fun changeTheme(theme: Int, context: Context, activity: Activity) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putInt(context.resources.getString(R.string.Theme), theme)
+        putInt(context.resources.getString(R.string.Theme), theme)
 
-    editor.apply()
+    }
 
     val intent = Intent(context, MainHomeScreen::class.java).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -36,24 +44,30 @@ fun changeTheme(theme: Int, context: Context, activity: Activity) {
     activity.finish()
 }
 
+/**
+ * Change home alignment
+ */
 fun changeHomeAlignment(context: Context, alignment: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putString(
-        context.resources.getString(R.string.HomeAlignment), when (alignment) {
-            1 -> "Center"
-            0 -> "Left"
-            else -> "Right"
-        }
-    )
+        putString(
+            context.resources.getString(R.string.HomeAlignment), when (alignment) {
+                1 -> "Center"
+                0 -> "Left"
+                else -> "Right"
+            }
+        )
 
-    editor.apply()
+    }
 }
 
-fun getHomeAlignment(context: Context): Int {
+/**
+ * Get the home alignment as an integer
+ */
+fun getHomeAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -75,24 +89,55 @@ fun getHomeAlignment(context: Context): Int {
     }
 }
 
+/**
+ * Get the home alignment as an Alignment.Horizontal
+ */
+fun getHomeAlignment(context: Context): Alignment.Horizontal {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Left"
+    ) {
+        Alignment.Start
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Alignment.CenterHorizontally
+    } else {
+        Alignment.End
+    }
+}
+
+/**
+ * Change the vertical alignment of the home screen
+ */
 fun changeHomeVAlignment(context: Context, alignment: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putString(
-        context.resources.getString(R.string.HomeVAlignment), when (alignment) {
-            1 -> "Center"
-            0 -> "Top"
-            else -> "Bottom"
-        }
-    )
+        putString(
+            context.resources.getString(R.string.HomeVAlignment), when (alignment) {
+                1 -> "Center"
+                0 -> "Top"
+                else -> "Bottom"
+            }
+        )
 
-    editor.apply()
+    }
 }
 
-fun getHomeVAlignment(context: Context): Int {
+/**
+ * Get the home vertical alignment as an integer
+ */
+fun getHomeVAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -114,24 +159,55 @@ fun getHomeVAlignment(context: Context): Int {
     }
 }
 
+/**
+ * Get the home vertical alignment
+ */
+fun getHomeVAlignment(context: Context): Arrangement.Vertical {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Top"
+    ) {
+        Arrangement.Top
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.HomeVAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Arrangement.Center
+    } else {
+        Arrangement.Bottom
+    }
+}
+
+/**
+ * Change the apps alignment
+ */
 fun changeAppsAlignment(context: Context, alignment: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    editor.putString(
-        context.resources.getString(R.string.AppsAlignment), when (alignment) {
-            1 -> "Center"
-            0 -> "Left"
-            else -> "Right"
-        }
-    )
+        putString(
+            context.resources.getString(R.string.AppsAlignment), when (alignment) {
+                1 -> "Center"
+                0 -> "Left"
+                else -> "Right"
+            }
+        )
 
-    editor.apply()
+    }
 }
 
-fun getAppsAlignment(context: Context): Int {
+/**
+ * Get the alignment
+ */
+fun getAppsAlignmentAsInt(context: Context): Int {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
@@ -153,21 +229,46 @@ fun getAppsAlignment(context: Context): Int {
     }
 }
 
+/**
+ * Get the alignment of the apps
+ */
+fun getAppsAlignment(context: Context): Alignment.Horizontal {
+    val sharedPreferences = context.getSharedPreferences(
+        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
+    )
+
+    return if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Left"
+    ) {
+        Alignment.Start
+    } else if (sharedPreferences.getString(
+            context.resources.getString(R.string.AppsAlignment),
+            "Center"
+        ) == "Center"
+    ) {
+        Alignment.CenterHorizontally
+    } else {
+        Alignment.End
+    }
+}
+
 // Generic functions
 
 fun toggleBooleanSetting(context: Context, shouldTurnOn: Boolean, setting: String) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
+    sharedPreferences.edit {
 
-    if (shouldTurnOn) {
-        editor.putBoolean(setting, true)
-    } else {
-        editor.putBoolean(setting, false)
+        if (shouldTurnOn) {
+            putBoolean(setting, true)
+        } else {
+            putBoolean(setting, false)
+        }
+
     }
-
-    editor.apply()
 }
 
 fun getBooleanSetting(context: Context, setting: String): Boolean {
@@ -189,9 +290,9 @@ fun setStringSetting(context: Context, setting: String, value: String) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-    editor.putString(setting, value)
-    editor.apply()
+    sharedPreferences.edit {
+        putString(setting, value)
+    }
 }
 
 fun getIntSetting(context: Context, setting: String, defaultValue: Int): Int {
@@ -205,9 +306,9 @@ fun setIntSetting(context: Context, setting: String, value: Int) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-    editor.putInt(setting, value)
-    editor.apply()
+    sharedPreferences.edit {
+        putInt(setting, value)
+    }
 }
 
 fun getBooleanSetting(context: Context, setting: String, defaultValue: Boolean): Boolean {
@@ -221,9 +322,9 @@ fun setBooleanSetting(context: Context, setting: String, value: Boolean) {
     val sharedPreferences = context.getSharedPreferences(
         R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
     )
-    val editor: SharedPreferences.Editor = sharedPreferences.edit()
-    editor.putBoolean(setting, value)
-    editor.apply()
+    sharedPreferences.edit {
+        putBoolean(setting, value)
+    }
 }
 
 fun resetActivity(context: Context, activity: Activity) {

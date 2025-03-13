@@ -54,19 +54,22 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
+import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.PrivateAppItem
 import com.geecee.escapelauncher.utils.PrivateSpaceSettings
+import com.geecee.escapelauncher.utils.doesPrivateSpaceExist
+import com.geecee.escapelauncher.utils.getAppsAlignment
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getPrivateSpaceApps
-import com.geecee.escapelauncher.utils.isPrivateSpace
+import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 import com.geecee.escapelauncher.utils.lockPrivateSpace
 import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
@@ -78,11 +81,15 @@ import java.util.Date
 import java.util.Locale
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
-//Apps list from the pager
+/**
+ * Parent apps list composable
+ */
 @Composable
 fun AppsList(
     mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel
 ) {
+    val haptics = LocalHapticFeedback.current
+
     Box(
         Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -93,160 +100,131 @@ fun AppsList(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(30.dp, 0.dp),
-            horizontalAlignment = AppUtils.getAppsListAlignmentFromPreferences(
-                homeScreenModel.sharedPreferences, mainAppModel.getContext()
-            )
+            horizontalAlignment = getAppsAlignment(mainAppModel.getContext())
         ) {
+            // Apps list title
             item {
                 AppsListHeader()
             }
 
+            // Search box
             item {
-                if (homeScreenModel.sharedPreferences.getBoolean(
-                        stringResource(R.string.ShowSearchBox), true
+                if (getBooleanSetting(
+                        mainAppModel.getContext(),
+                        stringResource(R.string.ShowSearchBox),
+                        true
                     )
                 ) {
                     Spacer(modifier = Modifier.height(15.dp))
 
-                    AnimatedPillSearchBar(textChange = { searchBoxText ->
-                        homeScreenModel.searchText.value = searchBoxText
-                        val autoOpen = homeScreenModel.sharedPreferences.getBoolean(
-                            mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen),
-                            false
-                        )
+                    AnimatedPillSearchBar(
+                        textChange = { searchBoxText ->
+                            homeScreenModel.searchText.value =
+                                searchBoxText // Update text in search box
 
-                        if (autoOpen && AppUtils.filterAndSortApps(
+                            // Get the list of installed apps with the results filtered
+                            val filteredApps = AppUtils.filterAndSortApps(
                                 homeScreenModel.installedApps,
-                                homeScreenModel.searchText.value,
-                                mainAppModel.packageManager
-                            ).size == 1
-                        ) {
-
-
-                            val appInfo = AppUtils.filterAndSortApps(
-                                homeScreenModel.installedApps,
-                                homeScreenModel.searchText.value,
-                                mainAppModel.packageManager
-                            ).first()
-                            homeScreenModel.currentPackageName.value =
-                                appInfo.activityInfo.packageName
-
-                            AppUtils.openApp(
-                                homeScreenModel.currentPackageName.value,
-                                false,
-                                homeScreenModel.showOpenChallenge,
-                                mainAppModel
+                                homeScreenModel.searchText.value
                             )
 
-                            resetHome(homeScreenModel, mainAppModel)
-
-
-                        }
-                    }, keyboardDone = { searchBoxText ->
-                        if (AppUtils.filterAndSortApps(
-                                homeScreenModel.installedApps,
-                                searchBoxText,
-                                mainAppModel.packageManager
-                            ).isNotEmpty()
-                        ) {
-                            val firstAppInfo = AppUtils.filterAndSortApps(
-                                homeScreenModel.installedApps,
-                                searchBoxText,
-                                mainAppModel.packageManager
-                            ).first()
-
-                            val packageName = firstAppInfo.activityInfo.packageName
-                            homeScreenModel.currentPackageName.value = packageName
-
-                            AppUtils.openApp(
-                                homeScreenModel.currentPackageName.value,
-                                false,
-                                homeScreenModel.showOpenChallenge,
-                                mainAppModel
+                            // If autoOpen is enabled then open the app like you would normally
+                            val autoOpen = getBooleanSetting(
+                                mainAppModel.getContext(),
+                                mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen),
+                                false
                             )
+                            if (autoOpen && filteredApps.size == 1) {
+                                val appInfo = filteredApps.first()
 
-                            resetHome(homeScreenModel, mainAppModel)
-                        }
-                    }, expanded = homeScreenModel.searchExpanded
+                                AppUtils.openApp(
+                                    appInfo,
+                                    mainAppModel,
+                                    homeScreenModel,
+                                    false,
+                                    homeScreenModel.showOpenChallenge
+                                )
+
+                                resetHome(homeScreenModel)
+                            }
+                        },
+                        keyboardDone = { _ ->
+                            // Get the list of installed apps with the results filtered
+                            // and opens the first one if the list isn't empty
+                            val filteredApps = AppUtils.filterAndSortApps(
+                                homeScreenModel.installedApps,
+                                homeScreenModel.searchText.value,
+                            )
+                            if (filteredApps.isNotEmpty()
+                            ) {
+                                val firstAppInfo = filteredApps.first()
+
+                                AppUtils.openApp(
+                                    firstAppInfo,
+                                    mainAppModel,
+                                    homeScreenModel,
+                                    false,
+                                    homeScreenModel.showOpenChallenge
+                                )
+                            }
+                        },
+                        expanded = homeScreenModel.searchExpanded
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
             }
 
-            items(homeScreenModel.sortedInstalledApps.filter { appInfo ->
-                val appName = appInfo.loadLabel(mainAppModel.packageManager).toString()
-                if (homeScreenModel.searchExpanded.value) {
-                    appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
-                } else {
-                    true
+            items(
+                // All installed apps filtered with search term
+                homeScreenModel.installedApps.filter { appInfo ->
+                    val appName = appInfo.displayName
+                    if (homeScreenModel.searchExpanded.value) {
+                        appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
+                    } else {
+                        true
+                    }
                 }
-            })
+            )
             { app ->
                 // Fetch screen time in a coroutine
                 val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-                LaunchedEffect(mainAppModel.shouldReloadAppUsageOnApps.value) {
+                LaunchedEffect(mainAppModel.
+                shouldReloadScreenTime.value) {
                     withContext(Dispatchers.IO) {
                         appScreenTime.longValue = getUsageForApp(
-                            app.activityInfo.packageName,
+                            app.packageName,
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         )
-                        mainAppModel.shouldReloadAppUsageOnApps.value = false
+                        mainAppModel.shouldReloadScreenTime.value = false
                     }
                 }
 
                 // Draw app if its not hidden and not Escape itself
-                if (!app.activityInfo.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(
-                        app.activityInfo.packageName
-                    )
-                ) {
+                if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.packageName)) {
                     HomeScreenItem(
-                        appName = AppUtils.getAppNameFromPackageName(
-                            mainAppModel.getContext(),
-                            app.activityInfo.packageName
-                        ),
+                        appName = app.displayName,
                         screenTime = appScreenTime.longValue,
                         onAppClick = {
-                            val packageName = app.activityInfo.packageName
-                            homeScreenModel.currentPackageName.value = packageName
+                            homeScreenModel.updateSelectedApp(app)
 
                             AppUtils.openApp(
-                                packageName, false, homeScreenModel.showOpenChallenge, mainAppModel
+                                app = app,
+                                overrideOpenChallenge = false,
+                                openChallengeShow = homeScreenModel.showOpenChallenge,
+                                mainAppModel = mainAppModel,
+                                homeScreenModel = homeScreenModel
                             )
 
-                            resetHome(homeScreenModel, mainAppModel)
+                            resetHome(homeScreenModel)
                         },
                         onAppLongClick = {
                             homeScreenModel.showBottomSheet.value = true
-                            homeScreenModel.currentSelectedApp.value =
-                                AppUtils.getAppNameFromPackageName(
-                                    mainAppModel.getContext(), app.activityInfo.packageName
-                                )
-                            homeScreenModel.currentPackageName.value = app.activityInfo.packageName
-                            homeScreenModel.isCurrentAppChallenged.value =
-                                mainAppModel.challengesManager.doesAppHaveChallenge(
-                                    app.activityInfo.packageName
-                                )
-                            homeScreenModel.isCurrentAppHidden.value =
-                                mainAppModel.hiddenAppsManager.isAppHidden(
-                                    app.activityInfo.packageName
-                                )
-                            homeScreenModel.isCurrentAppFavorite.value =
-                                mainAppModel.favoriteAppsManager.isAppFavorite(
-                                    app.activityInfo.packageName
-                                )
-
-                            if (getBooleanSetting(
-                                    mainAppModel.getContext(),
-                                    mainAppModel.getContext().resources.getString(R.string.Haptic),
-                                    true
-                                )
-                            ) {
-                                homeScreenModel.haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            }
+                            homeScreenModel.updateSelectedApp(app)
+                            doHapticFeedBack(mainAppModel.getContext(), haptics)
                         },
                         showScreenTime = getBooleanSetting(
-                            mainAppModel.getContext(),
-                            stringResource(R.string.ScreenTimeOnApp)
+                            context = mainAppModel.getContext(),
+                            setting = stringResource(R.string.ScreenTimeOnApp)
                         ),
                         modifier = Modifier
                     )
@@ -254,19 +232,22 @@ fun AppsList(
             }
 
             //Private space
-            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && doesPrivateSpaceExist(mainAppModel.getContext())) {
+                // Spacing
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                mainAppModel.showPrivateSpaceUnlockedUI.value =
-                    isPrivateSpace(mainAppModel.getContext())
+                // Stores whether the private space is unlocked and whether to try and show it
+                mainAppModel.isPrivateSpaceUnlocked.value = isPrivateSpace(mainAppModel.getContext())
+
                 item {
-                    if ((!mainAppModel.showPrivateSpaceUnlockedUI.value && !getBooleanSetting(
+                    // Private space is locked, shows button to unlock it
+                    if ((!mainAppModel.isPrivateSpaceUnlocked.value && !getBooleanSetting(
                             mainAppModel.getContext(),
                             stringResource(R.string.SearchHiddenPrivateSpace),
                             false
-                        )) || (!mainAppModel.showPrivateSpaceUnlockedUI.value && homeScreenModel.searchText.value.contains(
+                        )) || (!mainAppModel.isPrivateSpaceUnlocked.value && homeScreenModel.searchText.value.contains(
                             stringResource(R.string.private_space_search_term)
                         ) && getBooleanSetting(
                             mainAppModel.getContext(),
@@ -276,14 +257,14 @@ fun AppsList(
                     ) {
                         Button({
                             unlockPrivateSpace(mainAppModel.getContext())
-                            mainAppModel.shouldGoHomeOnResume.value = false
                         }) {
                             Text(stringResource(R.string.unlock_private_space))
                         }
                     }
 
+                    // Private space itself
                     AnimatedVisibility(
-                        visible = mainAppModel.showPrivateSpaceUnlockedUI.value,
+                        visible = mainAppModel.isPrivateSpaceUnlocked.value,
                         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
@@ -299,7 +280,7 @@ fun AppsList(
 
         // Private space settings
         AnimatedVisibility(
-            visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.showPrivateSpaceUnlockedUI.value,
+            visible = homeScreenModel.showPrivateSpaceSettings.value && mainAppModel.isPrivateSpaceUnlocked.value,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -312,6 +293,9 @@ fun AppsList(
     }
 }
 
+/**
+ * Apps List title
+ */
 @Composable
 fun AppsListHeader() {
     Spacer(modifier = Modifier.height(140.dp))
@@ -322,7 +306,9 @@ fun AppsListHeader() {
     )
 }
 
-//Search bar in the apps list
+/**
+ * Search Bar for apps list that collapses into a pill
+ */
 @Composable
 fun AnimatedPillSearchBar(
     textChange: (searchText: String) -> Unit,
@@ -423,7 +409,9 @@ fun AnimatedPillSearchBar(
     }
 }
 
-//Shown when private space is unlocked
+/**
+ * Android 15+ Private space UI with apps, settings button and lock button
+ */
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
@@ -495,9 +483,9 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
 
                 }) {
                     openPrivateSpaceApp(
-                        privateSpaceApp = app, context = mainAppModel.getContext(), Rect()
+                        installedApp = app, context = mainAppModel.getContext(), Rect()
                     )
-                    resetHome(homeScreenModel, mainAppModel)
+                    resetHome(homeScreenModel)
                 }
             }
 
