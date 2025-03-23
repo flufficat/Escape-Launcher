@@ -277,6 +277,18 @@ object AppUtils {
     }
 
     /**
+     * Returns the date as a string
+     *
+     * @return String formatted yyyy-MM-dd
+     */
+    fun getToday(): String {
+        val calendar = Calendar.getInstance()
+        val yesterdayDate =
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        return yesterdayDate
+    }
+
+    /**
      * Performs haptic feedback
      */
     fun doHapticFeedBack(context: Context, hapticFeedback: HapticFeedback) {

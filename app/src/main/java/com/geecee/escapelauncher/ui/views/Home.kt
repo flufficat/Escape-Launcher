@@ -56,7 +56,6 @@ import com.geecee.escapelauncher.utils.getWidgetHeight
 import com.geecee.escapelauncher.utils.getWidgetOffset
 import com.geecee.escapelauncher.utils.getWidgetWidth
 import com.geecee.escapelauncher.utils.managers.getTotalUsageForDate
-import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -173,21 +172,9 @@ fun HomeScreen(
 
         //Apps
         items(homeScreenModel.favoriteApps) { app ->
-            val appScreenTime = remember { mutableLongStateOf(0L) }
-
-            // Fetch screen time in a coroutine
-            LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
-                withContext(Dispatchers.IO) {
-                    appScreenTime.longValue = getUsageForApp(
-                        app.packageName, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                    )
-                    mainAppModel.shouldReloadScreenTime.value = false
-                }
-            }
-
             HomeScreenItem(
                 appName = app.displayName,
-                screenTime = appScreenTime.longValue,
+                screenTime = mainAppModel.getScreenTimeForApp(app.packageName),
                 onAppClick = {
                     AppUtils.openApp(
                         app = app,

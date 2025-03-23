@@ -26,12 +26,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -52,6 +54,7 @@ import com.geecee.escapelauncher.utils.managers.ChallengesManager
 import com.geecee.escapelauncher.utils.managers.FavoriteAppsManager
 import com.geecee.escapelauncher.utils.managers.HiddenAppsManager
 import com.geecee.escapelauncher.utils.managers.ScreenTimeManager
+import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import com.geecee.escapelauncher.utils.managers.scheduleDailyCleanup
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
@@ -77,6 +80,33 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
         mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
     val shouldGoHomeOnResume: MutableState<Boolean> =
         mutableStateOf(false) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
+
+    private val screenTimeCache = mutableStateMapOf<String, Long>()
+
+    fun batchLoadScreenTimes(apps: List<InstalledApp>) {
+        val today = AppUtils.getToday()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            apps.forEach { app ->
+                val screenTime = getUsageForApp(app.packageName, today)
+                screenTimeCache[app.packageName] = screenTime
+            }
+            shouldReloadScreenTime.value = false
+        }
+    }
+
+    fun getScreenTimeForApp(packageName:String): Long {
+        return if (screenTimeCache.containsKey(packageName)) {
+            screenTimeCache[packageName]!!
+        } else {
+            0
+        }
+    }
+
+    fun clearScreenTimeCache(){
+        screenTimeCache.clear()
+        shouldReloadScreenTime.value = true
+    }
 
     fun getContext(): Context = appContext // Returns the context
 }
@@ -123,6 +153,11 @@ class MainHomeScreen : ComponentActivity() {
         // Set up the application content
         setContent { SetUpContent() }
 
+        lifecycleScope.launch(Dispatchers.IO){
+            val apps = AppUtils.getAllInstalledApps(this@MainHomeScreen)
+            viewModel.batchLoadScreenTimes(apps)
+        }
+
         // Register screen off receiver
         screenOffReceiver = ScreenOffReceiver {
             // Screen turned off
@@ -168,10 +203,11 @@ class MainHomeScreen : ComponentActivity() {
         //Updates the screen time when you close an app
         try {
             if (viewModel.isAppOpened) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
-                        homeScreenModel.currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
-                    }
+                lifecycleScope.launch(Dispatchers.IO) {
+                    ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                    homeScreenModel.currentSelectedApp =
+                        mutableStateOf(InstalledApp("", "", ComponentName("", "")))
+                }
 
                 viewModel.isAppOpened = false
             }
@@ -183,7 +219,7 @@ class MainHomeScreen : ComponentActivity() {
         try {
             AppUtils.resetHome(homeScreenModel, viewModel.shouldGoHomeOnResume.value)
             viewModel.shouldGoHomeOnResume.value = false
-            viewModel.shouldReloadScreenTime.value = true
+            viewModel.clearScreenTimeCache()
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }

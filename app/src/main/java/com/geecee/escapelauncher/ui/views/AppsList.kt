@@ -69,17 +69,11 @@ import com.geecee.escapelauncher.utils.doesPrivateSpaceExist
 import com.geecee.escapelauncher.utils.getAppsAlignment
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getPrivateSpaceApps
-import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 import com.geecee.escapelauncher.utils.lockPrivateSpace
-import com.geecee.escapelauncher.utils.managers.getUsageForApp
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
 import com.geecee.escapelauncher.utils.unlockPrivateSpace
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
+import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 
 /**
  * Parent apps list composable
@@ -192,24 +186,11 @@ fun AppsList(
                 }
             )
             { app ->
-                // Fetch screen time in a coroutine
-                val appScreenTime = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
-                LaunchedEffect(mainAppModel.
-                shouldReloadScreenTime.value) {
-                    withContext(Dispatchers.IO) {
-                        appScreenTime.longValue = getUsageForApp(
-                            app.packageName,
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                        )
-                        mainAppModel.shouldReloadScreenTime.value = false
-                    }
-                }
-
                 // Draw app if its not hidden and not Escape itself
                 if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.packageName)) {
                     HomeScreenItem(
                         appName = app.displayName,
-                        screenTime = appScreenTime.longValue,
+                        screenTime = mainAppModel.getScreenTimeForApp(app.packageName),
                         onAppClick = {
                             homeScreenModel.updateSelectedApp(app)
 
