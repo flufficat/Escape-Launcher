@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -76,8 +77,8 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     val isPrivateSpaceUnlocked: MutableState<Boolean> =
         mutableStateOf(false) // If the private space is unlocked, set by a registered receiver when the private space is closed or opened
 
-    val shouldReloadScreenTime: MutableState<Boolean> =
-        mutableStateOf(false) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
+    val shouldReloadScreenTime: MutableState<Int> =
+        mutableIntStateOf(0) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
     val shouldGoHomeOnResume: MutableState<Boolean> =
         mutableStateOf(false) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
 
@@ -91,11 +92,17 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
                 val screenTime = getUsageForApp(app.packageName, today)
                 screenTimeCache[app.packageName] = screenTime
             }
-            shouldReloadScreenTime.value = false
         }
     }
 
-    fun getScreenTimeForApp(packageName:String): Long {
+    fun updateScreenTimeCacheForApp(packageName: String) {
+        val today = AppUtils.getToday()
+        viewModelScope.launch(Dispatchers.IO) {
+            screenTimeCache[packageName] = getUsageForApp(packageName, today)
+        }
+    }
+
+    fun getScreenTimeForApp(packageName: String): Long {
         return if (screenTimeCache.containsKey(packageName)) {
             screenTimeCache[packageName]!!
         } else {
@@ -103,9 +110,9 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun clearScreenTimeCache(){
+    fun clearScreenTimeCache() {
         screenTimeCache.clear()
-        shouldReloadScreenTime.value = true
+        shouldReloadScreenTime.value++
     }
 
     fun getContext(): Context = appContext // Returns the context
@@ -153,7 +160,7 @@ class MainHomeScreen : ComponentActivity() {
         // Set up the application content
         setContent { SetUpContent() }
 
-        lifecycleScope.launch(Dispatchers.IO){
+        lifecycleScope.launch(Dispatchers.IO) {
             val apps = AppUtils.getAllInstalledApps(this@MainHomeScreen)
             viewModel.batchLoadScreenTimes(apps)
         }
@@ -199,12 +206,12 @@ class MainHomeScreen : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-
         //Updates the screen time when you close an app
         try {
             if (viewModel.isAppOpened) {
                 lifecycleScope.launch(Dispatchers.IO) {
                     ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                    viewModel.updateScreenTimeCacheForApp(homeScreenModel.currentSelectedApp.value.packageName)
                     homeScreenModel.currentSelectedApp =
                         mutableStateOf(InstalledApp("", "", ComponentName("", "")))
                 }
@@ -215,11 +222,12 @@ class MainHomeScreen : ComponentActivity() {
             Log.e("ERROR", ex.toString())
         }
 
+        viewModel.shouldReloadScreenTime.value++ //Update to reload screen times
+
         // Reset home
         try {
             AppUtils.resetHome(homeScreenModel, viewModel.shouldGoHomeOnResume.value)
             viewModel.shouldGoHomeOnResume.value = false
-            viewModel.clearScreenTimeCache()
         } catch (ex: Exception) {
             Log.e("ERROR", ex.toString())
         }

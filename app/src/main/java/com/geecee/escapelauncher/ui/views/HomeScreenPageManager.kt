@@ -318,7 +318,7 @@ fun HomeScreenItem(
         // Optional screen time
         if (showScreenTime && screenTime != null) {
             Text(
-                AppUtils.formatScreenTime(screenTime),
+                screenTime.toString(),
                 modifier = Modifier
                     .padding(vertical = 15.dp, horizontal = 5.dp)
                     .alpha(0.5f),

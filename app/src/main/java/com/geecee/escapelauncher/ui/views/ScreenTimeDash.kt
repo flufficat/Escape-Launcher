@@ -133,10 +133,6 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
         } catch (e: Exception) {
             Log.e("ScreenTime", "Error fetching yesterday's usages: ${e.message}")
         }
-
-        // Make sure the LaunchedEffect runs again next time shouldReloadAppUsage
-        // is set to true by making sure its not already set to true
-        mainAppModel.shouldReloadScreenTime.value = false
     }
 
     // UI for ScreenTime screen

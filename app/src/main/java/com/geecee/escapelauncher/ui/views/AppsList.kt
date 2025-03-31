@@ -2,6 +2,7 @@ package com.geecee.escapelauncher.ui.views
 
 import android.graphics.Rect
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -45,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,6 +74,8 @@ import com.geecee.escapelauncher.utils.getPrivateSpaceApps
 import com.geecee.escapelauncher.utils.lockPrivateSpace
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
 import com.geecee.escapelauncher.utils.unlockPrivateSpace
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 
@@ -186,8 +190,20 @@ fun AppsList(
                 }
             )
             { app ->
+                val appUsage = remember { mutableLongStateOf(0L) }
+                LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            appUsage.longValue = mainAppModel.getScreenTimeForApp(app.packageName)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
+                    }
+                }
                 // Draw app if its not hidden and not Escape itself
                 if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.packageName)) {
+
+
                     HomeScreenItem(
                         appName = app.displayName,
                         screenTime = mainAppModel.getScreenTimeForApp(app.packageName),

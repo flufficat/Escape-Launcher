@@ -115,16 +115,13 @@ fun HomeScreen(
             ) {
                 // Find out screen time for today
                 val todayUsage = remember { mutableLongStateOf(0L) }
-                LaunchedEffect(
-                    mainAppModel.shouldReloadScreenTime.value
-                ) {
+                LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
                     try {
                         withContext(Dispatchers.IO) {
                             val usage = getTotalUsageForDate(today)
                             withContext(Dispatchers.Main) {
                                 todayUsage.longValue = usage
                             }
-                            mainAppModel.shouldReloadScreenTime.value = false
                         }
                     } catch (e: Exception) {
                         Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
@@ -172,10 +169,23 @@ fun HomeScreen(
 
         //Apps
         items(homeScreenModel.favoriteApps) { app ->
+            val appUsage = remember { mutableLongStateOf(0L) }
+            LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
+                try {
+                    withContext(Dispatchers.IO) {
+                        appUsage.longValue = mainAppModel.getScreenTimeForApp(app.packageName)
+                    }
+                } catch (e: Exception) {
+                    Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
+                }
+            }
+
             HomeScreenItem(
                 appName = app.displayName,
                 screenTime = mainAppModel.getScreenTimeForApp(app.packageName),
                 onAppClick = {
+                    homeScreenModel.updateSelectedApp(app)
+
                     AppUtils.openApp(
                         app = app,
                         overrideOpenChallenge = false,
@@ -183,6 +193,7 @@ fun HomeScreen(
                         mainAppModel = mainAppModel,
                         homeScreenModel = homeScreenModel
                     )
+
                     resetHome(homeScreenModel)
                 },
                 onAppLongClick = {
