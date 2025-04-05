@@ -156,7 +156,7 @@ fun SettingsHeader(goBack: () -> Unit, title: String) {
  *
  * @param label The text for the label
  * @param checked Whether the switch is on or not
- * @param onCheckedChange Function with Boolean passed thats executed when the switch is pressed
+ * @param onCheckedChange Function with Boolean passed that's executed when the switch is pressed
  */
 @Composable
 fun SettingsSwitch(

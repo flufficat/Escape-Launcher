@@ -1,6 +1,5 @@
 package com.geecee.escapelauncher.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +44,7 @@ import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
+import com.geecee.escapelauncher.utils.AppUtils.formatScreenTime
 import com.geecee.escapelauncher.utils.AppUtils.getCurrentTime
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.WidgetsScreen
@@ -59,9 +59,6 @@ import com.geecee.escapelauncher.utils.managers.getTotalUsageForDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 /**
@@ -73,7 +70,6 @@ fun HomeScreen(
 ) {
     val scrollState = rememberLazyListState()
     val noApps = remember { mutableStateOf(true) }
-    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     val haptics = LocalHapticFeedback.current
 
     LazyColumn(
@@ -113,22 +109,17 @@ fun HomeScreen(
                     mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
                 )
             ) {
-                // Find out screen time for today
                 val todayUsage = remember { mutableLongStateOf(0L) }
                 LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
-                    try {
-                        withContext(Dispatchers.IO) {
-                            val usage = getTotalUsageForDate(today)
-                            withContext(Dispatchers.Main) {
-                                todayUsage.longValue = usage
-                            }
+                    withContext(Dispatchers.IO) {
+                        val usage = getTotalUsageForDate(mainAppModel.today)
+                        withContext(Dispatchers.Main) {
+                            todayUsage.longValue = usage
                         }
-                    } catch (e: Exception) {
-                        Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
                     }
                 }
 
-                HomeScreenScreenTime(AppUtils.formatScreenTime(todayUsage.longValue))
+                HomeScreenScreenTime(formatScreenTime(todayUsage.longValue))
             }
         }
 
@@ -169,20 +160,17 @@ fun HomeScreen(
 
         //Apps
         items(homeScreenModel.favoriteApps) { app ->
-            val appUsage = remember { mutableLongStateOf(0L) }
-            LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
-                try {
-                    withContext(Dispatchers.IO) {
-                        appUsage.longValue = mainAppModel.getScreenTimeForApp(app.packageName)
-                    }
-                } catch (e: Exception) {
-                    Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
-                }
+            val screenTime = remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
+
+            // Update screen time when app changes or shouldReloadScreenTime changes
+            LaunchedEffect(app.packageName, mainAppModel.shouldReloadScreenTime.value) {
+                val time = mainAppModel.getScreenTimeAsync(app.packageName)
+                screenTime.longValue = time
             }
 
             HomeScreenItem(
                 appName = app.displayName,
-                screenTime = mainAppModel.getScreenTimeForApp(app.packageName),
+                screenTime = screenTime.longValue,
                 onAppClick = {
                     homeScreenModel.updateSelectedApp(app)
 

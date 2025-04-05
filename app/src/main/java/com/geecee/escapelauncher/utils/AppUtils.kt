@@ -63,7 +63,7 @@ data class InstalledApp(
  *
  * @author George Clensy
  */
-object AppUtils {
+object AppUtils{
 
     /**
      * Function to open app.
@@ -71,7 +71,7 @@ object AppUtils {
      *
      * @param app The app info being opened
      * @param overrideOpenChallenge Whether the open challenge should be skipped
-     * @param openChallengeShow This is set to true if the app has an open challenge, We recommend having a composable that shows when thats true to act as the open challenge
+     * @param openChallengeShow This is set to true if the app has an open challenge, We recommend having a composable that shows when that's true to act as the open challenge
      * @param mainAppModel Main view model, needed for open challenge manager, package manager, context
      *
      * @author George Clensy
@@ -174,7 +174,7 @@ object AppUtils {
      * Returns the app name from its package
      *
      * @param context Context is required
-     * @param packageName Name of the package thats app name will be returned
+     * @param packageName Name of the package that's app name will be returned
      *
      * @return String app name
      */
@@ -258,7 +258,7 @@ object AppUtils {
             homeScreenModel.searchExpanded.value = false
             homeScreenModel.searchText.value = ""
             homeScreenModel.showBottomSheet.value = false
-            homeScreenModel.loadApps()
+//            homeScreenModel.loadApps()
             homeScreenModel.reloadFavouriteApps()
         }
     }
@@ -271,18 +271,6 @@ object AppUtils {
     fun getYesterday(): String {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -1)
-        val yesterdayDate =
-            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
-        return yesterdayDate
-    }
-
-    /**
-     * Returns the date as a string
-     *
-     * @return String formatted yyyy-MM-dd
-     */
-    fun getToday(): String {
-        val calendar = Calendar.getInstance()
         val yesterdayDate =
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
         return yesterdayDate

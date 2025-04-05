@@ -47,6 +47,7 @@ import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
+import com.geecee.escapelauncher.utils.AppUtils.formatScreenTime
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.managers.OpenChallenge
@@ -58,7 +59,8 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
  * Home Screen View Model
  */
 class HomeScreenModel(application: Application, private val mainAppViewModel: MainAppViewModel) :
-    AndroidViewModel(application) {
+    AndroidViewModel(application)
+{
     var currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
     @Suppress("MemberVisibilityCanBePrivate")
     var isCurrentAppHidden = mutableStateOf(false)
@@ -97,11 +99,17 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
     }
 
     fun reloadFavouriteApps() {
-        favoriteApps.clear()
-        favoriteApps.addAll(
-            mainAppViewModel.favoriteAppsManager.getFavoriteApps().mapNotNull { packageName ->
-                installedApps.find { it.packageName == packageName }
-            })
+        coroutineScope.launch {
+            val newFavoriteApps = mainAppViewModel.favoriteAppsManager.getFavoriteApps()
+                .mapNotNull { packageName -> 
+                    installedApps.find { it.packageName == packageName } 
+                }
+            
+            favoriteApps.apply {
+                clear()
+                addAll(newFavoriteApps)
+            }
+        }
     }
 
     fun updateSelectedApp(app: InstalledApp) {
@@ -318,7 +326,7 @@ fun HomeScreenItem(
         // Optional screen time
         if (showScreenTime && screenTime != null) {
             Text(
-                screenTime.toString(),
+                formatScreenTime(screenTime),
                 modifier = Modifier
                     .padding(vertical = 15.dp, horizontal = 5.dp)
                     .alpha(0.5f),

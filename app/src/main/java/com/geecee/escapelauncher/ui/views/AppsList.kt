@@ -2,7 +2,6 @@ package com.geecee.escapelauncher.ui.views
 
 import android.graphics.Rect
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -74,8 +73,6 @@ import com.geecee.escapelauncher.utils.getPrivateSpaceApps
 import com.geecee.escapelauncher.utils.lockPrivateSpace
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
 import com.geecee.escapelauncher.utils.unlockPrivateSpace
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
 
@@ -190,23 +187,22 @@ fun AppsList(
                 }
             )
             { app ->
-                val appUsage = remember { mutableLongStateOf(0L) }
-                LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
-                    try {
-                        withContext(Dispatchers.IO) {
-                            appUsage.longValue = mainAppModel.getScreenTimeForApp(app.packageName)
-                        }
-                    } catch (e: Exception) {
-                        Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
-                    }
-                }
                 // Draw app if its not hidden and not Escape itself
-                if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(app.packageName)) {
+                if (!app.packageName.contains("com.geecee.escapelauncher") && !mainAppModel.hiddenAppsManager.isAppHidden(
+                        app.packageName
+                    )
+                ) {
+                    val screenTime = remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
 
+                    // Update screen time when app changes or shouldReloadScreenTime changes
+                    LaunchedEffect(app.packageName, mainAppModel.shouldReloadScreenTime.value) {
+                        val time = mainAppModel.getScreenTimeAsync(app.packageName)
+                        screenTime.longValue = time
+                    }
 
                     HomeScreenItem(
                         appName = app.displayName,
-                        screenTime = mainAppModel.getScreenTimeForApp(app.packageName),
+                        screenTime = screenTime.longValue,
                         onAppClick = {
                             homeScreenModel.updateSelectedApp(app)
 
@@ -235,14 +231,18 @@ fun AppsList(
             }
 
             //Private space
-            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && doesPrivateSpaceExist(mainAppModel.getContext())) {
+            if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && doesPrivateSpaceExist(
+                    mainAppModel.getContext()
+                )
+            ) {
                 // Spacing
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
                 // Stores whether the private space is unlocked and whether to try and show it
-                mainAppModel.isPrivateSpaceUnlocked.value = isPrivateSpace(mainAppModel.getContext())
+                mainAppModel.isPrivateSpaceUnlocked.value =
+                    isPrivateSpace(mainAppModel.getContext())
 
                 item {
                     // Private space is locked, shows button to unlock it
@@ -341,13 +341,14 @@ fun AnimatedPillSearchBar(
         }
     }
 
-    Surface(modifier = Modifier
-        .width(width)
-        .height(56.dp)
-        .clickable {
-            expanded.value = !expanded.value
-        }
-        .animateContentSize(),
+    Surface(
+        modifier = Modifier
+            .width(width)
+            .height(56.dp)
+            .clickable {
+                expanded.value = !expanded.value
+            }
+            .animateContentSize(),
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.onPrimaryContainer) {
         Row(

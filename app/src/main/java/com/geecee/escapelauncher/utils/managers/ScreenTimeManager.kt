@@ -28,29 +28,29 @@ object ScreenTimeManager {
     }
 
     // Called when an app is closed
-    fun onAppClosed(packageName: String) {
-        val openTime = appSessions[packageName] ?: return
+    suspend fun onAppClosed(packageName: String): Int {
+        val openTime = appSessions[packageName] ?: return 0
         val usageTime = System.currentTimeMillis() - openTime
         val currentDate = getCurrentDate()
 
         val appKey = "$packageName-$currentDate"  // Include date in the package name key
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val dao = database.appUsageDao()
-                val existingUsage = dao.getAppUsage(appKey)
-                val updatedTime = (existingUsage?.totalTime ?: 0L) + usageTime
+        try {
+            val dao = database.appUsageDao()
+            val existingUsage = dao.getAppUsage(appKey)
+            val updatedTime = (existingUsage?.totalTime ?: 0L) + usageTime
 
-                dao.insertOrUpdate(
-                    AppUsageEntity(
-                        packageName = appKey,
-                        totalTime = updatedTime
-                    )
+            dao.insertOrUpdate(
+                AppUsageEntity(
+                    packageName = appKey,
+                    totalTime = updatedTime
                 )
-                appSessions.remove(packageName)
-            } catch (e: Exception) {
-                Log.e("ScreenTimeManager", "Error saving app usage: ${e.message}")
-            }
+            )
+            appSessions.remove(packageName)
+            return 1
+        } catch (e: Exception) {
+            Log.e("ScreenTimeManager", "Error saving app usage: ${e.message}")
+            return 0
         }
     }
 
