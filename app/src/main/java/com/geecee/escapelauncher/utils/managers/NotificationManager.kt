@@ -7,11 +7,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
 import com.geecee.escapelauncher.R
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -31,7 +31,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val url = data["url"] ?: "https://github.com/georgeclensy/escape"
 
         // Intent to open the URL
-        val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val notificationIntent = Intent(Intent.ACTION_VIEW, url.toUri())
 
         // Send notification
         sendNotification(this, title, message, "updates", "Updates", notificationIntent)

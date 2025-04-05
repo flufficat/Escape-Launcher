@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage", "UnstableApiUsage")
+@file:Suppress("UnstableApiUsage")
 
 plugins {
     alias(libs.plugins.android.application)

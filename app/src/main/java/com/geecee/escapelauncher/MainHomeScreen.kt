@@ -61,15 +61,26 @@ import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainAppViewModel(application: Application) : AndroidViewModel(application) {
     private val appContext: Context = application.applicationContext // The app context
 
+    fun getContext(): Context = appContext // Returns the context
+
+    // Managers
+
     val favoriteAppsManager: FavoriteAppsManager =
         FavoriteAppsManager(application) // Favorite apps manager
+
     val hiddenAppsManager: HiddenAppsManager = HiddenAppsManager(application) // Hidden apps manager
+
     val challengesManager: ChallengesManager =
         ChallengesManager(application) // Manager for challenges
+
+    // Other stuff
 
     var isAppOpened: Boolean =
         false // Set to true when an app is opened and false when it is closed again
@@ -77,45 +88,48 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     val isPrivateSpaceUnlocked: MutableState<Boolean> =
         mutableStateOf(false) // If the private space is unlocked, set by a registered receiver when the private space is closed or opened
 
-    val shouldReloadScreenTime: MutableState<Int> =
-        mutableIntStateOf(0) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
     val shouldGoHomeOnResume: MutableState<Boolean> =
         mutableStateOf(false) // This is to check whether to go back to the first page of the home screen the next time onResume is called, It is only ever used once in AllApps when you come back from signing into private space
 
-    private val screenTimeCache = mutableStateMapOf<String, Long>()
+    // Screen time related things
 
-    fun batchLoadScreenTimes(apps: List<InstalledApp>) {
-        val today = AppUtils.getToday()
+    val today: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
+    val screenTimeCache = mutableStateMapOf<String, Long>() // Cache mapping package name to screen time
+
+    val shouldReloadScreenTime: MutableState<Int> =
+        mutableIntStateOf(0) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
+
+    fun updateAppScreenTime(packageName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            apps.forEach { app ->
-                val screenTime = getUsageForApp(app.packageName, today)
-                screenTimeCache[app.packageName] = screenTime
+            val screenTime = getUsageForApp(packageName, today)
+            screenTimeCache[packageName] = screenTime
+        }
+    } // Function to update a single app's cached screen time
+
+    @Suppress("unused")
+    fun reloadScreenTimeCache(packageNames: List<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            packageNames.forEach { packageName ->
+                val screenTime = getUsageForApp(packageName, today)
+                screenTimeCache[packageName] = screenTime
             }
+            shouldReloadScreenTime.value++
         }
-    }
+    } // Reloads the screen times
 
-    fun updateScreenTimeCacheForApp(packageName: String) {
-        val today = AppUtils.getToday()
-        viewModelScope.launch(Dispatchers.IO) {
-            screenTimeCache[packageName] = getUsageForApp(packageName, today)
+    suspend fun getScreenTimeAsync(packageName: String, forceRefresh: Boolean = false): Long {
+        if (forceRefresh || !screenTimeCache.containsKey(packageName)) {
+            val screenTime = getUsageForApp(packageName, today)
+            screenTimeCache[packageName] = screenTime
+            return screenTime
         }
-    }
+        return screenTimeCache[packageName] ?: 0L
+    } // Function to get screen time from cache or compute if missing
 
-    fun getScreenTimeForApp(packageName: String): Long {
-        return if (screenTimeCache.containsKey(packageName)) {
-            screenTimeCache[packageName]!!
-        } else {
-            0
-        }
-    }
-
-    fun clearScreenTimeCache() {
-        screenTimeCache.clear()
-        shouldReloadScreenTime.value++
-    }
-
-    fun getContext(): Context = appContext // Returns the context
+    fun getCachedScreenTime(packageName: String): Long {
+        return screenTimeCache[packageName] ?: 0L
+    } // Non-suspend function that just returns the cached value without fetching
 }
 
 class MainHomeScreen : ComponentActivity() {
@@ -156,14 +170,16 @@ class MainHomeScreen : ComponentActivity() {
         // Set up the screen time tracking
         ScreenTimeManager.initialize(this)
         scheduleDailyCleanup(this)
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            homeScreenModel.installedApps.forEach { app ->
+                val screenTime = getUsageForApp(app.packageName, viewModel.today)
+                viewModel.screenTimeCache[app.packageName] = screenTime
+            }
+            viewModel.shouldReloadScreenTime.value++
+        }
 
         // Set up the application content
         setContent { SetUpContent() }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val apps = AppUtils.getAllInstalledApps(this@MainHomeScreen)
-            viewModel.batchLoadScreenTimes(apps)
-        }
 
         // Register screen off receiver
         screenOffReceiver = ScreenOffReceiver {
@@ -206,23 +222,25 @@ class MainHomeScreen : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        //Updates the screen time when you close an app
-        try {
-            if (viewModel.isAppOpened) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
-                    viewModel.updateScreenTimeCacheForApp(homeScreenModel.currentSelectedApp.value.packageName)
-                    homeScreenModel.currentSelectedApp =
-                        mutableStateOf(InstalledApp("", "", ComponentName("", "")))
-                }
 
-                viewModel.isAppOpened = false
+        // Check if we need to update screen time when coming back from an app
+        if (viewModel.isAppOpened) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                val packageName = homeScreenModel.currentSelectedApp.value.packageName
+                ScreenTimeManager.onAppClosed(packageName)
+
+                // Update screen time for just this app in the cache
+                viewModel.updateAppScreenTime(packageName)
+
+                // Trigger UI refresh
+                viewModel.shouldReloadScreenTime.value++
+
+                // Reset state
+                homeScreenModel.currentSelectedApp =
+                    mutableStateOf(InstalledApp("", "", ComponentName("", "")))
             }
-        } catch (ex: Exception) {
-            Log.e("ERROR", ex.toString())
+            viewModel.isAppOpened = false
         }
-
-        viewModel.shouldReloadScreenTime.value++ //Update to reload screen times
 
         // Reset home
         try {
