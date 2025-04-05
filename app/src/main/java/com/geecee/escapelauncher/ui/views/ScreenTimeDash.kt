@@ -96,7 +96,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ScreenTime", "Error fetching total usage: ${e.message}")
+            Log.e("ERROR", "Error fetching total screen time usage for today in ScreenTimeDashboard: ${e.message}")
         }
 
         // Get app usage list for today
@@ -109,7 +109,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
+            Log.e("ERROR", "Error fetching app screen time usages for today in ScreenTimeDashboard: ${e.message}")
         }
 
         // Get app usage list for yesterday
@@ -122,7 +122,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ScreenTime", "Error fetching app usages: ${e.message}")
+            Log.e("ERROR", "Error fetching app screen time usages for yesterday in ScreenTimeDash: ${e.message}")
         }
 
         // Get total usage for Yesterday
@@ -131,7 +131,7 @@ fun ScreenTimeDashboard(context: Context, mainAppModel: MainAppViewModel) {
                 yesterdayUsage.longValue = getTotalUsageForDate(AppUtils.getYesterday())
             }
         } catch (e: Exception) {
-            Log.e("ScreenTime", "Error fetching yesterday's usages: ${e.message}")
+            Log.e("ERROR", "Error fetching yesterday's total screen time usages in ScreenTimeDash: ${e.message}")
         }
     }
 

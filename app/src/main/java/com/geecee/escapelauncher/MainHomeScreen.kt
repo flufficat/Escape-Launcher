@@ -186,11 +186,21 @@ class MainHomeScreen : ComponentActivity() {
             // Screen turned off
             if (viewModel.isAppOpened) {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    ScreenTimeManager.onAppClosed(homeScreenModel.currentSelectedApp.value.packageName)
+                    val packageName = homeScreenModel.currentSelectedApp.value.packageName
+                    ScreenTimeManager.onAppClosed(packageName)
+
+                    // Update screen time for just this app in the cache
+                    viewModel.updateAppScreenTime(packageName)
+
+                    // Trigger UI refresh
+                    viewModel.shouldReloadScreenTime.value++
+
+                    Log.i("INFO", "Screen turned off with app " + homeScreenModel.currentSelectedApp.value.packageName + " open, stopping screen time counting at " + AppUtils.formatScreenTime(viewModel.getCachedScreenTime(homeScreenModel.currentSelectedApp.value.packageName)))
+
+                    // Reset state
                     homeScreenModel.currentSelectedApp =
                         mutableStateOf(InstalledApp("", "", ComponentName("", "")))
-                }
-
+  }
                 viewModel.isAppOpened = false
             }
         }
@@ -214,7 +224,7 @@ class MainHomeScreen : ComponentActivity() {
             Firebase.messaging.subscribeToTopic("updates")
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        Log.d("FCM", "Subscribed to topic: updates")
+                        Log.i("INFO", "Subscribed to FCM topic: updates")
                     }
                 }
         }
