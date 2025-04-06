@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -70,7 +69,6 @@ fun HomeScreen(
     mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel
 ) {
     val scrollState = rememberLazyListState()
-    val noApps = remember { mutableStateOf(true) }
     val haptics = LocalHapticFeedback.current
 
     LazyColumn(
@@ -98,7 +96,6 @@ fun HomeScreen(
                         stringResource(R.string.BigClock),
                         false
                     ),
-                    noApps = noApps,
                     homeAlignment = getHomeAlignment(mainAppModel.getContext())
                 )
             }
@@ -227,7 +224,7 @@ fun HomeScreen(
  */
 @Composable
 fun Clock(
-    bigClock: Boolean, noApps: MutableState<Boolean>, homeAlignment: Alignment.Horizontal
+    bigClock: Boolean, homeAlignment: Alignment.Horizontal
 ) {
     var time by remember { mutableStateOf(getCurrentTime()) }
     val parts = time.split(":")
@@ -242,29 +239,54 @@ fun Clock(
     }
 
     if (bigClock) {
-        Column {
-            Text(
-                text = hours,
-                modifier = Modifier.offset(0.dp, 15.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontWeight = FontWeight.SemiBold,
-                style = if (!noApps.value) {
-                    MaterialTheme.typography.titleMedium
-                } else {
-                    MaterialTheme.typography.titleLarge
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .offset(0.dp, 15.dp)
+        ) {
+            // Hours row
+            Row {
+                // Ensure hours has two digits
+                val hourDigits = if (hours.length == 1) "0$hours" else hours
+
+                hourDigits.forEachIndexed { index, digit ->
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .width(40.dp)
+                            .offset(0.dp, 30.dp)
+                    ) {
+                        Text(
+                            text = digit.toString(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.headlineLarge,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
-            )
-            Text(
-                text = minutes,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontWeight = FontWeight.SemiBold,
-                style = if (!noApps.value) {
-                    MaterialTheme.typography.titleMedium
-                } else {
-                    MaterialTheme.typography.titleLarge
-                },
-                modifier = Modifier.offset(0.dp)
-            )
+            }
+
+            // Minutes row
+            Row {
+                // Ensure minutes has two digits
+                val minuteDigits = if (minutes.length == 1) "0$minutes" else minutes
+
+                minuteDigits.forEachIndexed { index, digit ->
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.width(40.dp)
+                    ) {
+                        Text(
+                            text = digit.toString(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.headlineLarge,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
         }
     } else {
         Text(

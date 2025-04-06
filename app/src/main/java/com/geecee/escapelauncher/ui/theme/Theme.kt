@@ -553,7 +553,13 @@ fun EscapeTheme(
         mutableStateOf(
             FontFamily(
                 Font(
-                    googleFont = GoogleFont(getStringSetting(context, context.resources.getString(R.string.Font), "Jost"), true),
+                    googleFont = GoogleFont(
+                        getStringSetting(
+                            context,
+                            context.resources.getString(R.string.Font),
+                            "Jost"
+                        ), true
+                    ),
                     fontProvider = provider
                 )
             )
@@ -561,25 +567,25 @@ fun EscapeTheme(
     }
 
     val typography = Typography(
-        bodyLarge = TextStyle(
+        headlineLarge = TextStyle(
             fontFamily = fontFamily.value,
-            fontWeight = FontWeight.Normal,
-            fontSize = 28.sp,
-            lineHeight = 29.sp,
+            fontWeight = FontWeight.Light,
+            fontSize = 66.sp,
+            lineHeight = 53.sp,
             letterSpacing = 0.6.sp
         ),
-        bodyMedium = TextStyle(
+        headlineMedium = TextStyle(
             fontFamily = fontFamily.value,
-            fontWeight = FontWeight.Normal,
-            fontSize = 24.sp,
-            lineHeight = 25.sp,
+            fontWeight = FontWeight.Light,
+            fontSize = 62.sp,
+            lineHeight = 49.sp,
             letterSpacing = 0.6.sp
         ),
-        bodySmall = TextStyle(
+        headlineSmall = TextStyle(
             fontFamily = fontFamily.value,
-            fontWeight = FontWeight.Normal,
-            fontSize = 20.sp,
-            lineHeight = 21.sp,
+            fontWeight = FontWeight.Light,
+            fontSize = 58.sp,
+            lineHeight = 45.sp,
             letterSpacing = 0.6.sp
         ),
         titleLarge = TextStyle(
@@ -601,6 +607,27 @@ fun EscapeTheme(
             fontWeight = FontWeight.Light,
             fontSize = 44.sp,
             lineHeight = 45.sp,
+            letterSpacing = 0.6.sp
+        ),
+        bodyLarge = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 28.sp,
+            lineHeight = 29.sp,
+            letterSpacing = 0.6.sp
+        ),
+        bodyMedium = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 24.sp,
+            lineHeight = 25.sp,
+            letterSpacing = 0.6.sp
+        ),
+        bodySmall = TextStyle(
+            fontFamily = fontFamily.value,
+            fontWeight = FontWeight.Normal,
+            fontSize = 20.sp,
+            lineHeight = 21.sp,
             letterSpacing = 0.6.sp
         )
     )
