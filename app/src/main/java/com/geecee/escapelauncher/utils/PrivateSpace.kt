@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.net.toUri
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.theme.transparentHalf
 import com.geecee.escapelauncher.ui.views.SettingsSwitch
@@ -119,6 +120,53 @@ fun getPrivateSpaceApps(context: Context): List<InstalledApp> {
             packageName = it.applicationInfo.packageName,
             componentName = it.componentName
         )
+    }
+}
+
+/**
+ * Shows the system app info page for an app in Private Space.
+ */
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+fun showPrivateSpaceAppInfo(installedApp: InstalledApp, context: Context, sourceBounds: Rect? = null) {
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps ?: return
+    val userManager = getSystemService(context, UserManager::class.java) ?: return
+
+    userManager.userProfiles.find {
+        launcherApps.getLauncherUserInfo(it)?.userType == PRIVATE_SPACE_USER_TYPE
+    }?.let { userHandle ->
+        val options = ActivityOptions.makeBasic()
+        if (sourceBounds != null) {
+            options.setLaunchBounds(sourceBounds)
+        }
+        launcherApps.startAppDetailsActivity(
+            installedApp.componentName,
+            userHandle,
+            sourceBounds,
+            options.toBundle()
+        )
+    }
+}
+
+/**
+ * Uninstalls an app from Private Space.
+ */
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+fun uninstallPrivateSpaceApp(installedApp: InstalledApp, context: Context) {
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps ?: return
+    val userManager = getSystemService(context, UserManager::class.java) ?: return
+
+    userManager.userProfiles.find {
+        launcherApps.getLauncherUserInfo(it)?.userType == PRIVATE_SPACE_USER_TYPE
+    }?.let { userHandle ->
+        // Create an intent to uninstall the app
+        val uninstallIntent = Intent(Intent.ACTION_DELETE)
+        uninstallIntent.data = "package:${installedApp.packageName}".toUri()
+        uninstallIntent.putExtra(Intent.EXTRA_USER, userHandle)
+        uninstallIntent.putExtra(Intent.EXTRA_RETURN_RESULT, true)
+        uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        // Launch the system uninstaller
+        context.startActivity(uninstallIntent)
     }
 }
 

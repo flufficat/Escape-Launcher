@@ -83,6 +83,9 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
     val appsListScrollState = LazyListState()
     val pagerState = PagerState(1, 0f) { 3 }
 
+    val currentSelectedPrivateApp = mutableStateOf(InstalledApp("","", ComponentName("",""))) //Only used for the bottom sheet
+    var showPrivateBottomSheet = mutableStateOf(false)
+
     init {
         loadApps()
         reloadFavouriteApps()

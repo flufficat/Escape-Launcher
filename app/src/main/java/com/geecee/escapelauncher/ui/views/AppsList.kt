@@ -1,5 +1,6 @@
 package com.geecee.escapelauncher.ui.views
 
+import android.content.ComponentName
 import android.graphics.Rect
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -35,12 +36,14 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -64,6 +67,7 @@ import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.resetHome
+import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.PrivateAppItem
 import com.geecee.escapelauncher.utils.PrivateSpaceSettings
 import com.geecee.escapelauncher.utils.doesPrivateSpaceExist
@@ -72,6 +76,8 @@ import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getPrivateSpaceApps
 import com.geecee.escapelauncher.utils.lockPrivateSpace
 import com.geecee.escapelauncher.utils.openPrivateSpaceApp
+import com.geecee.escapelauncher.utils.showPrivateSpaceAppInfo
+import com.geecee.escapelauncher.utils.uninstallPrivateSpaceApp
 import com.geecee.escapelauncher.utils.unlockPrivateSpace
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 import com.geecee.escapelauncher.utils.isPrivateSpaceUnlocked as isPrivateSpace
@@ -192,7 +198,8 @@ fun AppsList(
                         app.packageName
                     )
                 ) {
-                    val screenTime = remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
+                    val screenTime =
+                        remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
 
                     // Update screen time when app changes or shouldReloadScreenTime changes
                     LaunchedEffect(app.packageName, mainAppModel.shouldReloadScreenTime.value) {
@@ -417,9 +424,29 @@ fun AnimatedPillSearchBar(
 /**
  * Android 15+ Private space UI with apps, settings button and lock button
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
+    val privateSpaceAppActions = listOf(
+        AppAction(
+            stringResource(R.string.uninstall)
+        ) {
+            uninstallPrivateSpaceApp(
+                homeScreenModel.currentSelectedPrivateApp.value,
+                mainAppModel.getContext()
+            )
+        },
+        AppAction(
+            stringResource(R.string.app_info)
+        ) {
+            showPrivateSpaceAppInfo(
+                homeScreenModel.currentSelectedPrivateApp.value,
+                mainAppModel.getContext()
+            )
+        }
+    )
+
     Card(
         Modifier
             .fillMaxWidth()
@@ -434,7 +461,6 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
         ) {
-
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -485,7 +511,8 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
 
             getPrivateSpaceApps(mainAppModel.getContext()).forEach { app ->
                 PrivateAppItem(app.displayName, {
-
+                    homeScreenModel.currentSelectedPrivateApp.value = app
+                    homeScreenModel.showPrivateBottomSheet.value = true
                 }) {
                     openPrivateSpaceApp(
                         installedApp = app, context = mainAppModel.getContext(), Rect()
@@ -496,5 +523,19 @@ fun PrivateSpace(mainAppModel: MainAppModel, homeScreenModel: HomeScreenModel) {
 
             Spacer(Modifier.height(20.dp))
         }
+    }
+
+    if (homeScreenModel.showPrivateBottomSheet.value) {
+        HomeScreenBottomSheet(
+            title = homeScreenModel.currentSelectedPrivateApp.value.displayName,
+            actions = privateSpaceAppActions,
+            onDismissRequest = {
+                homeScreenModel.showPrivateBottomSheet.value = false
+                homeScreenModel.currentSelectedPrivateApp.value =
+                    InstalledApp("", "", ComponentName("", ""))
+            },
+            sheetState = rememberModalBottomSheetState(),
+            modifier = Modifier
+        )
     }
 }
