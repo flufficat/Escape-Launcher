@@ -61,6 +61,7 @@
     <string name="hide_private_space_in_search">Hidden private space</string>
     <string name="haptic_feedback">Haptic feedback</string>
     <string name="personalization">Personalize</string>
+    <string name="done">Done</string>
 
     <!-- Apps challenge strings -->
     <string name="open_challenges">Open Challenges</string>

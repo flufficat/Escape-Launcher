@@ -16,13 +16,15 @@ import android.os.UserManager
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
 import com.geecee.escapelauncher.R
@@ -144,12 +147,22 @@ fun PrivateAppItem(
 /**
  * UI component for Private Space settings dialog.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
+fun PrivateSpaceSettings(
+    context: Context,
+    backgroundInteractionSource: MutableInteractionSource,
+    onDismiss: () -> Unit
+) {
     Box(
         Modifier
             .fillMaxSize()
-            .clickable { onDismiss() }
+            .combinedClickable(
+                onClick = { onDismiss() },
+                onLongClick = {},
+                indication = null,
+                interactionSource = backgroundInteractionSource
+            )
             .background(transparentHalf)
     )
     Box(
@@ -166,13 +179,22 @@ fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
                     MaterialTheme.shapes.extraLarge,
                     ambientColor = MaterialTheme.colorScheme.scrim
                 )
-                .clickable {},
+                .combinedClickable(
+                    onClick = {},
+                    indication = null,
+                    interactionSource = backgroundInteractionSource
+                ),
             elevation = CardDefaults.cardElevation(5.dp)
         ) {
-            Column(Modifier.padding(20.dp)) {
+            Column(
+                Modifier.padding(20.dp),
+                verticalArrangement = spacedBy(15.dp)
+            ) {
                 Text(
-                    stringResource(R.string.private_space_settings),
-                    style = MaterialTheme.typography.bodyLarge
+                    stringResource(R.string.settings),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
                 val settingKey = context.resources.getString(R.string.SearchHiddenPrivateSpace)
                 SettingsSwitch(
@@ -180,6 +202,14 @@ fun PrivateSpaceSettings(context: Context, onDismiss: () -> Unit) {
                     getBooleanSetting(context, settingKey, false)
                 ) { value ->
                     setBooleanSetting(context, settingKey, value)
+                }
+                Button(
+                    onClick = {
+                        onDismiss()
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(stringResource(R.string.done))
                 }
             }
         }

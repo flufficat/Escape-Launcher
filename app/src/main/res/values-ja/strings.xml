@@ -62,6 +62,7 @@
     <string name="personalization">パーソナライズ</string>
 
     <!-- Apps challenge strings -->
+    <string name="done">終わり</string>
     <string name="open_challenges">オープンチャレンジ</string>
 
     <!-- First time strings -->

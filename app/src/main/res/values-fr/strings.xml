@@ -63,6 +63,7 @@
     <string name="personalization">Personnaliser</string>
 
     <!-- Apps challenge strings -->
+    <string name="done">Fait</string>
     <string name="open_challenges">Défis ouverts</string>
 
     <!-- First time strings -->

@@ -288,7 +288,8 @@ fun AppsList(
             exit = fadeOut()
         ) {
             PrivateSpaceSettings(
-                mainAppModel.getContext()
+                mainAppModel.getContext(),
+                homeScreenModel.interactionSource
             ) {
                 homeScreenModel.showPrivateSpaceSettings.value = false
             }
