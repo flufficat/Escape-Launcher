@@ -76,6 +76,7 @@
     <string name="choose_your_favourite_apps">Choisissez vos applications préférées</string>
     <string name="pinned_for_access">Ceux-ci seront épinglés sur votre écran d\'accueil pour un accès rapide</string>
     <string name="set_launcher">Définir comme lanceur par défaut</string>
+    <string name="already_default">Déjà par défaut</string>
     <string name="set_escape">Définir Escape comme lanceur par défaut</string>
     <string name="stop_going_back">Cela vous empêchera de revenir à votre écran d\'accueil par défaut</string>
     <string name="swipe_for_all_apps">Faites glisser pour toutes les applications</string>

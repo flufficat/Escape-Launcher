@@ -1,5 +1,6 @@
 package com.geecee.escapelauncher.ui.views
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -105,7 +106,8 @@ fun HomeScreen(
 
         //Screen time
         item {
-            if (getBooleanSetting(
+            AnimatedVisibility(
+                getBooleanSetting(
                     mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome), false
                 )
             ) {
@@ -160,7 +162,8 @@ fun HomeScreen(
 
         //Apps
         items(homeScreenModel.favoriteApps) { app ->
-            val screenTime = remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
+            val screenTime =
+                remember { mutableLongStateOf(mainAppModel.getCachedScreenTime(app.packageName)) }
 
             // Update screen time when app changes or shouldReloadScreenTime changes
             LaunchedEffect(app.packageName, mainAppModel.shouldReloadScreenTime.value) {

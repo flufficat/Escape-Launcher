@@ -75,6 +75,7 @@
     <string name="choose_your_favourite_apps">お気に入りのアプリを選択してください</string>
     <string name="pinned_for_access">これらはホーム画面に固定され、すぐにアクセスできるようになります</string>
     <string name="set_launcher">デフォルトのランチャーとして設定</string>
+    <string name="already_default">すでにデフォルトです</string>
     <string name="set_escape">Escape をデフォルトのランチャーとして設定する</string>
     <string name="stop_going_back">これにより、デフォルトのホーム画面に戻らなくなります</string>
     <string name="swipe_for_all_apps">スワイプしてすべてのアプリを表示</string>

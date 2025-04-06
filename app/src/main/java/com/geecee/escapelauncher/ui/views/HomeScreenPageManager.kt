@@ -218,7 +218,7 @@ fun HomeScreenPageManager(
                         homeScreenModel.isCurrentAppFavorite.value = true
                         homeScreenModel.showBottomSheet.value = false
                         homeScreenModel.coroutineScope.launch {
-                            homeScreenModel.pagerState.scrollToPage(1, 0f)
+                            homeScreenModel.pagerState.scrollToPage(1)
                         }
                     }
                     homeScreenModel.reloadFavouriteApps()

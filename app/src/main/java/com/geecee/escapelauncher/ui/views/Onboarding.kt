@@ -1,13 +1,16 @@
 package com.geecee.escapelauncher.ui.views
 
+import android.app.Activity
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -56,8 +61,10 @@ import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.configureAnalytics
-import com.geecee.escapelauncher.utils.changeLauncher
+import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.isDefaultLauncher
 import com.geecee.escapelauncher.utils.setBooleanSetting
+import com.geecee.escapelauncher.utils.showLauncherSelector
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 @Composable
@@ -65,11 +72,23 @@ fun Onboarding(
     mainNavController: NavController,
     mainAppModel: MainAppViewModel,
     pushNotificationPermissionLauncher: ActivityResultLauncher<String>,
-    homeScreenModel: HomeScreenModel
+    homeScreenModel: HomeScreenModel,
+    activity: Activity
 ) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "Page1") {
+    var startDestination = "Page1"
+
+    if (getBooleanSetting(
+            mainAppModel.getContext(),
+            stringResource(R.string.WasChangingLauncher),
+            false
+        )
+    ) {
+        startDestination = "Page4"
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(
             "Page1",
             enterTransition = { fadeIn(tween(300)) },
@@ -92,7 +111,7 @@ fun Onboarding(
             "Page4",
             enterTransition = { fadeIn(tween(300)) },
             exitTransition = { fadeOut(tween(300)) }) {
-            OnboardingPage4(navController, mainAppModel)
+            OnboardingPage4(navController, activity)
         }
         composable(
             "Page5",
@@ -408,7 +427,7 @@ fun OnboardingPage3(navController: NavController, mainAppModel: MainAppModel) {
 }
 
 @Composable
-fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
+fun OnboardingPage4(navController: NavController, activity: Activity) {
     Box(
         Modifier
             .fillMaxSize()
@@ -433,27 +452,65 @@ fun OnboardingPage4(navController: NavController, mainAppModel: MainAppModel) {
                 lineHeight = 32.sp
             )
             Spacer(Modifier.height(10.dp))
-            Button(
-                onClick = {
-                    changeLauncher(mainAppModel.getContext())
-                }, modifier = Modifier, colors = ButtonColors(
-                    MaterialTheme.colorScheme.onPrimaryContainer,
-                    MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.onPrimaryContainer,
-                    MaterialTheme.colorScheme.background
-                )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            if (!isDefaultLauncher(activity)) {
+                Button(
+                    onClick = {
+                        setBooleanSetting(
+                            activity,
+                            activity.resources.getString(R.string.WasChangingLauncher),
+                            true
+                        )
+                        activity.showLauncherSelector()
+                    },
+                    modifier = Modifier,
+                    colors = ButtonColors(
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        MaterialTheme.colorScheme.background
+                    )
                 ) {
-                    Text(text = stringResource(R.string.set_launcher))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = stringResource(R.string.set_launcher))
+                    }
+                }
+            } else {
+                Button(
+                    onClick = {
+                    },
+                    modifier = Modifier.border(
+                        1.dp,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        MaterialTheme.shapes.extraLarge
+                    ),
+                    colors = ButtonColors(
+                        Color.Transparent,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        Color.Transparent,
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Check, "")
+                        Text(text = stringResource(R.string.already_default))
+                    }
                 }
             }
         }
 
         Button(
             onClick = {
+                setBooleanSetting(
+                    activity,
+                    activity.resources.getString(R.string.WasChangingLauncher),
+                    false
+                )
                 navController.navigate("Page5")
             }, modifier = Modifier.align(Alignment.BottomEnd), colors = ButtonColors(
                 MaterialTheme.colorScheme.onPrimaryContainer,
@@ -612,7 +669,7 @@ fun OnboardingPage5(
         }
     }
 
-    if (showPolicyDialog.value) {
+    AnimatedVisibility(showPolicyDialog.value, enter = fadeIn(), exit = fadeOut()) {
         PrivacyPolicyDialog(mainAppModel, showPolicyDialog)
     }
 }

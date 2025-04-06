@@ -76,6 +76,7 @@
     <string name="choose_your_favourite_apps">Choose your favourite apps</string>
     <string name="pinned_for_access">These will be pinned to your home screen for quick access</string>
     <string name="set_launcher">Set as default launcher</string>
+    <string name="already_default">Already Default</string>
     <string name="set_escape">Set Escape as default launcher</string>
     <string name="stop_going_back">This will stop you going back to your default home screen</string>
     <string name="swipe_for_all_apps">Swipe for all apps</string>

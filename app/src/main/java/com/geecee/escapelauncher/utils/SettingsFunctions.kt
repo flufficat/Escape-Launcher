@@ -4,8 +4,10 @@ package com.geecee.escapelauncher.utils
 
 import android.app.Activity
 import android.app.ActivityOptions
+import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Alignment
@@ -14,14 +16,55 @@ import com.geecee.escapelauncher.MainHomeScreen
 import com.geecee.escapelauncher.R
 
 /**
- * Change the default launcher
+ * Shows the launcher selector
  */
-fun changeLauncher(activity: Context) {
+fun Activity.showLauncherSelector() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val roleManager = getSystemService(Context.ROLE_SERVICE) as RoleManager
+        if (roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
+            val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME)
+            startActivityForResult(intent, REQUEST_ROLE_HOME_CODE)
+        } else {
+            showLauncherSettingsMenu(this)
+        }
+    } else {
+        showLauncherSettingsMenu(this)
+    }
+}
+
+/**
+ * Shows the select launcher menu in system settings
+ */
+fun showLauncherSettingsMenu(activity: Context) {
     val intent = Intent(Settings.ACTION_HOME_SETTINGS).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     activity.startActivity(intent)
 }
+
+/**
+ * Returns the package of the current default launcher
+ */
+fun getDefaultLauncherPackage(context: Context): String {
+    val intent = Intent()
+    intent.action = Intent.ACTION_MAIN
+    intent.addCategory(Intent.CATEGORY_HOME)
+    val packageManager = context.packageManager
+    val result = packageManager.resolveActivity(intent, 0)
+    return if (result?.activityInfo != null) {
+        result.activityInfo.packageName
+    } else "android"
+}
+
+/**
+ * Returns if the default launcher is escape launcher
+ */
+fun isDefaultLauncher(context: Context): Boolean {
+    val launcherPackageName = getDefaultLauncherPackage(context)
+    return "com.geecee.escapelauncher" == launcherPackageName || "com.geecee.escapelauncher.dev" == launcherPackageName
+}
+
+private const val REQUEST_ROLE_HOME_CODE = 678
 
 /**
  * Change the app theme

@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -94,7 +95,6 @@ import com.geecee.escapelauncher.utils.AppUtils.loadTextFromAssets
 import com.geecee.escapelauncher.utils.changeAppsAlignment
 import com.geecee.escapelauncher.utils.changeHomeAlignment
 import com.geecee.escapelauncher.utils.changeHomeVAlignment
-import com.geecee.escapelauncher.utils.changeLauncher
 import com.geecee.escapelauncher.utils.changeTheme
 import com.geecee.escapelauncher.utils.getAppsAlignmentAsInt
 import com.geecee.escapelauncher.utils.getBooleanSetting
@@ -104,6 +104,7 @@ import com.geecee.escapelauncher.utils.getSavedWidgetId
 import com.geecee.escapelauncher.utils.getWidgetHeight
 import com.geecee.escapelauncher.utils.getWidgetOffset
 import com.geecee.escapelauncher.utils.getWidgetWidth
+import com.geecee.escapelauncher.utils.isDefaultLauncher
 import com.geecee.escapelauncher.utils.isWidgetConfigurable
 import com.geecee.escapelauncher.utils.launchWidgetConfiguration
 import com.geecee.escapelauncher.utils.openWidgetPicker
@@ -115,6 +116,8 @@ import com.geecee.escapelauncher.utils.setStringSetting
 import com.geecee.escapelauncher.utils.setWidgetHeight
 import com.geecee.escapelauncher.utils.setWidgetOffset
 import com.geecee.escapelauncher.utils.setWidgetWidth
+import com.geecee.escapelauncher.utils.showLauncherSelector
+import com.geecee.escapelauncher.utils.showLauncherSettingsMenu
 import com.geecee.escapelauncher.utils.toggleBooleanSetting
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
@@ -263,7 +266,8 @@ fun Settings(
                     { goBack() },
                     { showPolicyDialog.value = true },
                     navController,
-                    mainAppModel
+                    mainAppModel,
+                    activity
                 )
             }
             composable("alignmentOptions",
@@ -313,7 +317,7 @@ fun Settings(
         }
     }
 
-    if (showPolicyDialog.value) {
+    AnimatedVisibility(showPolicyDialog.value, enter = fadeIn(), exit = fadeOut()) {
         PrivacyPolicyDialog(mainAppModel, showPolicyDialog)
     }
 }
@@ -334,7 +338,8 @@ fun MainSettingsPage(
     goBack: () -> Unit,
     showPolicyDialog: () -> Unit,
     navController: NavController,
-    mainAppModel: MainAppModel
+    mainAppModel: MainAppModel,
+    activity: Activity
 ) {
 
     Column(
@@ -374,7 +379,14 @@ fun MainSettingsPage(
 
         SettingsNavigationItem(label = stringResource(id = R.string.make_default_launcher),
             true,
-            onClick = { changeLauncher(mainAppModel.getContext()) })
+            onClick = {
+                if(!isDefaultLauncher(activity)) {
+                    activity.showLauncherSelector()
+                }
+                else{
+                    showLauncherSettingsMenu(activity)
+                }
+            })
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 

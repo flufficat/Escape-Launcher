@@ -370,7 +370,8 @@ class MainHomeScreen : ComponentActivity() {
                         navController,
                         viewModel,
                         pushNotificationPermissionLauncher,
-                        homeScreenModel
+                        homeScreenModel,
+                        this@MainHomeScreen
                     )
                 }
             }

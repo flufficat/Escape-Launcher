@@ -16,4 +16,5 @@
     <string name="FirstTimeAppDrawHelp" translatable="false">FirstTimeAppDrawHelp</string>
     <string name="SearchHiddenPrivateSpace" translatable="false">searchHiddenPrivateSpace</string>
     <string name="Haptic" translatable="false">Haptics</string>
+    <string name="WasChangingLauncher" translatable="false">WasChangingLauncher</string>
 </resources>
