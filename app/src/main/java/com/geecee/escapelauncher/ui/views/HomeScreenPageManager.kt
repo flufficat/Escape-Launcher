@@ -29,12 +29,15 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +55,7 @@ import com.geecee.escapelauncher.utils.AppUtils.resetHome
 import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.managers.OpenChallenge
 import com.geecee.escapelauncher.utils.setBooleanSetting
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
@@ -59,9 +63,9 @@ import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
  * Home Screen View Model
  */
 class HomeScreenModel(application: Application, private val mainAppViewModel: MainAppViewModel) :
-    AndroidViewModel(application)
-{
+    AndroidViewModel(application) {
     var currentSelectedApp = mutableStateOf(InstalledApp("", "", ComponentName("", "")))
+
     @Suppress("MemberVisibilityCanBePrivate")
     var isCurrentAppHidden = mutableStateOf(false)
     var isCurrentAppChallenged = mutableStateOf(false)
@@ -83,7 +87,8 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
     val appsListScrollState = LazyListState()
     val pagerState = PagerState(1, 0f) { 3 }
 
-    val currentSelectedPrivateApp = mutableStateOf(InstalledApp("","", ComponentName("",""))) //Only used for the bottom sheet
+    val currentSelectedPrivateApp =
+        mutableStateOf(InstalledApp("", "", ComponentName("", ""))) //Only used for the bottom sheet
     var showPrivateBottomSheet = mutableStateOf(false)
 
     init {
@@ -104,10 +109,10 @@ class HomeScreenModel(application: Application, private val mainAppViewModel: Ma
     fun reloadFavouriteApps() {
         coroutineScope.launch {
             val newFavoriteApps = mainAppViewModel.favoriteAppsManager.getFavoriteApps()
-                .mapNotNull { packageName -> 
-                    installedApps.find { it.packageName == packageName } 
+                .mapNotNull { packageName ->
+                    installedApps.find { it.packageName == packageName }
                 }
-            
+
             favoriteApps.apply {
                 clear()
                 addAll(newFavoriteApps)
@@ -153,6 +158,18 @@ fun HomeScreenPageManager(
     onOpenSettings: () -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Add effect to hide keyboard on page change
+    LaunchedEffect(homeScreenModel.pagerState.currentPage) {
+        if (homeScreenModel.pagerState.currentPage != 2) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            homeScreenModel.searchText.value = ""
+            homeScreenModel.searchExpanded.value = false
+        }
+    }
 
     // Home Screen Pages
     HorizontalPager(
@@ -173,6 +190,8 @@ fun HomeScreenPageManager(
                 indication = null, interactionSource = homeScreenModel.interactionSource
             )
     ) { page ->
+
+
         when (page) {
             0 -> ScreenTimeDashboard(
                 context = mainAppModel.getContext(),
@@ -239,12 +258,13 @@ fun HomeScreenPageManager(
                 label = stringResource(id = R.string.app_info),
                 onClick = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = "package:${homeScreenModel.currentSelectedApp.value.packageName}".toUri()
+                        data =
+                            "package:${homeScreenModel.currentSelectedApp.value.packageName}".toUri()
                     }.apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     mainAppModel.getContext().startActivity(intent)
-                    resetHome(homeScreenModel,false)
+                    resetHome(homeScreenModel, false)
                 }
             )
         )
@@ -288,7 +308,10 @@ fun HomeScreenPageManager(
                     true,
                     null
                 )
-                homeScreenModel.showOpenChallenge.value = false
+                homeScreenModel.coroutineScope.launch {
+                    delay(1000)
+                    homeScreenModel.showOpenChallenge.value = false
+                }
             },
             goBack = {
                 homeScreenModel.showOpenChallenge.value = false
