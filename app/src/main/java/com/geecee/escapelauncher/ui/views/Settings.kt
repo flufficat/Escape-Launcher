@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
@@ -101,6 +103,7 @@ import com.geecee.escapelauncher.utils.getAppsAlignmentAsInt
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getHomeAlignmentAsInt
 import com.geecee.escapelauncher.utils.getHomeVAlignmentAsInt
+import com.geecee.escapelauncher.utils.getIntSetting
 import com.geecee.escapelauncher.utils.getSavedWidgetId
 import com.geecee.escapelauncher.utils.getWidgetHeight
 import com.geecee.escapelauncher.utils.getWidgetOffset
@@ -922,6 +925,8 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
 fun ThemeCard(
     theme: Int, context: Context, activity: Activity
 ) {
+    val isCurrentTheme = getIntSetting(context, context.getString(R.string.Theme), 11) == theme
+
     Box(
         Modifier
             .size(120.dp)
@@ -1054,6 +1059,31 @@ fun ThemeCard(
                 else -> darkScheme.onPrimaryContainer
             }, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
         )
+
+        if (isCurrentTheme) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .border(
+                        2.dp,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        RoundedCornerShape(16.dp)
+                    )
+            )
+            {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                ) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        "",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
     }
 }
 
