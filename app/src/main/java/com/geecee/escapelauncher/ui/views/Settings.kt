@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -204,7 +205,10 @@ fun SettingsNavigationItem(
     ) {
         Text(
             label,
-            Modifier.padding(0.dp, 15.dp).fillMaxWidth(0.9f).fillMaxHeight(),
+            Modifier
+                .padding(0.dp, 15.dp)
+                .fillMaxWidth(0.9f)
+                .fillMaxHeight(),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Left,
@@ -259,7 +263,8 @@ fun Settings(
         val navController = rememberNavController()
 
         NavHost(navController = navController, "mainSettingsPage") {
-            composable("mainSettingsPage",
+            composable(
+                "mainSettingsPage",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 MainSettingsPage(
@@ -270,46 +275,54 @@ fun Settings(
                     activity
                 )
             }
-            composable("alignmentOptions",
+            composable(
+                "alignmentOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 AlignmentOptions(mainAppModel.getContext()) { navController.popBackStack() }
             }
-            composable("hiddenApps",
+            composable(
+                "hiddenApps",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 HiddenApps(
                     mainAppModel
                 ) { navController.popBackStack() }
             }
-            composable("openChallenges",
+            composable(
+                "openChallenges",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 OpenChallenges(
                     mainAppModel
                 ) { navController.popBackStack() }
             }
-            composable("chooseFont",
+            composable(
+                "chooseFont",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 ChooseFont(mainAppModel.getContext(), activity) { navController.popBackStack() }
             }
-            composable("devOptions",
+            composable(
+                "devOptions",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 DevOptions(context = mainAppModel.getContext()) { navController.popBackStack() }
             }
-            composable("theme",
+            composable(
+                "theme",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 ThemeOptions(mainAppModel.getContext(), activity) { navController.popBackStack() }
             }
-            composable("personalization",
+            composable(
+                "personalization",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 PersonalizationOptions(mainAppModel, navController) { navController.popBackStack() }
             }
-            composable("widget",
+            composable(
+                "widget",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 WidgetOptions(mainAppModel.getContext()) { navController.popBackStack() }
@@ -351,39 +364,44 @@ fun MainSettingsPage(
     ) {
         SettingsHeader(goBack, stringResource(R.string.settings))
 
-        SettingsNavigationItem(label = stringResource(id = R.string.personalization),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.personalization),
             false,
             onClick = { navController.navigate("personalization") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.manage_hidden_apps),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.manage_hidden_apps),
             false,
             onClick = { navController.navigate("hiddenApps") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.manage_open_challenges),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.manage_open_challenges),
             false,
             onClick = { navController.navigate("openChallenges") })
 
-        SettingsSwitch(label = stringResource(id = R.string.Analytics), checked = getBooleanSetting(
-            mainAppModel.getContext(), stringResource(R.string.Analytics), true
-        ), onCheckedChange = {
-            toggleBooleanSetting(
-                mainAppModel.getContext(),
-                it,
-                mainAppModel.getContext().resources.getString(R.string.Analytics)
-            )
-        })
+        SettingsSwitch(
+            label = stringResource(id = R.string.Analytics), checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.Analytics), true
+            ), onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.Analytics)
+                )
+            })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.read_privacy_policy),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.read_privacy_policy),
             false,
             onClick = { showPolicyDialog() })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.make_default_launcher),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.make_default_launcher),
             true,
             onClick = {
-                if(!isDefaultLauncher(activity)) {
+                if (!isDefaultLauncher(activity)) {
                     activity.showLauncherSelector()
-                }
-                else{
+                } else {
                     showLauncherSettingsMenu(activity)
                 }
             })
@@ -433,7 +451,8 @@ fun PersonalizationOptions(
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        SettingsSwitch(label = stringResource(id = R.string.search_box),
+        SettingsSwitch(
+            label = stringResource(id = R.string.search_box),
             checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ShowSearchBox), true
             ),
@@ -445,17 +464,19 @@ fun PersonalizationOptions(
                 )
             })
 
-        SettingsSwitch(label = stringResource(id = R.string.auto_open), checked = getBooleanSetting(
-            mainAppModel.getContext(), stringResource(R.string.SearchAutoOpen)
-        ), onCheckedChange = {
-            toggleBooleanSetting(
-                mainAppModel.getContext(),
-                it,
-                mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
-            )
-        })
+        SettingsSwitch(
+            label = stringResource(id = R.string.auto_open), checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.SearchAutoOpen)
+            ), onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.SearchAutoOpen)
+                )
+            })
 
-        SettingsSwitch(label = stringResource(id = R.string.show_clock),
+        SettingsSwitch(
+            label = stringResource(id = R.string.show_clock),
             checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ShowClock), true
             ),
@@ -467,17 +488,19 @@ fun PersonalizationOptions(
                 )
             })
 
-        SettingsSwitch(label = stringResource(id = R.string.big_clock), checked = getBooleanSetting(
-            mainAppModel.getContext(), stringResource(R.string.BigClock)
-        ), onCheckedChange = {
-            toggleBooleanSetting(
-                mainAppModel.getContext(),
-                it,
-                mainAppModel.getContext().resources.getString(R.string.BigClock)
-            )
-        })
+        SettingsSwitch(
+            label = stringResource(id = R.string.big_clock), checked = getBooleanSetting(
+                mainAppModel.getContext(), stringResource(R.string.BigClock)
+            ), onCheckedChange = {
+                toggleBooleanSetting(
+                    mainAppModel.getContext(),
+                    it,
+                    mainAppModel.getContext().resources.getString(R.string.BigClock)
+                )
+            })
 
-        SettingsSwitch(label = stringResource(id = R.string.haptic_feedback),
+        SettingsSwitch(
+            label = stringResource(id = R.string.haptic_feedback),
             checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.Haptic), true
             ),
@@ -489,7 +512,8 @@ fun PersonalizationOptions(
                 )
             })
 
-        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_app),
+        SettingsSwitch(
+            label = stringResource(id = R.string.screen_time_on_app),
             checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
             ),
@@ -501,7 +525,8 @@ fun PersonalizationOptions(
                 )
             })
 
-        SettingsSwitch(label = stringResource(id = R.string.screen_time_on_home_screen),
+        SettingsSwitch(
+            label = stringResource(id = R.string.screen_time_on_home_screen),
             checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnHome)
             ),
@@ -513,19 +538,23 @@ fun PersonalizationOptions(
                 )
             })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.widget),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.widget),
             false,
             onClick = { navController.navigate("widget") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.theme),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.theme),
             false,
             onClick = { navController.navigate("theme") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.alignments),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.alignments),
             false,
             onClick = { navController.navigate("alignmentOptions") })
 
-        SettingsNavigationItem(label = stringResource(id = R.string.choose_font),
+        SettingsNavigationItem(
+            label = stringResource(id = R.string.choose_font),
             false,
             onClick = { navController.navigate("chooseFont") })
 
@@ -1041,54 +1070,54 @@ fun ThemeCard(
 fun ThemeOptions(
     context: Context, activity: Activity, goBack: () -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        SettingsHeader(goBack, stringResource(R.string.theme))
-
-        HorizontalDivider(Modifier.padding(0.dp, 15.dp, 0.dp, 0.dp))
-
-        LazyVerticalGrid(
-            GridCells.Adaptive(minSize = 128.dp)
-        ) {
-            item {
-                ThemeCard(1, context, activity)
-            }
-            item {
-                ThemeCard(0, context, activity)
-            }
-            item {
-                ThemeCard(11, context, activity)
-            }
-            item {
-                ThemeCard(2, context, activity)
-            }
-            item {
-                ThemeCard(3, context, activity)
-            }
-            item {
-                ThemeCard(4, context, activity)
-            }
-            item {
-                ThemeCard(5, context, activity)
-            }
-            item {
-                ThemeCard(6, context, activity)
-            }
-            item {
-                ThemeCard(7, context, activity)
-            }
-            item {
-                ThemeCard(8, context, activity)
-            }
-            item {
-                ThemeCard(9, context, activity)
-            }
-            item {
-                ThemeCard(10, context, activity)
-            }
+    LazyVerticalGrid(GridCells.Adaptive(minSize = 128.dp), modifier = Modifier.fillMaxSize()) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            SettingsHeader(goBack, stringResource(R.string.theme))
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            HorizontalDivider(Modifier.padding(0.dp, 15.dp, 0.dp, 0.dp))
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Spacer(Modifier.height(30.dp))
+        }
+        item {
+            ThemeCard(11, context, activity)
+        }
+        item {
+            ThemeCard(0, context, activity)
+        }
+        item {
+            ThemeCard(1, context, activity)
+        }
+        item {
+            ThemeCard(2, context, activity)
+        }
+        item {
+            ThemeCard(3, context, activity)
+        }
+        item {
+            ThemeCard(4, context, activity)
+        }
+        item {
+            ThemeCard(5, context, activity)
+        }
+        item {
+            ThemeCard(6, context, activity)
+        }
+        item {
+            ThemeCard(7, context, activity)
+        }
+        item {
+            ThemeCard(8, context, activity)
+        }
+        item {
+            ThemeCard(9, context, activity)
+        }
+        item {
+            ThemeCard(10, context, activity)
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Spacer(Modifier.height(128.dp))
         }
     }
 }
@@ -1128,7 +1157,9 @@ fun HiddenApps(
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
                             val launchIntent =
-                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(app)
+                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(
+                                    app
+                                )
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
@@ -1200,7 +1231,9 @@ fun OpenChallenges(
                         .padding(0.dp, 15.dp)
                         .combinedClickable(onClick = {
                             val launchIntent =
-                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(app)
+                                mainAppModel.getContext().packageManager.getLaunchIntentForPackage(
+                                    app
+                                )
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
