@@ -186,7 +186,11 @@ fun AppsList(
                 homeScreenModel.installedApps.filter { appInfo ->
                     val appName = appInfo.displayName
                     if (homeScreenModel.searchExpanded.value) {
-                        appName.contains(homeScreenModel.searchText.value, ignoreCase = true)
+                        if (homeScreenModel.searchText.value.isBlank()) {
+                            true
+                        } else {
+                            AppUtils.fuzzyMatch(appName, homeScreenModel.searchText.value)
+                        }
                     } else {
                         true
                     }

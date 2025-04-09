@@ -64,7 +64,6 @@ data class InstalledApp(
  * @author George Clensy
  */
 object AppUtils{
-
     /**
      * Function to open app.
      * [openChallengeShow] will be set to true if the app has a challenge in the challenge manager. This is so you can use the OpenChallenge function with this, if you do not want to use open challenges set this to null and [overrideOpenChallenge] to true
@@ -104,6 +103,40 @@ object AppUtils{
                 openChallengeShow.value = true
             }
         }
+    }
+
+    fun fuzzyMatch(text: String, pattern: String): Boolean {
+        // Case-insensitive contains check (original behavior)
+        if (text.contains(pattern, ignoreCase = true)) {
+            return true
+        }
+
+        val lowerText = text.lowercase()
+        val lowerPattern = pattern.lowercase()
+
+        // Check for initials match (e.g., "gm" matches "Google Maps")
+        if (pattern.length >= 2) {
+            val words = lowerText.split(" ")
+            if (words.size > 1) {
+                val initials = words.joinToString("") { it.firstOrNull()?.toString() ?: "" }
+                if (initials.contains(lowerPattern)) {
+                    return true
+                }
+            }
+        }
+
+        // Check for character sequence match with gaps
+        var textIndex = 0
+        var patternIndex = 0
+        while (textIndex < lowerText.length && patternIndex < lowerPattern.length) {
+            if (lowerText[textIndex] == lowerPattern[patternIndex]) {
+                patternIndex++
+            }
+            textIndex++
+        }
+
+        // If we matched all characters in pattern, it's a fuzzy match
+        return patternIndex == lowerPattern.length
     }
 
     /**
