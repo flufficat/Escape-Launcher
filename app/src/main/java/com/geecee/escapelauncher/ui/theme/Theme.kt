@@ -1,17 +1,17 @@
 package com.geecee.escapelauncher.ui.theme
 
 import android.content.Context
-import android.content.SharedPreferences
+import androidx.annotation.StringRes
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -19,6 +19,8 @@ import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.getIntSetting
 import com.geecee.escapelauncher.utils.getStringSetting
 
 val PitchDarkColorScheme = darkColorScheme(
@@ -485,68 +487,9 @@ val provider = GoogleFont.Provider(
 
 @Composable
 fun EscapeTheme(
-    content: @Composable () -> Unit
+    colorScheme: MutableState<ColorScheme>, content: @Composable (() -> Unit)
 ) {
     val context = LocalContext.current
-    val colorScheme: ColorScheme
-    val sharedPreferencesSettings: SharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-
-    // Set theme
-    when (sharedPreferencesSettings.getInt(stringResource(R.string.Theme), 11)) {
-        0 -> {
-            colorScheme = darkScheme
-        }
-
-        1 -> {
-            colorScheme = lightScheme
-        }
-
-        2 -> {
-            colorScheme = PitchDarkColorScheme
-        }
-
-        3 -> {
-            colorScheme = lightSchemeRed
-        }
-
-        4 -> {
-            colorScheme = darkSchemeRed
-        }
-
-        5 -> {
-            colorScheme = lightSchemeGreen
-        }
-
-        6 -> {
-            colorScheme = darkSchemeGreen
-        }
-
-        7 -> {
-            colorScheme = lightSchemeBlue
-        }
-
-        8 -> {
-            colorScheme = darkSchemeBlue
-        }
-
-        9 -> {
-            colorScheme = lightSchemeYellow
-        }
-
-        10 -> {
-            colorScheme = darkSchemeYellow
-        }
-
-        11 -> {
-            colorScheme = offLightScheme
-        }
-
-        else -> {
-            colorScheme = darkScheme
-        }
-    }
 
     // Make the typography
     val fontFamily = remember {
@@ -555,12 +498,9 @@ fun EscapeTheme(
                 Font(
                     googleFont = GoogleFont(
                         getStringSetting(
-                            context,
-                            context.resources.getString(R.string.Font),
-                            "Jost"
+                            context, context.resources.getString(R.string.Font), "Jost"
                         ), true
-                    ),
-                    fontProvider = provider
+                    ), fontProvider = provider
                 )
             )
         )
@@ -573,57 +513,49 @@ fun EscapeTheme(
             fontSize = 66.sp,
             lineHeight = 53.sp,
             letterSpacing = 0.6.sp
-        ),
-        headlineMedium = TextStyle(
+        ), headlineMedium = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Light,
             fontSize = 62.sp,
             lineHeight = 49.sp,
             letterSpacing = 0.6.sp
-        ),
-        headlineSmall = TextStyle(
+        ), headlineSmall = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Light,
             fontSize = 58.sp,
             lineHeight = 45.sp,
             letterSpacing = 0.6.sp
-        ),
-        titleLarge = TextStyle(
+        ), titleLarge = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Light,
             fontSize = 52.sp,
             lineHeight = 53.sp,
             letterSpacing = 0.6.sp
-        ),
-        titleMedium = TextStyle(
+        ), titleMedium = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Light,
             fontSize = 48.sp,
             lineHeight = 49.sp,
             letterSpacing = 0.6.sp
-        ),
-        titleSmall = TextStyle(
+        ), titleSmall = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Light,
             fontSize = 44.sp,
             lineHeight = 45.sp,
             letterSpacing = 0.6.sp
-        ),
-        bodyLarge = TextStyle(
+        ), bodyLarge = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Normal,
             fontSize = 28.sp,
             lineHeight = 29.sp,
             letterSpacing = 0.6.sp
-        ),
-        bodyMedium = TextStyle(
+        ), bodyMedium = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Normal,
             fontSize = 24.sp,
             lineHeight = 25.sp,
             letterSpacing = 0.6.sp
-        ),
-        bodySmall = TextStyle(
+        ), bodySmall = TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = FontWeight.Normal,
             fontSize = 20.sp,
@@ -633,8 +565,57 @@ fun EscapeTheme(
     )
 
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = typography,
-        content = content
+        colorScheme = colorScheme.value, typography = typography, content = content
     )
+}
+
+enum class AppTheme(val id: Int, val scheme: ColorScheme, @StringRes val nameRes: Int) {
+    DARK(0, darkScheme, R.string.dark),
+    LIGHT(1, lightScheme, R.string.light),
+    PITCH_DARK(2, PitchDarkColorScheme, R.string.pitch_black),
+    LIGHT_RED(3, lightSchemeRed, R.string.light_red),
+    DARK_RED(4, darkSchemeRed, R.string.dark_red),
+    LIGHT_GREEN(5, lightSchemeGreen, R.string.light_green),
+    DARK_GREEN(6, darkSchemeGreen, R.string.dark_green),
+    LIGHT_BLUE(7, lightSchemeBlue, R.string.light_blue),
+    DARK_BLUE(8, darkSchemeBlue, R.string.dark_blue),
+    LIGHT_YELLOW(9, lightSchemeYellow, R.string.light_yellow),
+    DARK_YELLOW(10, darkSchemeYellow, R.string.dark_yellow),
+    OFF_LIGHT(11, offLightScheme, R.string.off_white);
+
+    companion object {
+        fun fromId(id: Int): AppTheme {
+            return entries.find { it.id == id } ?: DARK
+        }
+
+        @StringRes
+        fun nameResFromId(id: Int): Int {
+            return entries.find { it.id == id }?.nameRes ?: OFF_LIGHT.nameRes
+        }
+    }
+}
+
+fun refreshTheme(
+    context: Context,
+    settingToChange: String,
+    autoThemeChange: String,
+    dSettingToChange: String,
+    lSettingToChange: String,
+    isSystemDarkTheme: Boolean
+): ColorScheme {
+    val colorScheme: ColorScheme
+    var settingToChange = settingToChange
+
+    if (getBooleanSetting(context, autoThemeChange, false)) {
+        settingToChange = if (isSystemDarkTheme) {
+            dSettingToChange
+        } else {
+            lSettingToChange
+        }
+    }
+
+    // Set theme
+    colorScheme = AppTheme.fromId(getIntSetting(context, settingToChange, 11)).scheme
+
+    return colorScheme
 }

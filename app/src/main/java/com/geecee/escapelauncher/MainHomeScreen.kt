@@ -21,16 +21,20 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
@@ -38,7 +42,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.geecee.escapelauncher.ui.theme.AppTheme
 import com.geecee.escapelauncher.ui.theme.EscapeTheme
+import com.geecee.escapelauncher.ui.theme.offLightScheme
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
 import com.geecee.escapelauncher.ui.views.HomeScreenModelFactory
 import com.geecee.escapelauncher.ui.views.HomeScreenPageManager
@@ -51,6 +57,7 @@ import com.geecee.escapelauncher.utils.InstalledApp
 import com.geecee.escapelauncher.utils.PrivateSpaceStateReceiver
 import com.geecee.escapelauncher.utils.ScreenOffReceiver
 import com.geecee.escapelauncher.utils.getBooleanSetting
+import com.geecee.escapelauncher.utils.getIntSetting
 import com.geecee.escapelauncher.utils.managers.ChallengesManager
 import com.geecee.escapelauncher.utils.managers.FavoriteAppsManager
 import com.geecee.escapelauncher.utils.managers.HiddenAppsManager
@@ -69,6 +76,8 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     private val appContext: Context = application.applicationContext // The app context
 
     fun getContext(): Context = appContext // Returns the context
+
+    var appTheme: MutableState<ColorScheme> = mutableStateOf(offLightScheme)
 
     // Managers
 
@@ -300,7 +309,26 @@ class MainHomeScreen : ComponentActivity() {
      */
     @Composable
     private fun SetUpContent() {
-        EscapeTheme {
+        val colorScheme: ColorScheme
+        var settingToChange = stringResource(R.string.Theme)
+
+        if (getBooleanSetting(this@MainHomeScreen, stringResource(R.string.autoThemeSwitch), false)) {
+            settingToChange = if(isSystemInDarkTheme()){
+                stringResource(R.string.dTheme)
+            } else {
+                stringResource(R.string.lTheme)
+            }
+        }
+
+        // Set theme
+        colorScheme = AppTheme.fromId(getIntSetting(this@MainHomeScreen,settingToChange, 11)).scheme
+
+        // Set theme
+        viewModel.appTheme = remember {
+            mutableStateOf(colorScheme)
+        }
+
+        EscapeTheme(viewModel.appTheme) {
             SetupNavHost(determineStartDestination(LocalContext.current))
         }
     }

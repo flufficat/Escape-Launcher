@@ -38,11 +38,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
-import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.ui.theme.escapeGreen
 import com.geecee.escapelauncher.ui.theme.escapeRed
 import com.geecee.escapelauncher.utils.AppUtils
@@ -412,94 +410,5 @@ fun AppUsages(modifier: Modifier, content: @Composable () -> Unit) {
         ) {
             content()
         }
-    }
-}
-
-/**
- * Previews
- */
-@Composable
-@Preview
-fun ScreenTimePrevDec() {
-    EscapeTheme {
-        ScreenTime("3h 24m", false, Modifier)
-    }
-}
-
-@Composable
-@Preview
-fun ScreenTimePrev() {
-    EscapeTheme {
-        ScreenTime("3h 24m", true, Modifier)
-    }
-}
-
-@Composable
-@Preview
-fun DavSpentPrev() {
-    EscapeTheme {
-        DaySpent(
-            20,
-            Modifier
-                .size(200.dp)
-                .aspectRatio(1f)
-        )
-    }
-}
-
-@Composable
-@Preview
-fun DavSpentBelowTenPrev() {
-    EscapeTheme {
-        DaySpent(
-            1,
-            Modifier
-                .size(200.dp)
-                .aspectRatio(1f)
-        )
-    }
-}
-
-@Composable
-@Preview
-fun RecommendPrev() {
-    EscapeTheme {
-        HigherRec(
-            20,
-            Modifier
-                .size(200.dp)
-                .aspectRatio(1f)
-        )
-    }
-}
-
-@Composable
-@Preview
-fun RecommendBelowTenPrev() {
-    EscapeTheme {
-        HigherRec(
-            0,
-            Modifier
-                .size(200.dp)
-                .aspectRatio(1f)
-        )
-    }
-}
-
-@Composable
-@Preview
-fun AppUsagesPrev() {
-    EscapeTheme {
-        AppUsages(Modifier) {
-            AppUsage("Instagram", true, "1h 34m", Modifier)
-        }
-    }
-}
-
-@Composable
-@Preview
-fun AppUsagePrev() {
-    EscapeTheme {
-        AppUsage("Instagram", true, "1h 43m", Modifier)
     }
 }

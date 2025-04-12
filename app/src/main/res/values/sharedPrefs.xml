@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="Theme" translatable="false">Theme</string>
+    <string name="dTheme" translatable="false">dTheme</string>
+    <string name="lTheme" translatable="false">lTheme</string>
     <string name="Analytics" translatable="false">Analytics</string>
     <string name="HomeAlignment" translatable="false">HomeAlignment</string>
     <string name="HomeVAlignment" translatable="false">HomeVAlignment</string>

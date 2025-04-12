@@ -37,11 +37,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.geecee.escapelauncher.R
-import com.geecee.escapelauncher.ui.theme.EscapeTheme
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.formatScreenTime
@@ -381,13 +379,5 @@ fun FirstTimeHelp() {
                 )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-fun PrevHomeScreenTime() {
-    EscapeTheme {
-        HomeScreenScreenTime("3h 47m")
     }
 }

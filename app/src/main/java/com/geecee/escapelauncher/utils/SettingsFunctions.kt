@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package com.geecee.escapelauncher.utils
 
 import android.app.Activity
@@ -65,27 +63,6 @@ fun isDefaultLauncher(context: Context): Boolean {
 }
 
 private const val REQUEST_ROLE_HOME_CODE = 678
-
-/**
- * Change the app theme
- */
-fun changeTheme(theme: Int, context: Context, activity: Activity) {
-    val sharedPreferences = context.getSharedPreferences(
-        R.string.settings_pref_file_name.toString(), Context.MODE_PRIVATE
-    )
-    sharedPreferences.edit {
-
-        putInt(context.resources.getString(R.string.Theme), theme)
-
-    }
-
-    val intent = Intent(context, MainHomeScreen::class.java).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    val options = ActivityOptions.makeBasic()
-    context.startActivity(intent, options.toBundle())
-    activity.finish()
-}
 
 /**
  * Change home alignment

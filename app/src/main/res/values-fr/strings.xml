@@ -64,6 +64,7 @@
 
     <!-- Apps challenge strings -->
     <string name="done">Fait</string>
+    <string name="syncLightDark">Synchronisation avec le système clair/sombre</string>
     <string name="open_challenges">Défis ouverts</string>
 
     <!-- First time strings -->

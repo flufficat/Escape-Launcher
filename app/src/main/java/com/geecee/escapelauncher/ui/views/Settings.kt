@@ -18,6 +18,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +47,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -69,6 +72,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -81,24 +85,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
-import com.geecee.escapelauncher.ui.theme.PitchDarkColorScheme
-import com.geecee.escapelauncher.ui.theme.darkScheme
-import com.geecee.escapelauncher.ui.theme.darkSchemeBlue
-import com.geecee.escapelauncher.ui.theme.darkSchemeGreen
-import com.geecee.escapelauncher.ui.theme.darkSchemeRed
-import com.geecee.escapelauncher.ui.theme.darkSchemeYellow
-import com.geecee.escapelauncher.ui.theme.lightScheme
-import com.geecee.escapelauncher.ui.theme.lightSchemeBlue
-import com.geecee.escapelauncher.ui.theme.lightSchemeGreen
-import com.geecee.escapelauncher.ui.theme.lightSchemeRed
-import com.geecee.escapelauncher.ui.theme.lightSchemeYellow
-import com.geecee.escapelauncher.ui.theme.offLightScheme
+import com.geecee.escapelauncher.ui.theme.AppTheme
+import com.geecee.escapelauncher.ui.theme.refreshTheme
+import com.geecee.escapelauncher.ui.theme.transparentHalf
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.loadTextFromAssets
 import com.geecee.escapelauncher.utils.changeAppsAlignment
 import com.geecee.escapelauncher.utils.changeHomeAlignment
 import com.geecee.escapelauncher.utils.changeHomeVAlignment
-import com.geecee.escapelauncher.utils.changeTheme
 import com.geecee.escapelauncher.utils.getAppsAlignmentAsInt
 import com.geecee.escapelauncher.utils.getBooleanSetting
 import com.geecee.escapelauncher.utils.getHomeAlignmentAsInt
@@ -116,6 +110,7 @@ import com.geecee.escapelauncher.utils.removeWidget
 import com.geecee.escapelauncher.utils.resetActivity
 import com.geecee.escapelauncher.utils.saveWidgetId
 import com.geecee.escapelauncher.utils.setBooleanSetting
+import com.geecee.escapelauncher.utils.setIntSetting
 import com.geecee.escapelauncher.utils.setStringSetting
 import com.geecee.escapelauncher.utils.setWidgetHeight
 import com.geecee.escapelauncher.utils.setWidgetOffset
@@ -316,7 +311,9 @@ fun Settings(
                 "theme",
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
-                ThemeOptions(mainAppModel.getContext(), activity) { navController.popBackStack() }
+                ThemeOptions(
+                    mainAppModel, mainAppModel.getContext(), activity
+                ) { navController.popBackStack() }
             }
             composable(
                 "personalization",
@@ -399,9 +396,7 @@ fun MainSettingsPage(
             onClick = { showPolicyDialog() })
 
         SettingsNavigationItem(
-            label = stringResource(id = R.string.make_default_launcher),
-            true,
-            onClick = {
+            label = stringResource(id = R.string.make_default_launcher), true, onClick = {
                 if (!isDefaultLauncher(activity)) {
                     activity.showLauncherSelector()
                 } else {
@@ -439,9 +434,7 @@ fun MainSettingsPage(
  */
 @Composable
 fun PersonalizationOptions(
-    mainAppModel: MainAppViewModel,
-    navController: NavController,
-    goBack: () -> Unit
+    mainAppModel: MainAppViewModel, navController: NavController, goBack: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Top,
@@ -455,11 +448,9 @@ fun PersonalizationOptions(
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
         SettingsSwitch(
-            label = stringResource(id = R.string.search_box),
-            checked = getBooleanSetting(
+            label = stringResource(id = R.string.search_box), checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ShowSearchBox), true
-            ),
-            onCheckedChange = {
+            ), onCheckedChange = {
                 toggleBooleanSetting(
                     mainAppModel.getContext(),
                     it,
@@ -479,11 +470,9 @@ fun PersonalizationOptions(
             })
 
         SettingsSwitch(
-            label = stringResource(id = R.string.show_clock),
-            checked = getBooleanSetting(
+            label = stringResource(id = R.string.show_clock), checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ShowClock), true
-            ),
-            onCheckedChange = {
+            ), onCheckedChange = {
                 toggleBooleanSetting(
                     mainAppModel.getContext(),
                     it,
@@ -503,11 +492,9 @@ fun PersonalizationOptions(
             })
 
         SettingsSwitch(
-            label = stringResource(id = R.string.haptic_feedback),
-            checked = getBooleanSetting(
+            label = stringResource(id = R.string.haptic_feedback), checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.Haptic), true
-            ),
-            onCheckedChange = {
+            ), onCheckedChange = {
                 toggleBooleanSetting(
                     mainAppModel.getContext(),
                     it,
@@ -516,11 +503,9 @@ fun PersonalizationOptions(
             })
 
         SettingsSwitch(
-            label = stringResource(id = R.string.screen_time_on_app),
-            checked = getBooleanSetting(
+            label = stringResource(id = R.string.screen_time_on_app), checked = getBooleanSetting(
                 mainAppModel.getContext(), stringResource(R.string.ScreenTimeOnApp)
-            ),
-            onCheckedChange = {
+            ), onCheckedChange = {
                 toggleBooleanSetting(
                     mainAppModel.getContext(),
                     it,
@@ -605,8 +590,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         SettingsHeader(goBack, stringResource(R.string.widget))
 
@@ -628,8 +612,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         Box(
             Modifier.fillMaxWidth()
-        )
-        {
+        ) {
             var sliderPosition by remember { mutableFloatStateOf(0f) }
             Row {
                 Text(
@@ -675,8 +658,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         Box(
             Modifier.fillMaxWidth()
-        )
-        {
+        ) {
             var sliderPosition by remember { mutableFloatStateOf(0f) }
             Row {
                 Text(
@@ -722,8 +704,7 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         Box(
             Modifier.fillMaxWidth()
-        )
-        {
+        ) {
             var sliderPosition by remember { mutableFloatStateOf(0f) }
             Row {
                 Text(
@@ -923,154 +904,48 @@ fun AlignmentOptions(context: Context, goBack: () -> Unit) {
  */
 @Composable
 fun ThemeCard(
-    theme: Int, context: Context, activity: Activity
+    theme: Int,
+    showLightDarkPicker: MutableState<Boolean>,
+    isSelected: MutableState<Boolean>,
+    isDSelected: MutableState<Boolean>,
+    isLSelected: MutableState<Boolean>,
+    updateLTheme: (theme: Int) -> Unit,
+    updateDTheme: (theme: Int) -> Unit,
+    onClick: (theme: Int) -> Unit
 ) {
-    val isCurrentTheme = getIntSetting(context, context.getString(R.string.Theme), 11) == theme
-
-    Box(
-        Modifier
-            .size(120.dp)
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                changeTheme(theme, context, activity)
-            }
-            .background(
-                when (theme) {
-                    0 -> darkScheme.background
-
-                    1 -> lightScheme.background
-
-                    2 -> PitchDarkColorScheme.background
-
-                    3 -> {
-                        lightSchemeRed.background
-                    }
-
-                    4 -> {
-                        darkSchemeRed.background
-                    }
-
-                    5 -> {
-                        lightSchemeGreen.background
-                    }
-
-                    6 -> {
-                        darkSchemeGreen.background
-                    }
-
-                    7 -> {
-                        lightSchemeBlue.background
-                    }
-
-                    8 -> {
-                        darkSchemeBlue.background
-                    }
-
-                    9 -> {
-                        lightSchemeYellow.background
-                    }
-
-                    10 -> {
-                        darkSchemeYellow.background
-                    }
-
-                    11 -> {
-                        offLightScheme.background
-                    }
-
-                    else -> darkScheme.background
-                }
-            )
-    ) {
+    Box(Modifier
+        .size(120.dp)
+        .padding(8.dp)
+        .clip(RoundedCornerShape(16.dp))
+        .clickable {
+            onClick(theme)
+        }
+        .background(AppTheme.fromId(theme).scheme.background)
+        ) {
         Text(
-            when (theme) {
-                0 -> stringResource(R.string.dark)
-
-                1 -> stringResource(R.string.light)
-
-                2 -> stringResource(R.string.pitch_black)
-
-                3 -> stringResource(R.string.light_red)
-
-                4 -> stringResource(R.string.dark_red)
-
-                5 -> stringResource(R.string.light_green)
-
-                6 -> stringResource(R.string.dark_green)
-
-                7 -> stringResource(R.string.light_blue)
-
-                8 -> stringResource(R.string.dark_blue)
-
-                9 -> stringResource(R.string.light_yellow)
-
-                10 -> stringResource(R.string.dark_yellow)
-
-                11 -> stringResource(R.string.off_white)
-
-                else -> stringResource(R.string.theme)
-            },
+            stringResource(AppTheme.nameResFromId(theme)),
             Modifier
                 .align(Alignment.Center)
-                .padding(5.dp), when (theme) {
-                0 -> darkScheme.onPrimaryContainer
-
-                1 -> lightScheme.onPrimaryContainer
-
-                2 -> PitchDarkColorScheme.onPrimaryContainer
-
-                3 -> {
-                    lightSchemeRed.onPrimaryContainer
-                }
-
-                4 -> {
-                    darkSchemeRed.onPrimaryContainer
-                }
-
-                5 -> {
-                    lightSchemeGreen.onPrimaryContainer
-                }
-
-                6 -> {
-                    darkSchemeGreen.onPrimaryContainer
-                }
-
-                7 -> {
-                    lightSchemeBlue.onPrimaryContainer
-                }
-
-                8 -> {
-                    darkSchemeBlue.onPrimaryContainer
-                }
-
-                9 -> {
-                    lightSchemeYellow.onPrimaryContainer
-                }
-
-                10 -> {
-                    darkSchemeYellow.onPrimaryContainer
-                }
-
-                11 -> {
-                    offLightScheme.onPrimaryContainer
-                }
-
-                else -> darkScheme.onPrimaryContainer
-            }, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
+                .padding(5.dp),
+            AppTheme.fromId(theme).scheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
         )
 
-        if (isCurrentTheme) {
+        AnimatedVisibility(
+            isSelected.value && !showLightDarkPicker.value && !showLightDarkPicker.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             Box(
                 Modifier
                     .fillMaxSize()
                     .border(
                         2.dp,
-                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        AppTheme.fromId(theme).scheme.onPrimaryContainer,
                         RoundedCornerShape(16.dp)
                     )
-            )
-            {
+            ) {
                 Box(
                     Modifier
                         .align(Alignment.BottomEnd)
@@ -1079,9 +954,128 @@ fun ThemeCard(
                     Icon(
                         Icons.Default.CheckCircle,
                         "",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = AppTheme.fromId(theme).scheme.onPrimaryContainer
                     )
                 }
+            }
+        }
+
+        AnimatedVisibility(
+            isSelected.value && !showLightDarkPicker.value, enter = fadeIn(), exit = fadeOut()
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .border(
+                        2.dp,
+                        AppTheme.fromId(theme).scheme.onPrimaryContainer,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                ) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        "",
+                        tint = AppTheme.fromId(theme).scheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            isDSelected.value && !showLightDarkPicker.value, enter = fadeIn(), exit = fadeOut()
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .border(
+                        2.dp,
+                        AppTheme.fromId(theme).scheme.onPrimaryContainer,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                ) {
+                    Icon(
+                        painterResource(R.drawable.dark_mode),
+                        "",
+                        tint = AppTheme.fromId(theme).scheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            isLSelected.value && !showLightDarkPicker.value, enter = fadeIn(), exit = fadeOut()
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .border(
+                        2.dp,
+                        AppTheme.fromId(theme).scheme.onPrimaryContainer,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp)
+                ) {
+                    Icon(
+                        painterResource(R.drawable.light_mode),
+                        "",
+                        tint = AppTheme.fromId(theme).scheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(showLightDarkPicker.value, enter = fadeIn(), exit = fadeOut()) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(transparentHalf)
+            ) {
+                Button(
+                    onClick = {
+                        updateLTheme(theme)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .padding(10.dp, 5.dp, 10.dp, 2.5.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppTheme.fromId(theme).scheme.primary,
+                        contentColor = AppTheme.fromId(theme).scheme.onPrimary
+                    )
+                ) {
+                    Text(stringResource(R.string.light))
+                }
+
+                Button(
+                    onClick = {
+                        updateDTheme(theme)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(10.dp, 2.5.dp, 10.dp, 5.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppTheme.fromId(theme).scheme.primary,
+                        contentColor = AppTheme.fromId(theme).scheme.onPrimary
+                    )
+                ) {
+                    Text(stringResource(R.string.dark))
+                }
+
             }
         }
     }
@@ -1090,17 +1084,60 @@ fun ThemeCard(
 /**
  * Theme options in settings
  *
+ * @param mainAppModel Main app model for theme updates
  * @param context Needed to run some functions used within ThemeOptions
  * @param activity Needed to reload app after changing theme
  * @param goBack When back button is pressed
  *
  * @see Settings
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ThemeOptions(
-    context: Context, activity: Activity, goBack: () -> Unit
+    mainAppModel: MainAppModel, context: Context, activity: Activity, goBack: () -> Unit
 ) {
-    LazyVerticalGrid(GridCells.Adaptive(minSize = 128.dp), modifier = Modifier.fillMaxSize()) {
+    val settingToChange = stringResource(R.string.theme)
+    val autoThemeChange = stringResource(R.string.autoThemeSwitch)
+    val dSettingToChange = stringResource(R.string.dTheme)
+    val lSettingToChange = stringResource(R.string.lTheme)
+    val isSystemDark = isSystemInDarkTheme()
+
+    // Current highlighted theme card
+    val currentHighlightedThemeCard = remember { mutableIntStateOf(-1) }
+
+    // Current selected themes
+    val currentSelectedTheme = remember {
+        mutableIntStateOf(getIntSetting(context, settingToChange, -1))
+    }
+    val currentSelectedDTheme = remember {
+        mutableIntStateOf(getIntSetting(context, dSettingToChange, -1))
+    }
+    val currentSelectedLTheme = remember {
+        mutableIntStateOf(getIntSetting(context, lSettingToChange, -1))
+    }
+
+    // Initialize selection states based on settings
+    if (!getBooleanSetting(context, autoThemeChange, false)) {
+        currentSelectedDTheme.intValue = -1
+        currentSelectedLTheme.intValue = -1
+    } else {
+        currentSelectedTheme.intValue = -1
+    }
+
+    val backgroundInteractionSource = remember { MutableInteractionSource() }
+
+    LazyVerticalGrid(
+        GridCells.Adaptive(minSize = 128.dp), modifier = Modifier
+            .fillMaxSize()
+            .combinedClickable(
+                onClick = {
+                    currentHighlightedThemeCard.intValue = -1
+                },
+                indication = null,
+                onLongClick = {},
+                interactionSource = backgroundInteractionSource
+            )
+    ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             SettingsHeader(goBack, stringResource(R.string.theme))
         }
@@ -1110,42 +1147,106 @@ fun ThemeOptions(
         item(span = { GridItemSpan(maxLineSpan) }) {
             Spacer(Modifier.height(30.dp))
         }
-        item {
-            ThemeCard(11, context, activity)
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            SettingsSwitch(
+                stringResource(R.string.syncLightDark), getBooleanSetting(
+                    context, context.getString(R.string.autoThemeSwitch), false
+                )
+            ) { switch ->
+                // Disable normal selection box or set it correctly
+                if (switch) {
+                    currentSelectedTheme.intValue = -1
+                } else {
+                    currentSelectedTheme.intValue = getIntSetting(context, settingToChange, 11)
+                }
+
+                if (switch) {
+                    currentSelectedDTheme.intValue = getIntSetting(context, dSettingToChange, -1)
+                    currentSelectedLTheme.intValue = getIntSetting(context, lSettingToChange, -1)
+                } else {
+                    currentSelectedDTheme.intValue = -1
+                    currentSelectedLTheme.intValue = -1
+                }
+
+                // Remove the light dark button
+                currentHighlightedThemeCard.intValue = -1
+
+                setBooleanSetting(
+                    context, context.getString(R.string.autoThemeSwitch), switch
+                )
+
+                // Reload
+                mainAppModel.appTheme.value = refreshTheme(
+                    context,
+                    settingToChange,
+                    autoThemeChange,
+                    dSettingToChange,
+                    lSettingToChange,
+                    isSystemDark
+                )
+            }
         }
-        item {
-            ThemeCard(0, context, activity)
+
+        // Create theme cards
+        val themeIds = listOf(11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+        themeIds.forEach { themeId ->
+            item {
+                ThemeCard(
+                    theme = themeId,
+                    showLightDarkPicker = mutableStateOf(currentHighlightedThemeCard.intValue == themeId),
+                    isSelected = mutableStateOf(currentSelectedTheme.intValue == themeId),
+                    isDSelected = mutableStateOf(currentSelectedDTheme.intValue == themeId),
+                    isLSelected = mutableStateOf(currentSelectedLTheme.intValue == themeId),
+                    updateLTheme = { theme ->
+                        setIntSetting(context, context.getString(R.string.lTheme), theme)
+                        mainAppModel.appTheme.value = refreshTheme(
+                            context = context,
+                            settingToChange = context.getString(R.string.theme),
+                            autoThemeChange = context.getString(R.string.autoThemeSwitch),
+                            dSettingToChange = context.getString(R.string.dTheme),
+                            lSettingToChange = context.getString(R.string.lTheme),
+                            isSystemDarkTheme = isSystemDark
+                        )
+                        currentSelectedLTheme.intValue = theme
+                        currentHighlightedThemeCard.intValue = -1
+                    },
+                    updateDTheme = { theme ->
+                        setIntSetting(context, context.getString(R.string.dTheme), theme)
+                        mainAppModel.appTheme.value = refreshTheme(
+                            context = context,
+                            settingToChange = context.getString(R.string.theme),
+                            autoThemeChange = context.getString(R.string.autoThemeSwitch),
+                            dSettingToChange = context.getString(R.string.dTheme),
+                            lSettingToChange = context.getString(R.string.lTheme),
+                            isSystemDarkTheme = isSystemDark
+                        )
+                        currentSelectedDTheme.intValue = theme
+                        currentHighlightedThemeCard.intValue = -1
+                    }) { theme ->
+                    if (getBooleanSetting(
+                            context, context.getString(R.string.autoThemeSwitch), false
+                        )
+                    ) {
+                        // For auto theme mode, show light/dark picker
+                        currentHighlightedThemeCard.intValue = theme
+                    } else {
+                        // For single theme mode, just set the theme
+                        setIntSetting(context, context.getString(R.string.theme), theme)
+                        mainAppModel.appTheme.value = refreshTheme(
+                            context = context,
+                            settingToChange = context.getString(R.string.theme),
+                            autoThemeChange = context.getString(R.string.autoThemeSwitch),
+                            dSettingToChange = context.getString(R.string.dTheme),
+                            lSettingToChange = context.getString(R.string.lTheme),
+                            isSystemDarkTheme = isSystemDark
+                        )
+                        currentSelectedTheme.intValue = theme
+                    }
+                }
+            }
         }
-        item {
-            ThemeCard(1, context, activity)
-        }
-        item {
-            ThemeCard(2, context, activity)
-        }
-        item {
-            ThemeCard(3, context, activity)
-        }
-        item {
-            ThemeCard(4, context, activity)
-        }
-        item {
-            ThemeCard(5, context, activity)
-        }
-        item {
-            ThemeCard(6, context, activity)
-        }
-        item {
-            ThemeCard(7, context, activity)
-        }
-        item {
-            ThemeCard(8, context, activity)
-        }
-        item {
-            ThemeCard(9, context, activity)
-        }
-        item {
-            ThemeCard(10, context, activity)
-        }
+
         item(span = { GridItemSpan(maxLineSpan) }) {
             Spacer(Modifier.height(128.dp))
         }
@@ -1193,8 +1294,7 @@ fun HiddenApps(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel
-                                    .getContext()
+                                mainAppModel.getContext()
                                     .startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {
@@ -1267,8 +1367,7 @@ fun OpenChallenges(
                             if (launchIntent != null) {
                                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 val options = ActivityOptions.makeBasic()
-                                mainAppModel
-                                    .getContext()
+                                mainAppModel.getContext()
                                     .startActivity(launchIntent, options.toBundle())
                             }
                         }, onLongClick = {

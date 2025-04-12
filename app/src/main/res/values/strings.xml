@@ -62,6 +62,7 @@
     <string name="haptic_feedback">Haptic feedback</string>
     <string name="personalization">Personalize</string>
     <string name="done">Done</string>
+    <string name="syncLightDark">Sync with system light/dark</string>
 
     <!-- Apps challenge strings -->
     <string name="open_challenges">Open Challenges</string>

@@ -63,6 +63,7 @@
 
     <!-- Apps challenge strings -->
     <string name="done">終わり</string>
+    <string name="syncLightDark">システムの明暗と同期</string>
     <string name="open_challenges">オープンチャレンジ</string>
 
     <!-- First time strings -->
