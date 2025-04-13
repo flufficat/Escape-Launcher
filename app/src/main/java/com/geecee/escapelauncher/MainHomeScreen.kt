@@ -77,7 +77,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     fun getContext(): Context = appContext // Returns the context
 
-    var appTheme: MutableState<ColorScheme> = mutableStateOf(offLightScheme)
+    var appTheme: MutableState<ColorScheme> = mutableStateOf(offLightScheme) // App material theme
 
     // Managers
 
@@ -92,7 +92,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     // Other stuff
 
     var isAppOpened: Boolean =
-        false // Set to true when an app is opened and false when it is closed again
+        false // Set to true when an app is opened and false when it is closed again, used mainly for screen time
 
     val isPrivateSpaceUnlocked: MutableState<Boolean> =
         mutableStateOf(false) // If the private space is unlocked, set by a registered receiver when the private space is closed or opened
@@ -102,7 +102,11 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     // Screen time related things
 
-    val today: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    fun getToday(): String {
+        return dateFormat.format(Date())
+    }
 
     val screenTimeCache = mutableStateMapOf<String, Long>() // Cache mapping package name to screen time
 
@@ -111,7 +115,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateAppScreenTime(packageName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val screenTime = getUsageForApp(packageName, today)
+            val screenTime = getUsageForApp(packageName, getToday())
             screenTimeCache[packageName] = screenTime
         }
     } // Function to update a single app's cached screen time
@@ -120,7 +124,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
     fun reloadScreenTimeCache(packageNames: List<String>) {
         viewModelScope.launch(Dispatchers.IO) {
             packageNames.forEach { packageName ->
-                val screenTime = getUsageForApp(packageName, today)
+                val screenTime = getUsageForApp(packageName, getToday())
                 screenTimeCache[packageName] = screenTime
             }
             shouldReloadScreenTime.value++
@@ -129,7 +133,7 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     suspend fun getScreenTimeAsync(packageName: String, forceRefresh: Boolean = false): Long {
         if (forceRefresh || !screenTimeCache.containsKey(packageName)) {
-            val screenTime = getUsageForApp(packageName, today)
+            val screenTime = getUsageForApp(packageName, getToday())
             screenTimeCache[packageName] = screenTime
             return screenTime
         }
@@ -181,7 +185,7 @@ class MainHomeScreen : ComponentActivity() {
         scheduleDailyCleanup(this)
         viewModel.viewModelScope.launch(Dispatchers.IO) {
             homeScreenModel.installedApps.forEach { app ->
-                val screenTime = getUsageForApp(app.packageName, viewModel.today)
+                val screenTime = getUsageForApp(app.packageName, viewModel.getToday())
                 viewModel.screenTimeCache[app.packageName] = screenTime
             }
             viewModel.shouldReloadScreenTime.value++

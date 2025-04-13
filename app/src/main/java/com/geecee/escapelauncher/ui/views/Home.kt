@@ -109,7 +109,7 @@ fun HomeScreen(
                 val todayUsage = remember { mutableLongStateOf(0L) }
                 LaunchedEffect(mainAppModel.shouldReloadScreenTime.value) {
                     withContext(Dispatchers.IO) {
-                        val usage = getTotalUsageForDate(mainAppModel.today)
+                        val usage = getTotalUsageForDate(mainAppModel.getToday())
                         withContext(Dispatchers.Main) {
                             todayUsage.longValue = usage
                         }
