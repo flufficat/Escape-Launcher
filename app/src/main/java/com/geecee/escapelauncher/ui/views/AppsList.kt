@@ -120,14 +120,12 @@ fun AppsList(
 
                     AnimatedPillSearchBar(
                         textChange = { searchBoxText ->
-                            homeScreenModel.searchText.value =
-                                searchBoxText // Update text in search box
+                            homeScreenModel.searchText.value = searchBoxText // Update text in search box
 
-                            // Get the list of installed apps with the results filtered
-                            val filteredApps = AppUtils.filterAndSortApps(
-                                homeScreenModel.installedApps,
-                                homeScreenModel.searchText.value
-                            )
+                            // Get the list of installed apps with the results filtered using fuzzy matching
+                            val filteredApps = homeScreenModel.installedApps.filter { appInfo ->
+                                AppUtils.fuzzyMatch(appInfo.displayName, homeScreenModel.searchText.value)
+                            }
 
                             // If autoOpen is enabled then open the app like you would normally
                             val autoOpen = getBooleanSetting(
@@ -152,14 +150,11 @@ fun AppsList(
                             }
                         },
                         keyboardDone = { _ ->
-                            // Get the list of installed apps with the results filtered
-                            // and opens the first one if the list isn't empty
-                            val filteredApps = AppUtils.filterAndSortApps(
-                                homeScreenModel.installedApps,
-                                homeScreenModel.searchText.value,
-                            )
-                            if (filteredApps.isNotEmpty()
-                            ) {
+                            // Get the list of installed apps with the results filtered using fuzzy matching
+                            val filteredApps = homeScreenModel.installedApps.filter { appInfo ->
+                                AppUtils.fuzzyMatch(appInfo.displayName, homeScreenModel.searchText.value)
+                            }
+                            if (filteredApps.isNotEmpty()) {
                                 val firstAppInfo = filteredApps.first()
 
                                 homeScreenModel.updateSelectedApp(firstAppInfo)
