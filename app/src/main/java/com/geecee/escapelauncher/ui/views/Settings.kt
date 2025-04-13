@@ -1488,6 +1488,98 @@ fun ChooseFont(context: Context, activity: Activity, goBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
+        Text(
+            "Poppins",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "Poppins"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "Roboto",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "Roboto"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "Open Sans",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "Open Sans"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "Lora",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "Lora"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "Outfit",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "Outfit"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "IBM Plex Sans",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "IBM Plex Sans"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "IBM Plex Serif",
+            modifier = Modifier
+                .padding(0.dp, 15.dp)
+                .combinedClickable(onClick = {
+                    setStringSetting(
+                        context, context.resources.getString(R.string.Font), "IBM Plex Serif"
+                    )
+                    resetActivity(context, activity)
+                }),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(Modifier.height(128.dp))
     }
 }
 
