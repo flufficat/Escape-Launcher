@@ -401,7 +401,14 @@ class MainHomeScreen : ComponentActivity() {
                     exitTransition = { fadeOut(tween(300)) }) {
                     Settings(
                         viewModel,
-                        { navController.navigate("home") },
+                        {
+                            navController.navigate("home") {
+                                popUpTo("settings") {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        },
                         this@MainHomeScreen,
                     )
                 }

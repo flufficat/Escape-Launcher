@@ -610,7 +610,12 @@ fun OnboardingPage5(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         navController.navigate("Notifications")
                     } else {
-                        mainNavController.navigate("home")
+                        mainNavController.navigate("home") {
+                            popUpTo("onboarding") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
                     setBooleanSetting(
                         mainAppModel.getContext(),
@@ -641,7 +646,12 @@ fun OnboardingPage5(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         navController.navigate("Notifications")
                     } else {
-                        mainNavController.navigate("home")
+                        mainNavController.navigate("home") {
+                            popUpTo("onboarding") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
                     setBooleanSetting(
                         mainAppModel.getContext(),
@@ -731,7 +741,12 @@ fun Notifications(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                     }
-                    navController.navigate("home")
+                    navController.navigate("home") {
+                        popUpTo("onboarding") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }, modifier = Modifier, colors = ButtonColors(
                     MaterialTheme.colorScheme.onPrimaryContainer,
                     MaterialTheme.colorScheme.background,
