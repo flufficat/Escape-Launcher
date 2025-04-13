@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -67,6 +68,7 @@ import com.geecee.escapelauncher.utils.managers.scheduleDailyCleanup
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -102,11 +104,11 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     // Screen time related things
 
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Format for the date
 
     fun getToday(): String {
         return dateFormat.format(Date())
-    }
+    } // Returns the current date
 
     val screenTimeCache = mutableStateMapOf<String, Long>() // Cache mapping package name to screen time
 
@@ -332,8 +334,17 @@ class MainHomeScreen : ComponentActivity() {
             mutableStateOf(colorScheme)
         }
 
+        LaunchedEffect(Unit){
+            delay(1000) // Stops it from overriding the splash animation becuz theres some issue with setBitmap
+            AppUtils.setSolidColorWallpaperHomeScreen(
+                viewModel.getContext(),
+                viewModel.appTheme.value.background
+            )
+        }
+
         EscapeTheme(viewModel.appTheme) {
             SetupNavHost(determineStartDestination(LocalContext.current))
+
         }
     }
 

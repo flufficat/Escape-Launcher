@@ -1,6 +1,7 @@
 package com.geecee.escapelauncher.utils
 
 import android.app.ActivityOptions
+import android.app.WallpaperManager
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -8,6 +9,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Process.myUserHandle
 import android.view.animation.AlphaAnimation
@@ -17,6 +19,7 @@ import android.view.animation.ScaleAnimation
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.core.graphics.createBitmap
 import androidx.core.splashscreen.SplashScreen
 import com.geecee.escapelauncher.R
 import com.geecee.escapelauncher.ui.views.HomeScreenModel
@@ -34,6 +37,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import android.graphics.Color as AndroidColor
+import androidx.compose.ui.graphics.Color as ComposeColor
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
 
 /**
@@ -157,26 +162,6 @@ object AppUtils{
                 componentName = it.componentName
             )
         }
-    }
-
-    /**
-     * Filters and sorts a list of ResolveInfo by alphabetical order and removes any that don't contain [searchText]
-     *
-     * @param apps List of apps as ResolveInfo
-     * @param searchText Filter text
-     *
-     * @return List of ResolveInfo in the correct order and with anything that doesn't match the search query removed
-     */
-    fun filterAndSortApps(
-        apps: List<InstalledApp>,
-        searchText: String
-    ): List<InstalledApp> {
-        return apps.map { appInfo ->
-            appInfo to appInfo.displayName
-        }.filter { (_, appName) ->
-            appName.contains(searchText, ignoreCase = true)
-        }.sortedBy { (_, appName) -> appName }
-            .map { (appInfo, _) -> appInfo }
     }
 
     /**
@@ -387,5 +372,32 @@ object AppUtils{
         )
 
         analytics.setAnalyticsCollectionEnabled(enabled)
+    }
+
+    fun setSolidColorWallpaperHomeScreen(context: Context, color: ComposeColor) {
+        val wallpaperManager = WallpaperManager.getInstance(context)
+
+        val displayMetrics = context.resources.displayMetrics
+        val width = displayMetrics.widthPixels
+        val height = displayMetrics.heightPixels
+
+        val bitmap = createBitmap(width, height)
+        val canvas = android.graphics.Canvas(bitmap)
+        val paint = Paint().apply {
+            this.color = color.toAndroidColor()
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+
+        wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
+    }
+
+    fun ComposeColor.toAndroidColor(): Int {
+        return AndroidColor.argb(
+            (alpha * 255).toInt(),
+            (red * 255).toInt(),
+            (green * 255).toInt(),
+            (blue * 255).toInt()
+        )
     }
 }

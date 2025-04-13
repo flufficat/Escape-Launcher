@@ -913,15 +913,16 @@ fun ThemeCard(
     updateDTheme: (theme: Int) -> Unit,
     onClick: (theme: Int) -> Unit
 ) {
-    Box(Modifier
-        .size(120.dp)
-        .padding(8.dp)
-        .clip(RoundedCornerShape(16.dp))
-        .clickable {
-            onClick(theme)
-        }
-        .background(AppTheme.fromId(theme).scheme.background)
-        ) {
+    Box(
+        Modifier
+            .size(120.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable {
+                onClick(theme)
+            }
+            .background(AppTheme.fromId(theme).scheme.background)
+    ) {
         Text(
             stringResource(AppTheme.nameResFromId(theme)),
             Modifier
@@ -1176,13 +1177,18 @@ fun ThemeOptions(
                 )
 
                 // Reload
-                mainAppModel.appTheme.value = refreshTheme(
-                    context,
-                    settingToChange,
-                    autoThemeChange,
-                    dSettingToChange,
-                    lSettingToChange,
-                    isSystemDark
+                val newTheme = refreshTheme(
+                    context = context,
+                    settingToChange = context.getString(R.string.theme),
+                    autoThemeChange = context.getString(R.string.autoThemeSwitch),
+                    dSettingToChange = context.getString(R.string.dTheme),
+                    lSettingToChange = context.getString(R.string.lTheme),
+                    isSystemDarkTheme = isSystemDark
+                )
+                mainAppModel.appTheme.value = newTheme
+                AppUtils.setSolidColorWallpaperHomeScreen(
+                    mainAppModel.getContext(),
+                    newTheme.background
                 )
             }
         }
@@ -1200,7 +1206,7 @@ fun ThemeOptions(
                     isLSelected = mutableStateOf(currentSelectedLTheme.intValue == themeId),
                     updateLTheme = { theme ->
                         setIntSetting(context, context.getString(R.string.lTheme), theme)
-                        mainAppModel.appTheme.value = refreshTheme(
+                        val newTheme = refreshTheme(
                             context = context,
                             settingToChange = context.getString(R.string.theme),
                             autoThemeChange = context.getString(R.string.autoThemeSwitch),
@@ -1208,18 +1214,28 @@ fun ThemeOptions(
                             lSettingToChange = context.getString(R.string.lTheme),
                             isSystemDarkTheme = isSystemDark
                         )
+                        mainAppModel.appTheme.value = newTheme
+                        AppUtils.setSolidColorWallpaperHomeScreen(
+                            mainAppModel.getContext(),
+                            newTheme.background
+                        )
                         currentSelectedLTheme.intValue = theme
                         currentHighlightedThemeCard.intValue = -1
                     },
                     updateDTheme = { theme ->
                         setIntSetting(context, context.getString(R.string.dTheme), theme)
-                        mainAppModel.appTheme.value = refreshTheme(
+                        val newTheme = refreshTheme(
                             context = context,
                             settingToChange = context.getString(R.string.theme),
                             autoThemeChange = context.getString(R.string.autoThemeSwitch),
                             dSettingToChange = context.getString(R.string.dTheme),
                             lSettingToChange = context.getString(R.string.lTheme),
                             isSystemDarkTheme = isSystemDark
+                        )
+                        mainAppModel.appTheme.value = newTheme
+                        AppUtils.setSolidColorWallpaperHomeScreen(
+                            mainAppModel.getContext(),
+                            newTheme.background
                         )
                         currentSelectedDTheme.intValue = theme
                         currentHighlightedThemeCard.intValue = -1
@@ -1233,13 +1249,18 @@ fun ThemeOptions(
                     } else {
                         // For single theme mode, just set the theme
                         setIntSetting(context, context.getString(R.string.theme), theme)
-                        mainAppModel.appTheme.value = refreshTheme(
+                        val newTheme = refreshTheme(
                             context = context,
                             settingToChange = context.getString(R.string.theme),
                             autoThemeChange = context.getString(R.string.autoThemeSwitch),
                             dSettingToChange = context.getString(R.string.dTheme),
                             lSettingToChange = context.getString(R.string.lTheme),
                             isSystemDarkTheme = isSystemDark
+                        )
+                        mainAppModel.appTheme.value = newTheme
+                        AppUtils.setSolidColorWallpaperHomeScreen(
+                            mainAppModel.getContext(),
+                            newTheme.background
                         )
                         currentSelectedTheme.intValue = theme
                     }
