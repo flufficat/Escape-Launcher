@@ -244,7 +244,7 @@ fun OnboardingPage2(navController: NavController) {
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Start
             )
-            Spacer(Modifier.height(120.dp))
+            Spacer(Modifier.height(240.dp))
         }
 
         Button(
@@ -502,6 +502,7 @@ fun OnboardingPage4(navController: NavController, activity: Activity) {
                     }
                 }
             }
+            Spacer(Modifier.height(240.dp))
         }
 
         Button(
@@ -583,6 +584,7 @@ fun OnboardingPage5(
             item {
                 Spacer(Modifier.height(10.dp))
             }
+
             item {
                 Button(
                     onClick = {
@@ -601,6 +603,10 @@ fun OnboardingPage5(
                         Text(text = stringResource(R.string.read_privacy_policy))
                     }
                 }
+            }
+
+            item {
+                Spacer(Modifier.height(240.dp))
             }
         }
 
@@ -727,6 +733,10 @@ fun Notifications(
                     lineHeight = 32.sp
                 )
             }
+
+            item {
+                Spacer(Modifier.height(240.dp))
+            }
         }
 
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
@@ -766,5 +776,4 @@ fun Notifications(
             }
         }
     }
-
 }
