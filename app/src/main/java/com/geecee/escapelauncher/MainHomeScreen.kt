@@ -1,6 +1,7 @@
 package com.geecee.escapelauncher
 
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -152,6 +153,8 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 class MainHomeScreen : ComponentActivity() {
     private lateinit var privateSpaceReceiver: PrivateSpaceStateReceiver
     private lateinit var screenOffReceiver: ScreenOffReceiver
+    private lateinit var packageChangeReceiver: BroadcastReceiver
+
     private val homeScreenModel by viewModels<HomeScreenModel> {
         HomeScreenModelFactory(application, viewModel)
     }
@@ -241,6 +244,30 @@ class MainHomeScreen : ComponentActivity() {
             registerReceiver(privateSpaceReceiver, intentFilter)
         }
 
+        // Package change receiver
+        packageChangeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    Intent.ACTION_PACKAGE_ADDED,
+                    Intent.ACTION_PACKAGE_REMOVED,
+                    Intent.ACTION_PACKAGE_REPLACED -> {
+                        Log.i("INFO", "Package changed: ${intent.action}")
+                        lifecycleScope.launch(Dispatchers.Default) {
+                            homeScreenModel.loadApps()
+                            homeScreenModel.reloadFavouriteApps()
+                        }
+                    }
+                }
+            }
+        }
+        val packageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        registerReceiver(packageChangeReceiver, packageFilter)
+
         // Subscribe to notifications this is done in a coroutine
         lifecycleScope.launch(Dispatchers.IO) {
             Firebase.messaging.subscribeToTopic("updates")
@@ -292,6 +319,9 @@ class MainHomeScreen : ComponentActivity() {
         }
         if (::screenOffReceiver.isInitialized) {
             unregisterReceiver(screenOffReceiver)
+        }
+        if (::packageChangeReceiver.isInitialized) {
+            unregisterReceiver(packageChangeReceiver)
         }
     }
 
