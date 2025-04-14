@@ -90,6 +90,7 @@ import com.geecee.escapelauncher.ui.theme.refreshTheme
 import com.geecee.escapelauncher.ui.theme.transparentHalf
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.loadTextFromAssets
+import com.geecee.escapelauncher.utils.CustomWidgetPicker
 import com.geecee.escapelauncher.utils.changeAppsAlignment
 import com.geecee.escapelauncher.utils.changeHomeAlignment
 import com.geecee.escapelauncher.utils.changeHomeVAlignment
@@ -105,7 +106,6 @@ import com.geecee.escapelauncher.utils.getWidgetWidth
 import com.geecee.escapelauncher.utils.isDefaultLauncher
 import com.geecee.escapelauncher.utils.isWidgetConfigurable
 import com.geecee.escapelauncher.utils.launchWidgetConfiguration
-import com.geecee.escapelauncher.utils.openWidgetPicker
 import com.geecee.escapelauncher.utils.removeWidget
 import com.geecee.escapelauncher.utils.resetActivity
 import com.geecee.escapelauncher.utils.saveWidgetId
@@ -566,25 +566,81 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
     var appWidgetId by remember { mutableIntStateOf(getSavedWidgetId(context)) }
     var appWidgetHostView by remember { mutableStateOf<AppWidgetHostView?>(null) }
     val appWidgetHost = remember { AppWidgetHost(context, 1) }
-    val widgetPickerLauncher = rememberLauncherForActivityResult(
+
+    // State for showing the custom picker
+    var showCustomPicker by remember { mutableStateOf(false) }
+
+    // Activity result launcher for binding widget permission
+    val bindWidgetPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            appWidgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-                ?: return@rememberLauncherForActivityResult
-            saveWidgetId(context, appWidgetId)
-            val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
-            needsConfiguration = isWidgetConfigurable(context, appWidgetId)
+            val newWidgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
+            if (newWidgetId != -1) {
+                appWidgetId = newWidgetId
+                saveWidgetId(context, appWidgetId)
+                val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
 
-            if (needsConfiguration) {
-                launchWidgetConfiguration(context, appWidgetId)
-            } else {
-                appWidgetHostView =
-                    appWidgetHost.createView(context, appWidgetId, widgetInfo).apply {
+                needsConfiguration = isWidgetConfigurable(context, appWidgetId)
+                if (needsConfiguration) {
+                    launchWidgetConfiguration(context, appWidgetId)
+                } else {
+                    appWidgetHostView = appWidgetHost.createView(
+                        context,
+                        appWidgetId,
+                        widgetInfo
+                    ).apply {
                         setAppWidget(appWidgetId, widgetInfo)
                     }
+                }
             }
         }
+    }
+
+    if (showCustomPicker) {
+        CustomWidgetPicker(
+            onWidgetSelected = { widgetProviderInfo ->
+                // Allocate widget ID
+                val newWidgetId = appWidgetHost.allocateAppWidgetId()
+
+                // Try to bind widget
+                val allocated = appWidgetManager.bindAppWidgetIdIfAllowed(
+                    newWidgetId,
+                    widgetProviderInfo.provider
+                )
+
+                if (allocated) {
+                    // Widget successfully bound
+                    appWidgetId = newWidgetId
+                    saveWidgetId(context, appWidgetId)
+
+                    // Check if widget needs configuration
+                    needsConfiguration = isWidgetConfigurable(context, appWidgetId)
+                    if (needsConfiguration) {
+                        launchWidgetConfiguration(context, appWidgetId)
+                    } else {
+                        appWidgetHostView = appWidgetHost.createView(
+                            context,
+                            appWidgetId,
+                            widgetProviderInfo
+                        ).apply {
+                            setAppWidget(appWidgetId, widgetProviderInfo)
+                        }
+                    }
+                } else {
+                    // Request bind widget permission
+                    val bindIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newWidgetId)
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, widgetProviderInfo.provider)
+                    }
+                    bindWidgetPermissionLauncher.launch(bindIntent)
+                }
+
+                // Close the picker
+                showCustomPicker = false
+            },
+            onDismiss = { showCustomPicker = false }
+        )
     }
 
     Column(
@@ -596,7 +652,11 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         HorizontalDivider(Modifier.padding(0.dp, 15.dp))
 
-        Button(modifier = Modifier.fillMaxWidth(), onClick = { removeWidget(context) }) {
+        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+            removeWidget(context)
+            appWidgetHostView = null  // Clear current widget view
+            appWidgetId = -1  // Reset widget ID
+        }) {
             Text(stringResource(R.string.remove_widget))
         }
 
@@ -604,16 +664,16 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
 
         Button(
             modifier = Modifier.fillMaxWidth(),
-            onClick = { openWidgetPicker(appWidgetHost, widgetPickerLauncher) }) {
+            onClick = { showCustomPicker = true }
+        ) {
             Text(stringResource(R.string.select_widget))
         }
 
         Spacer(Modifier.height(20.dp))
 
-        Box(
-            Modifier.fillMaxWidth()
-        ) {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
+        // Widget offset slider
+        Box(Modifier.fillMaxWidth()) {
+            var sliderPosition by remember { mutableFloatStateOf(getWidgetOffset(context)) }
             Row {
                 Text(
                     stringResource(id = R.string.offset),
@@ -623,8 +683,6 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
 
-                sliderPosition = getWidgetOffset(context)
-
                 Slider(
                     value = sliderPosition,
                     onValueChange = {
@@ -632,16 +690,17 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                         setWidgetOffset(context, sliderPosition)
                     },
                     valueRange = -20f..20f,
-                    steps = 40,
+                    steps = 20,
                     modifier = Modifier
                         .fillMaxWidth(0.85F)
                         .align(Alignment.CenterVertically)
                         .padding(20.dp, 0.dp, 20.dp, 0.dp)
                 )
             }
+
             Icon(
                 Icons.Default.Refresh,
-                "",
+                contentDescription = "Reset to default",
                 Modifier
                     .size(48.dp)
                     .fillMaxSize()
@@ -653,13 +712,11 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                     .padding(8.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
-
         }
 
-        Box(
-            Modifier.fillMaxWidth()
-        ) {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
+        // Widget height slider
+        Box(Modifier.fillMaxWidth()) {
+            var sliderPosition by remember { mutableFloatStateOf(getWidgetHeight(context)) }
             Row {
                 Text(
                     stringResource(id = R.string.height),
@@ -669,15 +726,13 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
 
-                sliderPosition = getWidgetHeight(context)
-
                 Slider(
                     value = sliderPosition,
                     onValueChange = {
                         sliderPosition = it
                         setWidgetHeight(context, sliderPosition)
                     },
-                    valueRange = 100f..500f,
+                    valueRange = 100f..400f,
                     steps = 10,
                     modifier = Modifier
                         .fillMaxWidth(0.85F)
@@ -685,9 +740,10 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                         .padding(20.dp, 0.dp, 20.dp, 0.dp)
                 )
             }
+
             Icon(
                 Icons.Default.Refresh,
-                "",
+                contentDescription = "Reset to default",
                 Modifier
                     .size(48.dp)
                     .fillMaxSize()
@@ -699,13 +755,11 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                     .padding(8.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
-
         }
 
-        Box(
-            Modifier.fillMaxWidth()
-        ) {
-            var sliderPosition by remember { mutableFloatStateOf(0f) }
+        // Widget width slider
+        Box(Modifier.fillMaxWidth()) {
+            var sliderPosition by remember { mutableFloatStateOf(getWidgetWidth(context)) }
             Row {
                 Text(
                     stringResource(id = R.string.width),
@@ -715,15 +769,13 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
 
-                sliderPosition = getWidgetWidth(context)
-
                 Slider(
                     value = sliderPosition,
                     onValueChange = {
                         sliderPosition = it
                         setWidgetWidth(context, sliderPosition)
                     },
-                    valueRange = 150f..350f,
+                    valueRange = 100f..400f,
                     steps = 10,
                     modifier = Modifier
                         .fillMaxWidth(0.85F)
@@ -731,21 +783,21 @@ fun WidgetOptions(context: Context, goBack: () -> Unit) {
                         .padding(20.dp, 0.dp, 20.dp, 0.dp)
                 )
             }
+
             Icon(
                 Icons.Default.Refresh,
-                "",
+                contentDescription = "Reset to default",
                 Modifier
                     .size(48.dp)
                     .fillMaxSize()
                     .align(Alignment.CenterEnd)
                     .combinedClickable {
-                        sliderPosition = 150F
+                        sliderPosition = 250F
                         setWidgetWidth(context, sliderPosition)
                     }
                     .padding(8.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
-
         }
     }
 }
