@@ -104,13 +104,15 @@ class MainAppViewModel(application: Application) : AndroidViewModel(application)
 
     // Screen time related things
 
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Format for the date
+    private val dateFormat =
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Format for the date
 
     fun getToday(): String {
         return dateFormat.format(Date())
     } // Returns the current date
 
-    val screenTimeCache = mutableStateMapOf<String, Long>() // Cache mapping package name to screen time
+    val screenTimeCache =
+        mutableStateMapOf<String, Long>() // Cache mapping package name to screen time
 
     val shouldReloadScreenTime: MutableState<Int> =
         mutableIntStateOf(0) // This exists because the screen time is retrieved in LaunchedEffects so it'll reload when the value of this is changed
@@ -210,12 +212,17 @@ class MainHomeScreen : ComponentActivity() {
                     // Trigger UI refresh
                     viewModel.shouldReloadScreenTime.value++
 
-                    Log.i("INFO", "Screen turned off with app " + homeScreenModel.currentSelectedApp.value.packageName + " open, stopping screen time counting at " + AppUtils.formatScreenTime(viewModel.getCachedScreenTime(homeScreenModel.currentSelectedApp.value.packageName)))
+                    Log.i(
+                        "INFO",
+                        "Screen turned off with app " + homeScreenModel.currentSelectedApp.value.packageName + " open, stopping screen time counting at " + AppUtils.formatScreenTime(
+                            viewModel.getCachedScreenTime(homeScreenModel.currentSelectedApp.value.packageName)
+                        )
+                    )
 
                     // Reset state
                     homeScreenModel.currentSelectedApp =
                         mutableStateOf(InstalledApp("", "", ComponentName("", "")))
-  }
+                }
                 viewModel.isAppOpened = false
             }
         }
@@ -318,8 +325,13 @@ class MainHomeScreen : ComponentActivity() {
         val colorScheme: ColorScheme
         var settingToChange = stringResource(R.string.Theme)
 
-        if (getBooleanSetting(this@MainHomeScreen, stringResource(R.string.autoThemeSwitch), false)) {
-            settingToChange = if(isSystemInDarkTheme()){
+        if (getBooleanSetting(
+                this@MainHomeScreen,
+                stringResource(R.string.autoThemeSwitch),
+                false
+            )
+        ) {
+            settingToChange = if (isSystemInDarkTheme()) {
                 stringResource(R.string.dTheme)
             } else {
                 stringResource(R.string.lTheme)
@@ -327,14 +339,15 @@ class MainHomeScreen : ComponentActivity() {
         }
 
         // Set theme
-        colorScheme = AppTheme.fromId(getIntSetting(this@MainHomeScreen,settingToChange, 11)).scheme
+        colorScheme =
+            AppTheme.fromId(getIntSetting(this@MainHomeScreen, settingToChange, 11)).scheme
 
         // Set theme
         viewModel.appTheme = remember {
             mutableStateOf(colorScheme)
         }
 
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
             delay(1000) // Stops it from overriding the splash animation becuz theres some issue with setBitmap
             AppUtils.setSolidColorWallpaperHomeScreen(
                 viewModel.getContext(),

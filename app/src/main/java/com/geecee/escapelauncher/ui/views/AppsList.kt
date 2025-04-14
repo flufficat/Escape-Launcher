@@ -120,11 +120,20 @@ fun AppsList(
 
                     AnimatedPillSearchBar(
                         textChange = { searchBoxText ->
-                            homeScreenModel.searchText.value = searchBoxText // Update text in search box
+                            homeScreenModel.searchText.value =
+                                searchBoxText // Update text in search box
 
                             // Get the list of installed apps with the results filtered using fuzzy matching
-                            val filteredApps = homeScreenModel.installedApps.filter { appInfo ->
-                                AppUtils.fuzzyMatch(appInfo.displayName, homeScreenModel.searchText.value)
+                            var filteredApps = homeScreenModel.installedApps.filter { appInfo ->
+                                AppUtils.fuzzyMatch(
+                                    appInfo.displayName,
+                                    homeScreenModel.searchText.value
+                                )
+                            }
+
+                            // Remove  the launcher if present
+                            filteredApps = filteredApps.filter { appInfo ->
+                                !appInfo.packageName.contains("com.geecee.escapelauncher")
                             }
 
                             // If autoOpen is enabled then open the app like you would normally
@@ -151,9 +160,18 @@ fun AppsList(
                         },
                         keyboardDone = { _ ->
                             // Get the list of installed apps with the results filtered using fuzzy matching
-                            val filteredApps = homeScreenModel.installedApps.filter { appInfo ->
-                                AppUtils.fuzzyMatch(appInfo.displayName, homeScreenModel.searchText.value)
+                            var filteredApps = homeScreenModel.installedApps.filter { appInfo ->
+                                AppUtils.fuzzyMatch(
+                                    appInfo.displayName,
+                                    homeScreenModel.searchText.value
+                                )
                             }
+
+                            // Remove the launcher if present
+                            filteredApps = filteredApps.filter { appInfo ->
+                                !appInfo.packageName.contains("com.geecee.escapelauncher")
+                            }
+
                             if (filteredApps.isNotEmpty()) {
                                 val firstAppInfo = filteredApps.first()
 
@@ -236,7 +254,7 @@ fun AppsList(
                 }
             }
 
-            //Private space
+            //Private Space
             if (AppUtils.isDefaultLauncher(mainAppModel.getContext()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && doesPrivateSpaceExist(
                     mainAppModel.getContext()
                 )
