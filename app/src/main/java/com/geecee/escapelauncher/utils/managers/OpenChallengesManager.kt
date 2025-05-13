@@ -69,7 +69,7 @@ class ChallengesManager(context: Context) {
 
     fun addChallengeApp(packageName: String) {
         val challengeApps = getChallengeApps().toMutableList()
-        if (challengeApps.size < 5 && packageName !in challengeApps) {
+        if (packageName !in challengeApps) {
             challengeApps.add(packageName)
             saveChallengeApps(challengeApps)
         }
