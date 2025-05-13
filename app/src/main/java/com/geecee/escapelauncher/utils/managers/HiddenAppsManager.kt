@@ -34,7 +34,7 @@ class HiddenAppsManager(context: Context) {
 
     fun addHiddenApp(packageName: String) {
         val hiddenApps = getHiddenApps().toMutableList()
-        if (hiddenApps.size < 5 && packageName !in hiddenApps) {
+        if (packageName !in hiddenApps) {
             hiddenApps.add(packageName)
             saveHiddenApps(hiddenApps)
         }
