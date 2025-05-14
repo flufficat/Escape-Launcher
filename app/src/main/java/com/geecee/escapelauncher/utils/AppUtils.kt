@@ -155,13 +155,27 @@ object AppUtils{
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps
             ?: return emptyList()
 
-        return launcherApps.getActivityList(null, myUserHandle()).map {
-            InstalledApp(
-                displayName = it.label?.toString() ?: "Unknown App",
-                packageName = it.applicationInfo.packageName,
-                componentName = it.componentName
+        val packageManager = context.packageManager
+        val mainIntent = Intent(Intent.ACTION_MAIN)
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+        
+        val launchableActivities = packageManager.queryIntentActivities(mainIntent, 0).associate {
+            it.activityInfo.packageName to ComponentName(
+                it.activityInfo.packageName,
+                it.activityInfo.name
             )
         }
+
+        return launcherApps.getActivityList(null, myUserHandle())
+            .filter { launchableActivities.containsKey(it.applicationInfo.packageName) }
+            .map {
+                val packageName = it.applicationInfo.packageName
+                InstalledApp(
+                    displayName = it.label?.toString() ?: "Unknown App",
+                    packageName = packageName,
+                    componentName = launchableActivities[packageName] ?: it.componentName
+                )
+            }
     }
 
     /**
