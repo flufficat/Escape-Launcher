@@ -251,6 +251,7 @@ fun HomeScreenPageManager(
                 onClick = {
                     mainAppModel.hiddenAppsManager.addHiddenApp(homeScreenModel.currentSelectedApp.value.packageName)
                     homeScreenModel.showBottomSheet.value = false
+                    homeScreenModel.installedApps.remove(homeScreenModel.currentSelectedApp.value)
                     resetHome(homeScreenModel, false)
                 }
             ),
