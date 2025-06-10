@@ -162,26 +162,36 @@ fun SettingsHeader(goBack: () -> Unit, title: String) {
  */
 @Composable
 fun SettingsSwitch(
-    label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
     var isChecked by remember { mutableStateOf(checked) }
 
-    Box(Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            label,
-            Modifier.padding(0.dp, 15.dp),
+            text = label,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp), // Add space between text and switch
             color = MaterialTheme.colorScheme.onPrimaryContainer,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium
         )
         Switch(
-            checked = isChecked, onCheckedChange = {
-                isChecked = !isChecked
+            checked = isChecked,
+            onCheckedChange = {
+                isChecked = it
                 onCheckedChange(isChecked)
-            }, Modifier.align(Alignment.CenterEnd)
+            }
         )
     }
 }
+
 
 /**
  * Settings navigation item with label and arrow
@@ -312,7 +322,7 @@ fun Settings(
                 enterTransition = { fadeIn(tween(300)) },
                 exitTransition = { fadeOut(tween(300)) }) {
                 ThemeOptions(
-                    mainAppModel, mainAppModel.getContext(), activity
+                    mainAppModel, mainAppModel.getContext()
                 ) { navController.popBackStack() }
             }
             composable(
@@ -558,6 +568,7 @@ fun PersonalizationOptions(
  *
  * @see Settings
  */
+@Suppress("AssignedValueIsNeverRead", "VariableNeverRead")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WidgetOptions(context: Context, goBack: () -> Unit) {
@@ -1139,7 +1150,6 @@ fun ThemeCard(
  *
  * @param mainAppModel Main app model for theme updates
  * @param context Needed to run some functions used within ThemeOptions
- * @param activity Needed to reload app after changing theme
  * @param goBack When back button is pressed
  *
  * @see Settings
@@ -1147,7 +1157,7 @@ fun ThemeCard(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ThemeOptions(
-    mainAppModel: MainAppModel, context: Context, activity: Activity, goBack: () -> Unit
+    mainAppModel: MainAppModel, context: Context, goBack: () -> Unit
 ) {
     val settingToChange = stringResource(R.string.theme)
     val autoThemeChange = stringResource(R.string.autoThemeSwitch)
@@ -1238,10 +1248,6 @@ fun ThemeOptions(
                     isSystemDarkTheme = isSystemDark
                 )
                 mainAppModel.appTheme.value = newTheme
-                AppUtils.setSolidColorWallpaperHomeScreen(
-                    mainAppModel.getContext(),
-                    newTheme.background
-                )
             }
         }
 
@@ -1267,10 +1273,6 @@ fun ThemeOptions(
                             isSystemDarkTheme = isSystemDark
                         )
                         mainAppModel.appTheme.value = newTheme
-                        AppUtils.setSolidColorWallpaperHomeScreen(
-                            mainAppModel.getContext(),
-                            newTheme.background
-                        )
                         currentSelectedLTheme.intValue = theme
                         currentHighlightedThemeCard.intValue = -1
                     },
@@ -1285,10 +1287,6 @@ fun ThemeOptions(
                             isSystemDarkTheme = isSystemDark
                         )
                         mainAppModel.appTheme.value = newTheme
-                        AppUtils.setSolidColorWallpaperHomeScreen(
-                            mainAppModel.getContext(),
-                            newTheme.background
-                        )
                         currentSelectedDTheme.intValue = theme
                         currentHighlightedThemeCard.intValue = -1
                     }) { theme ->
@@ -1310,10 +1308,6 @@ fun ThemeOptions(
                             isSystemDarkTheme = isSystemDark
                         )
                         mainAppModel.appTheme.value = newTheme
-                        AppUtils.setSolidColorWallpaperHomeScreen(
-                            mainAppModel.getContext(),
-                            newTheme.background
-                        )
                         currentSelectedTheme.intValue = theme
                     }
                 }

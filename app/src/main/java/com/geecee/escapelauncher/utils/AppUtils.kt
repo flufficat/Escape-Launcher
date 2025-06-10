@@ -388,6 +388,13 @@ object AppUtils{
         analytics.setAnalyticsCollectionEnabled(enabled)
     }
 
+    /**
+     * Set a solid color as the home screen wallpaper.
+     *
+     * @param context The context of the application or activity.
+     * @param color The color to set as the wallpaper.
+     */
+    @Suppress("unused")
     fun setSolidColorWallpaperHomeScreen(context: Context, color: ComposeColor) {
         val wallpaperManager = WallpaperManager.getInstance(context)
 
@@ -406,6 +413,11 @@ object AppUtils{
         wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
     }
 
+    /**
+     * Convert a Compose Color to an Android Color.
+     *
+     * @return The Android Color as an integer.
+     */
     fun ComposeColor.toAndroidColor(): Int {
         return AndroidColor.argb(
             (alpha * 255).toInt(),

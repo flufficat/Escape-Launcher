@@ -136,7 +136,7 @@ fun showPrivateSpaceAppInfo(installedApp: InstalledApp, context: Context, source
     }?.let { userHandle ->
         val options = ActivityOptions.makeBasic()
         if (sourceBounds != null) {
-            options.setLaunchBounds(sourceBounds)
+            options.launchBounds = sourceBounds
         }
         launcherApps.startAppDetailsActivity(
             installedApp.componentName,

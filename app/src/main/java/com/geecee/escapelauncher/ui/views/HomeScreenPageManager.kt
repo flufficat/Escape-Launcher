@@ -337,7 +337,7 @@ fun HomeScreenItem(
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,
-        modifier = modifier.combinedClickable(
+        modifier = modifier.padding(vertical = 15.dp).combinedClickable(
             onClick = onAppClick,
             onLongClick = onAppLongClick
         )
@@ -345,7 +345,7 @@ fun HomeScreenItem(
         // App name text with click and long click handlers
         Text(
             appName,
-            modifier = Modifier.padding(vertical = 15.dp),
+            modifier = Modifier,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )

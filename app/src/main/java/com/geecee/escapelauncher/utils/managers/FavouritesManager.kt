@@ -3,6 +3,7 @@
 package com.geecee.escapelauncher.utils.managers
 
 import android.content.Context
+import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -18,9 +19,8 @@ class FavoriteAppsManager(context: Context) {
 
     private fun saveFavoriteApps(favoriteApps: List<String>) {
         val json = gson.toJson(favoriteApps)
-        with(sharedPreferences.edit()) {
+        sharedPreferences.edit() {
             putString(FAVORITE_APPS_KEY, json)
-            apply()
         }
     }
 

@@ -1,6 +1,7 @@
 package com.geecee.escapelauncher.utils.managers
 
 import android.content.Context
+import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -16,9 +17,8 @@ class HiddenAppsManager(context: Context) {
 
     private fun saveHiddenApps(hiddenApps: List<String>) {
         val json = gson.toJson(hiddenApps)
-        with(sharedPreferences.edit()) {
+        sharedPreferences.edit() {
             putString(FAVORITE_APPS_KEY, json)
-            apply()
         }
     }
 

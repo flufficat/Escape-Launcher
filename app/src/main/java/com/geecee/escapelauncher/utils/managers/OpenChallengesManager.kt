@@ -34,6 +34,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
@@ -51,9 +52,8 @@ class ChallengesManager(context: Context) {
 
     private fun saveChallengeApps(challengeApps: List<String>) {
         val json = gson.toJson(challengeApps)
-        with(sharedPreferences.edit()) {
+        sharedPreferences.edit() {
             putString(FAVORITE_APPS_KEY, json)
-            apply()
         }
     }
 
