@@ -191,7 +191,8 @@ fun HomeScreen(
                     context = mainAppModel.getContext(),
                     setting = stringResource(R.string.ScreenTimeOnApp)
                 ),
-                modifier = Modifier
+                modifier = Modifier,
+                alignment = getHomeAlignment(mainAppModel.getContext())
             )
         }
 

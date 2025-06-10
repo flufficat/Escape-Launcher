@@ -10,9 +10,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -32,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -39,6 +42,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -48,6 +52,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.geecee.escapelauncher.MainAppViewModel
 import com.geecee.escapelauncher.R
+import com.geecee.escapelauncher.ui.theme.EscapeTheme
+import com.geecee.escapelauncher.ui.theme.offLightScheme
 import com.geecee.escapelauncher.utils.AppUtils
 import com.geecee.escapelauncher.utils.AppUtils.doHapticFeedBack
 import com.geecee.escapelauncher.utils.AppUtils.formatScreenTime
@@ -58,6 +64,7 @@ import com.geecee.escapelauncher.utils.setBooleanSetting
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.geecee.escapelauncher.MainAppViewModel as MainAppModel
+
 
 /**
  * Home Screen View Model
@@ -333,19 +340,26 @@ fun HomeScreenItem(
     screenTime: Long? = null,
     onAppClick: () -> Unit,
     onAppLongClick: () -> Unit,
-    showScreenTime: Boolean = false
+    showScreenTime: Boolean = false,
+    alignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,
-        modifier = modifier.padding(vertical = 15.dp).combinedClickable(
+        horizontalArrangement = when(alignment){
+            Alignment.Start -> Arrangement.Start
+            Alignment.CenterHorizontally -> Arrangement.Center
+            Alignment.End -> Arrangement.End
+            else -> Arrangement.Center
+        },
+        modifier = modifier.combinedClickable(
             onClick = onAppClick,
             onLongClick = onAppLongClick
-        )
+        ).fillMaxWidth()
     ) {
         // App name text with click and long click handlers
         Text(
             appName,
-            modifier = Modifier,
+            modifier = Modifier.padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.bodyMedium
         )
@@ -361,6 +375,21 @@ fun HomeScreenItem(
                 style = MaterialTheme.typography.bodySmall
             )
         }
+    }
+}
+
+@Preview
+@Composable
+fun HomeScreeItemPrev(){
+    EscapeTheme(remember{mutableStateOf(offLightScheme)}){
+        HomeScreenItem(
+            modifier = Modifier,
+            appName = "App Name",
+            screenTime = 1000,
+            onAppClick = {},
+            onAppLongClick = {},
+            showScreenTime = false
+        )
     }
 }
 

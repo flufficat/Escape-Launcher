@@ -249,7 +249,8 @@ fun AppsList(
                             context = mainAppModel.getContext(),
                             setting = stringResource(R.string.ScreenTimeOnApp)
                         ),
-                        modifier = Modifier
+                        modifier = Modifier,
+                        alignment = getAppsAlignment(mainAppModel.getContext())
                     )
                 }
             }
