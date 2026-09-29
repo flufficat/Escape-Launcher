@@ -74,10 +74,25 @@ fun MainPagerScreen(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Make it that if you go back you go back to main page
+    val screenTimePageIndex = if (!hideScreenTimePage) 0 else -1
+    val homePageIndex = if (hideScreenTimePage) 0 else 1
+    val appsListPageIndex = if (hideScreenTimePage) 1 else 2
+
+    val isAppsListVisible = viewModel.pagerState.currentPage == appsListPageIndex
+    val searchText by appsListViewModel.searchText.collectAsState()
+    val searchExpanded by appsListViewModel.searchExpanded.collectAsState()
+
+    // Back should collapse an active search before it navigates home, so the two are always two
+    // distinct, deterministic presses rather than relying on the OS's own IME-dismiss timing to
+    // have already consumed a "first" press (see: this used to intermittently just clear the
+    // search text on what should have been the press that goes home).
     BackHandler(enabled = true) {
         coroutineScope.launch {
-            viewModel.animatedGoToMainPage()
+            if (isAppsListVisible && (searchExpanded || searchText.isNotEmpty())) {
+                appsListViewModel.onSearchExpandedChanged(false)
+            } else {
+                viewModel.animatedGoToMainPage()
+            }
         }
     }
 
@@ -148,11 +163,6 @@ fun MainPagerScreen(
         }
     )
 
-    val screenTimePageIndex = if (!hideScreenTimePage) 0 else -1
-    val homePageIndex = if (hideScreenTimePage) 0 else 1
-    val appsListPageIndex = if (hideScreenTimePage) 1 else 2
-
-    val isAppsListVisible = viewModel.pagerState.currentPage == appsListPageIndex
     val autoOpenSearch by appsListViewModel.searchAutoOpen.collectAsState(initial = DefaultSettings.SEARCH_AUTO_OPEN)
 
     // Tidy up apps list when it closes or opens
@@ -199,8 +209,6 @@ fun MainPagerScreen(
             }, onGoHomeRequest = { globalViewModel.requestToGoHome() })
 
             appsListPageIndex -> {
-                val searchText by appsListViewModel.searchText.collectAsState()
-                val searchExpanded by appsListViewModel.searchExpanded.collectAsState()
                 val showSearchBox by appsListViewModel.showSearchBox.collectAsState(initial = DefaultSettings.SHOW_SEARCH_BOX)
                 val appsListAlignment by appsListViewModel.appsAlignment.collectAsState(initial = DefaultSettingsUi.APPS_ALIGNMENT)
                 val selectedTabIndex = remember { mutableIntStateOf(0) }
