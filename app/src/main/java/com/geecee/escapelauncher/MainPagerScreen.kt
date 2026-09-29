@@ -189,7 +189,7 @@ fun MainPagerScreen(
                 })
     ) { page ->
         when (page) {
-            screenTimePageIndex -> ScreenTimeDashboard()
+            screenTimePageIndex -> ScreenTimeDashboard(onGoHomeRequest = { globalViewModel.requestToGoHome() })
 
             homePageIndex -> HomeScreen(onAppOpened = { app ->
                 viewModel.openApp(

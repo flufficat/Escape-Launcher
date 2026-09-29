@@ -25,7 +25,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
@@ -82,6 +87,47 @@ fun AppsList(
 
     val scrollState = rememberLazyListState()
 
+    // Swipe up from the top of the list to go back home, mirroring the system Back gesture.
+    // The actual navigation is deferred to onPostFling (i.e. once the drag has actually ended)
+    // rather than fired mid-drag from onPostScroll: calling animateScrollToPage() on the pager
+    // while this list's own drag mutation is still active throws MutationInterruptedException,
+    // since the pager is a nested-scroll ancestor participating in the same in-progress gesture.
+    val swipeUpHomeConnection = remember(onGoHomeRequest) {
+        object : NestedScrollConnection {
+            var totalDrag = 0f
+            var armed = false
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (source == NestedScrollSource.UserInput && available.y < 0) {
+                    if (!armed) {
+                        totalDrag += available.y
+
+                        if (totalDrag < -120f) {
+                            armed = true
+                            return available
+                        }
+                    }
+                } else {
+                    totalDrag = 0f
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (armed) {
+                    armed = false
+                    onGoHomeRequest()
+                }
+                totalDrag = 0f
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
+
     Box(
         modifier
             .fillMaxSize()
@@ -92,7 +138,8 @@ fun AppsList(
             state = scrollState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 30.dp),
+                .padding(horizontal = 30.dp)
+                .nestedScroll(swipeUpHomeConnection),
             horizontalAlignment = appsListAlignment,
             verticalArrangement = Arrangement.Bottom
         ) {

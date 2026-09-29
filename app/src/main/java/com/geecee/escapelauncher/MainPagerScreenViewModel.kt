@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geecee.escapelauncher.core.domain.apps.LaunchAppUseCase
@@ -26,12 +27,14 @@ import com.geecee.escapelauncher.core.model.InstalledApp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -108,10 +111,36 @@ class MainPagerScreenViewModel @Inject constructor(
             return
         }
 
-        pagerState.animateScrollToPage(
-            targetPage,
-            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
-        )
+        // Immediately after a fling-driven gesture ends on a page's content, the pager can briefly
+        // still be mid-mutation settling onto the current page, or about to start doing so. Starting
+        // our own animation before that finishes (or right as it starts) gets it interrupted, which
+        // visibly plays out as a completed hop back to the source page followed by a second
+        // animation to the target - a flicker through multiple pages instead of one clean
+        // transition. Waiting for any in-flight scroll to clear, plus a brief grace period for one
+        // that's just about to start, avoids that race in practice; the retry below is only a
+        // last-resort safety net for the rare case a competing mutation still wins regardless.
+        snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+        delay(80)
+
+        repeat(3) { attempt ->
+            if (pagerState.currentPage == targetPage && pagerState.currentPageOffsetFraction == 0f) {
+                return
+            }
+            try {
+                pagerState.animateScrollToPage(
+                    targetPage,
+                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                )
+                return
+            } catch (e: CancellationException) {
+                // MutationInterruptedException (thrown when a competing mutation pre-empts this
+                // one) is an internal, non-public CancellationException subtype, so it's identified
+                // by name here. Any other cancellation (e.g. this coroutine's own scope ending)
+                // rethrows immediately instead of being retried.
+                if (e::class.simpleName != "MutationInterruptedException" || attempt == 2) throw e
+                delay(80)
+            }
+        }
     }
 
     init {
