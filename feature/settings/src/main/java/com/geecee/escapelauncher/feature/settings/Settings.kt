@@ -101,7 +101,8 @@ fun Settings(
 ) {
     val context = LocalContext.current
     val installedApps by settingsViewModel.installedApps.collectAsState()
-    val favouriteApps by settingsViewModel.favoriteApps.collectAsState()
+    val favouritableItems by settingsViewModel.favouritableItems.collectAsState()
+    val favoriteItems by settingsViewModel.favoriteItems.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val showPolicyDialog = remember { mutableStateOf(false) }
 
@@ -213,27 +214,30 @@ fun Settings(
                 }
                 entry<SettingsNavKey.BulkFavouriteApps> {
                     ReorderableSelectionLazyColumn(
-                        items = installedApps,
-                        selectedItems = favouriteApps,
-                        id = { it.packageName },
+                        items = favouritableItems,
+                        selectedItems = favoriteItems,
+                        id = { it.itemKey },
                         label = { it.displayName },
                         title = stringResource(R.string.manage_favourite_apps),
                         reorderEnabled = true,
                         onItemMoved = { fromIndex, toIndex ->
-                            val app = favouriteApps[fromIndex]
+                            val item = favoriteItems[fromIndex]
                             coroutineScope.launch {
-                                settingsViewModel.modifiedAppsRepository.reorderFavouriteApp(
-                                    app.packageName, fromIndex, toIndex
+                                settingsViewModel.favouritesRepository.reorderFavourite(
+                                    itemKey = item.itemKey,
+                                    itemType = item.itemType,
+                                    fromIndex = fromIndex,
+                                    toIndex = toIndex
                                 )
                             }
                         },
                         onBackClicked = { backStack.removeLastOrNull() },
-                        onItemSelected = { app, selected ->
+                        onItemSelected = { item, selected ->
                             coroutineScope.launch {
                                 if (selected) {
-                                    settingsViewModel.modifiedAppsRepository.removeFavourite(app.packageName)
+                                    settingsViewModel.favouritesRepository.removeFavourite(item.itemKey)
                                 } else {
-                                    settingsViewModel.modifiedAppsRepository.addFavourite(app.packageName)
+                                    settingsViewModel.favouritesRepository.addFavourite(item.itemKey, item.itemType)
                                 }
                             }
                         },
