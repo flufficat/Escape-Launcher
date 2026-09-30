@@ -26,13 +26,19 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.unit.Velocity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.domain.managedprofiles.ManagedProfileType
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
 import com.geecee.escapelauncher.core.ui.composables.OpenChallenge
@@ -164,6 +170,7 @@ fun MainPagerScreen(
     )
 
     val autoOpenSearch by appsListViewModel.searchAutoOpen.collectAsState(initial = DefaultSettings.SEARCH_AUTO_OPEN)
+    val searchGestureDirection by viewModel.searchGestureDirection.collectAsState()
 
     // Tidy up apps list when it closes or opens
     LaunchedEffect(isAppsListVisible) {
@@ -175,11 +182,42 @@ fun MainPagerScreen(
         }
     }
 
+    // The horizontal swipe from home to the apps list/search page is the default ("Left") gesture,
+    // but Settings' Gestures section lets the user reassign search-opening to Down or Up instead -
+    // in which case this direction should do nothing on the home page. Block just that one
+    // directional drag/fling (home -> apps list) unless Left is the chosen direction; the
+    // home <-> screen-time direction is left untouched regardless of this setting.
+    val pagerLeftGestureConnection = remember(searchGestureDirection, homePageIndex, appsListPageIndex) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (searchGestureDirection != SearchGestureDirection.LEFT &&
+                    source == NestedScrollSource.UserInput &&
+                    viewModel.pagerState.currentPage == homePageIndex &&
+                    available.x < 0
+                ) {
+                    return available
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (searchGestureDirection != SearchGestureDirection.LEFT &&
+                    viewModel.pagerState.currentPage == homePageIndex &&
+                    available.x < 0
+                ) {
+                    return available
+                }
+                return Velocity.Zero
+            }
+        }
+    }
+
     // Home Screen Pages
     HorizontalPager(
         state = viewModel.pagerState,
         modifier = Modifier
             .fillMaxSize()
+            .nestedScroll(pagerLeftGestureConnection)
             .combinedClickable(
                 onClick = {},
                 onLongClickLabel = "",
@@ -206,7 +244,11 @@ fun MainPagerScreen(
                     app = app, overrideChallenge = false, onAppOpened = {
                         screenTimeViewModel.onAppOpened(it)
                     })
-            }, onGoHomeRequest = { globalViewModel.requestToGoHome() })
+            },
+                onGoHomeRequest = { globalViewModel.requestToGoHome() },
+                searchGestureDirection = searchGestureDirection,
+                onSwipeDownOpenSearch = { coroutineScope.launch { viewModel.animatedGoToSearchPage() } },
+                onSwipeUpOpenSearch = { coroutineScope.launch { viewModel.animatedGoToSearchPage() } })
 
             appsListPageIndex -> {
                 val showSearchBox by appsListViewModel.showSearchBox.collectAsState(initial = DefaultSettings.SHOW_SEARCH_BOX)

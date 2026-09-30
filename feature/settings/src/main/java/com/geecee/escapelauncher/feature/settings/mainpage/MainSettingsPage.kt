@@ -40,6 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.geecee.escapelauncher.feature.settings.SettingsNavKey
 import com.geecee.escapelauncher.core.common.configureStatusBar
+import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.R
 import com.geecee.escapelauncher.core.ui.composables.EscapeHeader
 import com.geecee.escapelauncher.core.ui.composables.EscapeSubhead
@@ -393,6 +394,38 @@ fun MainSettingsPage(
                     onCheckedChange = {
                         mainSettingsPageViewModel.setSearchAutoOpen(it)
                     })
+            }
+
+            // Gestures
+            item(key = "gestures_subhead") { EscapeSubhead(stringResource(R.string.gestures)) }
+
+            item(key = "search_gesture_direction") {
+                val directionOptions = listOf(
+                    stringResource(R.string.down),
+                    stringResource(R.string.up),
+                    stringResource(R.string.left)
+                )
+
+                SettingsSingleChoiceSegmentedButtons(
+                    label = stringResource(id = R.string.search),
+                    options = directionOptions,
+                    selectedIndex = when (uiState.searchGestureDirection) {
+                        SearchGestureDirection.DOWN -> 0
+                        SearchGestureDirection.UP -> 1
+                        SearchGestureDirection.LEFT -> 2
+                    },
+                    onSelectedIndexChange = { newIndex ->
+                        mainSettingsPageViewModel.setSearchGestureDirection(
+                            when (newIndex) {
+                                0 -> SearchGestureDirection.DOWN
+                                1 -> SearchGestureDirection.UP
+                                else -> SearchGestureDirection.LEFT
+                            }
+                        )
+                    },
+                    isTopOfGroup = true,
+                    isBottomOfGroup = true
+                )
             }
 
             //Screen time

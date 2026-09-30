@@ -13,6 +13,7 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.domain.apps.LaunchAppUseCase
 import com.geecee.escapelauncher.core.domain.apps.TryOpenAppResult
 import com.geecee.escapelauncher.core.domain.apps.TryOpenAppUseCase
@@ -22,9 +23,11 @@ import com.geecee.escapelauncher.core.domain.managedprofiles.ManagedProfileExist
 import com.geecee.escapelauncher.core.domain.managedprofiles.ManagedProfileType
 import com.geecee.escapelauncher.core.domain.repository.settings.OnboardingRepository
 import com.geecee.escapelauncher.core.domain.repository.settings.ScreenTimeSettingsRepository
+import com.geecee.escapelauncher.core.domain.repository.settings.SearchSettingsRepository
 import com.geecee.escapelauncher.core.domain.repository.settings.LauncherBehaviorRepository
 import com.geecee.escapelauncher.core.domain.system.LockScreenUseCase
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
@@ -43,6 +46,7 @@ class MainPagerScreenViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val onboardingRepository: OnboardingRepository,
     private val screenTimeSettingsRepository: ScreenTimeSettingsRepository,
+    private val searchSettingsRepository: SearchSettingsRepository,
     launcherBehaviorRepository: LauncherBehaviorRepository,
     private val tryOpenAppUseCase: TryOpenAppUseCase,
     private val launchAppUseCase: LaunchAppUseCase,
@@ -63,6 +67,11 @@ class MainPagerScreenViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = false
+    )
+    val searchGestureDirection = searchSettingsRepository.searchGestureDirection.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = SearchGestureDirection.valueOf(DefaultSettings.SEARCH_GESTURE_DIRECTION)
     )
     val doubleTapToLock = launcherBehaviorRepository.doubleTapToLock
     val hapticFeedBackEnabled = launcherBehaviorRepository.hapticFeedBackEnabled
@@ -103,27 +112,37 @@ class MainPagerScreenViewModel @Inject constructor(
         pagerState.scrollToPage(getMainPageIndex())
     }
 
-    suspend fun animatedGoToMainPage() {
-        val targetPage = getMainPageIndex()
+    private fun getAppsListPageIndex(): Int {
+        return if (hideScreenTimePage.value) 1 else 2
+    }
 
+    suspend fun animatedGoToMainPage() {
+        animateToPageAtElevatedPriority(getMainPageIndex())
+    }
+
+    suspend fun animatedGoToSearchPage() {
+        animateToPageAtElevatedPriority(getAppsListPageIndex())
+    }
+
+    // Disposing a focused text field (e.g. the search box) as its page scrolls out of the pager's
+    // retained window triggers an OS-level input-focus reattachment cycle (ATTACH_NEW_INPUT),
+    // which in turn drives a competing, default-priority mutation on this same pager (almost
+    // certainly a window-inset-driven scroll adjustment). animateScrollToPage() runs at
+    // MutatePriority.Default, so that competing mutation cancels it mid-flight, and it plays
+    // out visibly as a completed hop to the target page followed by a snap back to the source
+    // page before a second animation finally lands on the target - a flicker instead of one
+    // clean transition. Running our own scroll at PreventUserInput (the highest priority)
+    // makes it immune to that: nothing at Default or UserInput priority can interrupt it.
+    // animateScrollToPage() can't be reused here directly - nesting it inside an outer
+    // scroll(PreventUserInput) block doesn't inherit that priority, it starts a second,
+    // separately-prioritized mutation that immediately self-conflicts - so the animation is
+    // driven manually instead: an Animatable stepping through the same page-index range,
+    // applying each frame's delta via the elevated-priority ScrollScope's scrollBy.
+    private suspend fun animateToPageAtElevatedPriority(targetPage: Int) {
         if (pagerState.currentPage == targetPage && pagerState.currentPageOffsetFraction == 0f) {
             return
         }
 
-        // Disposing the search box's focused text field as its page scrolls out of the pager's
-        // retained window triggers an OS-level input-focus reattachment cycle (ATTACH_NEW_INPUT),
-        // which in turn drives a competing, default-priority mutation on this same pager (almost
-        // certainly a window-inset-driven scroll adjustment). animateScrollToPage() runs at
-        // MutatePriority.Default, so that competing mutation cancels it mid-flight, and it plays
-        // out visibly as a completed hop to the target page followed by a snap back to the source
-        // page before a second animation finally lands on the target - a flicker instead of one
-        // clean transition. Running our own scroll at PreventUserInput (the highest priority)
-        // makes it immune to that: nothing at Default or UserInput priority can interrupt it.
-        // animateScrollToPage() can't be reused here directly - nesting it inside an outer
-        // scroll(PreventUserInput) block doesn't inherit that priority, it starts a second,
-        // separately-prioritized mutation that immediately self-conflicts - so the animation is
-        // driven manually instead: an Animatable stepping through the same page-index range,
-        // applying each frame's delta via the elevated-priority ScrollScope's scrollBy.
         val pageSizeWithSpacing = (pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing).toFloat()
         if (pageSizeWithSpacing <= 0f) {
             // Not laid out yet; fall back to the standard animation rather than divide by zero.

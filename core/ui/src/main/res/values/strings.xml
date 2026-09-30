@@ -100,6 +100,9 @@
     <string name="show_hidden_apps_in_search">Show hidden apps in search</string>
     <string name="manage_favourite_apps">Manage favourite apps</string>
     <string name="apps_list_auto_search">Automatically Open Search</string>
+    <string name="gestures">Gestures</string>
+    <string name="down">Down</string>
+    <string name="up">Up</string>
     <string name="sponsor">Sponsor</string>
     <string name="font_licences">Font Licences</string>
     <string name="show_weather">Show Weather</string>

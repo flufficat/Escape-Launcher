@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.data.datastore.PreferencesKeys
 import com.geecee.escapelauncher.core.domain.repository.settings.SearchSettingsRepository
+import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,5 +29,16 @@ class SearchSettingsRepositoryImpl @Inject constructor(
     override val showHiddenAppsInSearch: Flow<Boolean> = dataStore.data.map { it[PreferencesKeys.SHOW_HIDDEN_APPS_IN_SEARCH] ?: DefaultSettings.SHOW_HIDDEN_APPS_IN_SEARCH }
     override suspend fun setShowHiddenAppsInSearch(enabled: Boolean) {
         dataStore.edit { it[PreferencesKeys.SHOW_HIDDEN_APPS_IN_SEARCH] = enabled }
+    }
+    override val searchGestureDirection: Flow<SearchGestureDirection> = dataStore.data.map {
+        val stored = it[PreferencesKeys.SEARCH_GESTURE_DIRECTION] ?: DefaultSettings.SEARCH_GESTURE_DIRECTION
+        try {
+            SearchGestureDirection.valueOf(stored)
+        } catch (e: IllegalArgumentException) {
+            SearchGestureDirection.valueOf(DefaultSettings.SEARCH_GESTURE_DIRECTION)
+        }
+    }
+    override suspend fun setSearchGestureDirection(direction: SearchGestureDirection) {
+        dataStore.edit { it[PreferencesKeys.SEARCH_GESTURE_DIRECTION] = direction.name }
     }
 }

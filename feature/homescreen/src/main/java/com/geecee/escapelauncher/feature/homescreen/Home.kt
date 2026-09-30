@@ -50,11 +50,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.common.formatScreenTime
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.Clock
 import com.geecee.escapelauncher.core.ui.composables.FirstTimeHelp
@@ -81,6 +83,9 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onAppOpened: (app: InstalledApp) -> Unit = {},
     onGoHomeRequest: () -> Unit = {},
+    searchGestureDirection: SearchGestureDirection = SearchGestureDirection.UP,
+    onSwipeDownOpenSearch: () -> Unit = {},
+    onSwipeUpOpenSearch: () -> Unit = {},
     clockViewModel: ClockViewModel = hiltViewModel(),
     homeScreenViewModel: NewHomeScreenViewModel = hiltViewModel(),
     screenTimeViewModel: ScreenTimeViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
@@ -130,20 +135,58 @@ fun HomeScreen(
 
     val scrollState = rememberLazyListState()
 
-    // This is for the swipe down to get to quick settings thing
-    val nestedScrollConnection = remember {
+    // Swipe down opens the notification shade by default, or search when chosen in Settings'
+    // Gestures section; swipe up opens search only when chosen there (it does nothing here
+    // otherwise - unlike the swipe-up gesture on the search page itself, which always goes home).
+    // Both directions defer firing to onPostFling (once the drag has actually ended) rather than
+    // mid-drag: starting a page-transition animation while this list's own drag mutation is still
+    // active can get it interrupted by that ongoing gesture. Each direction only fires once per
+    // gesture via its own armed flag.
+    val nestedScrollConnection = remember(searchGestureDirection, onSwipeDownOpenSearch, onSwipeUpOpenSearch) {
         object : NestedScrollConnection {
-            var totalDrag = 0f
+            var downDrag = 0f
+            var downArmed = false
+            var upDrag = 0f
+            var upArmed = false
 
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                if (source == NestedScrollSource.UserInput && available.y > 0) {
-                    totalDrag += available.y
+                if (source != NestedScrollSource.UserInput) {
+                    downDrag = 0f
+                    upDrag = 0f
+                    return Offset.Zero
+                }
+                if (available.y > 0) {
+                    upDrag = 0f
+                    if (!downArmed) {
+                        downDrag += available.y
+                        if (downDrag > 150f) {
+                            downArmed = true
+                            return available
+                        }
+                    }
+                } else if (available.y < 0) {
+                    downDrag = 0f
+                    if (!upArmed) {
+                        upDrag += available.y
+                        if (upDrag < -150f) {
+                            upArmed = true
+                            return available
+                        }
+                    }
+                }
+                return Offset.Zero
+            }
 
-                    if (totalDrag > 150f) {
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (downArmed) {
+                    downArmed = false
+                    if (searchGestureDirection == SearchGestureDirection.DOWN) {
+                        onSwipeDownOpenSearch()
+                    } else {
                         try {
                             @SuppressLint("WrongConstant") val service =
                                 context.getSystemService("statusbar") // Use literal string "statusbar"
@@ -154,13 +197,17 @@ fun HomeScreen(
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
-                        totalDrag = 0f
-                        return available
                     }
-                } else {
-                    totalDrag = 0f
                 }
-                return Offset.Zero
+                if (upArmed) {
+                    upArmed = false
+                    if (searchGestureDirection == SearchGestureDirection.UP) {
+                        onSwipeUpOpenSearch()
+                    }
+                }
+                downDrag = 0f
+                upDrag = 0f
+                return super.onPostFling(consumed, available)
             }
         }
     }
