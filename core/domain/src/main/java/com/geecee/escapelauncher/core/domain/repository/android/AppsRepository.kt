@@ -53,4 +53,12 @@ interface AppsRepository {
      * @param shortcutId The unique ID of the shortcut to start.
      */
     fun startShortcut(packageName: String, shortcutId: String)
+
+    /**
+     * Sets the complete set of shortcuts pinned to this launcher for [packageName]. Per
+     * [android.content.pm.LauncherApps.pinShortcuts], this replaces the whole OS-level pinned set
+     * for that package, so callers must pass every shortcut ID that should remain pinned, not just
+     * the one being added or removed.
+     */
+    fun setPinnedShortcuts(packageName: String, shortcutIds: List<String>)
 }

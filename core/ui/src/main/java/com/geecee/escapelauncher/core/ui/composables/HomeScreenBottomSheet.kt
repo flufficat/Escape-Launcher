@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.AppAction
 
 /**
@@ -37,7 +37,7 @@ import com.geecee.escapelauncher.core.model.AppAction
 @Composable
 fun HomeScreenBottomSheet(
     modifier: Modifier = Modifier,
-    app: InstalledApp,
+    subject: LauncherItem,
     actions: List<AppAction>,
     onDismissRequest: () -> Unit,
     sheetState: SheetState? = null,
@@ -67,7 +67,7 @@ fun HomeScreenBottomSheet(
                         .padding(end = 10.dp)
                 )
                 Text(
-                    app.displayName,
+                    subject.displayName,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 32.sp,
                     style = MaterialTheme.typography.titleMedium
@@ -78,15 +78,15 @@ fun HomeScreenBottomSheet(
             // Actions
             Column(Modifier.padding(start = 47.dp, bottom = 50.dp)) {
                 if (shortcutActions.isNotEmpty()) {
-                    shortcutActions.filter { it.isVisible(app) }.forEach { action ->
-                        AppActionItem(action, app)
+                    shortcutActions.filter { it.isVisible(subject) }.forEach { action ->
+                        AppActionItem(action, subject)
                     }
 
                     HorizontalDivider(Modifier.padding(vertical = 15.dp))
                 }
 
-                actions.filter { it.isVisible(app) }.forEach { action ->
-                    AppActionItem(action, app)
+                actions.filter { it.isVisible(subject) }.forEach { action ->
+                    AppActionItem(action, subject)
                 }
             }
         }
@@ -95,13 +95,13 @@ fun HomeScreenBottomSheet(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun AppActionItem(action: AppAction, app: InstalledApp) {
+private fun AppActionItem(action: AppAction, subject: LauncherItem) {
     val label = action.label ?: action.labelRes?.let { stringResource(it) } ?: ""
     Text(
         text = label,
         modifier = Modifier
             .padding(vertical = 10.dp)
-            .combinedClickable(onClick = { action.onClick(app) }),
+            .combinedClickable(onClick = { action.onClick(subject) }),
         color = MaterialTheme.colorScheme.onSurface,
         style = MaterialTheme.typography.bodyMedium
     )

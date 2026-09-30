@@ -1,6 +1,6 @@
 package com.geecee.escapelauncher.core.domain.search
 
-import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
 import java.text.Normalizer
 
 // Compiled once; this used to be rebuilt several times per app per keystroke
@@ -48,20 +48,20 @@ internal fun fuzzyMatch(text: String, pattern: String): Boolean {
     return patternIndex == normalizedPattern.length
 }
 
-internal fun sortAppsByRelevance(apps: List<InstalledApp>, query: String): List<InstalledApp> {
+internal fun sortItemsByRelevance(items: List<LauncherItem>, query: String): List<LauncherItem> {
     val normalizedQuery = normalizeForSearch(query)
 
-    // Compute each app's rank once rather than inside the comparator (which runs O(n log n) times)
-    return apps
-        .map { app ->
-            val normalizedName = normalizeForSearch(app.displayName)
+    // Compute each item's rank once rather than inside the comparator (which runs O(n log n) times)
+    return items
+        .map { item ->
+            val normalizedName = normalizeForSearch(item.displayName)
             val rank = when {
                 normalizedName.startsWith(normalizedQuery) -> 0
                 normalizedName.contains(normalizedQuery) -> 1
                 else -> 2
             }
-            Triple(app, rank, normalizedName)
+            Triple(item, rank, normalizedName)
         }
-        .sortedWith(compareBy<Triple<InstalledApp, Int, String>> { it.second }.thenBy { it.third })
+        .sortedWith(compareBy<Triple<LauncherItem, Int, String>> { it.second }.thenBy { it.third })
         .map { it.first }
 }

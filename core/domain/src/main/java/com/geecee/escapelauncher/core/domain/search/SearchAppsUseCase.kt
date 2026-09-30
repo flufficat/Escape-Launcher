@@ -2,40 +2,48 @@ package com.geecee.escapelauncher.core.domain.search
 
 import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
-import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
+import com.geecee.escapelauncher.core.model.LauncherItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import jakarta.inject.Inject
 
 /***
- * Use case to return all installed apps filtered with a query
+ * Use case to return all installed apps and pinned shortcuts filtered with a query
  */
 class SearchAppsUseCase @Inject constructor(
     private val appsRepository: AppsRepository,
-    private val modifiedAppsRepository: ModifiedAppsRepository
+    private val modifiedAppsRepository: ModifiedAppsRepository,
+    private val pinnedShortcutsRepository: PinnedShortcutsRepository
 ) {
-    operator fun invoke(queryFlow: Flow<String>, showHiddenFlow: Flow<Boolean>): Flow<List<InstalledApp>> {
+    operator fun invoke(queryFlow: Flow<String>, showHiddenFlow: Flow<Boolean>): Flow<List<LauncherItem>> {
         return combine(
             appsRepository.mainUserApps,
+            pinnedShortcutsRepository.getAllFlow(),
             modifiedAppsRepository.getHiddenPackageIdsFlow(),
             queryFlow,
             showHiddenFlow
-        ) { allApps, hiddenIds, rawQuery, showHidden ->
+        ) { allApps, shortcuts, hiddenIds, rawQuery, showHidden ->
             val query = rawQuery.trim()
             val hiddenSet = hiddenIds.toSet()
 
+            val items: List<LauncherItem> =
+                allApps.map { LauncherItem.App(it) } + shortcuts.map { LauncherItem.Shortcut(it) }
+
             val filtered = if (query.isBlank()) {
-                allApps.filter { !hiddenSet.contains(it.packageName) }
+                items
+                    .filter { item -> item !is LauncherItem.App || !hiddenSet.contains(item.app.packageName) }
+                    .sortedBy { it.displayName.lowercase() }
             } else {
-                allApps.filter { app ->
-                    val isHidden = hiddenSet.contains(app.packageName)
-                    val matchesQuery = fuzzyMatch(app.displayName, query)
+                items.filter { item ->
+                    val isHidden = item is LauncherItem.App && hiddenSet.contains(item.app.packageName)
+                    val matchesQuery = fuzzyMatch(item.displayName, query)
                     matchesQuery && (!isHidden || showHidden)
                 }
             }
 
             if (query.isNotBlank()) {
-                sortAppsByRelevance(filtered, query)
+                sortItemsByRelevance(filtered, query)
             } else {
                 filtered
             }

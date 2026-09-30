@@ -6,6 +6,7 @@ import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import com.geecee.escapelauncher.core.data.database.MIGRATION_1_2
 import com.geecee.escapelauncher.core.data.database.ModifiedAppsDatabase
 import com.geecee.escapelauncher.core.data.entity.ModifiedAppEntity
 import androidx.core.content.edit
@@ -126,7 +127,7 @@ private class SharedPreferencesToDataStoreMigration(
                     context,
                     ModifiedAppsDatabase::class.java,
                     "modified_apps_database"
-                ).build()
+                ).addMigrations(MIGRATION_1_2).build()
                 val dao = db.modifiedAppsDao()
 
                 val appMap = mutableMapOf<String, ModifiedAppEntity>()

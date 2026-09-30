@@ -10,6 +10,7 @@ import android.os.UserManager
 import android.util.Log
 import com.geecee.escapelauncher.core.di.ApplicationScope
 import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
+import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
 import com.geecee.escapelauncher.core.model.AppShortcut
 import com.geecee.escapelauncher.core.model.InstalledApp
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,7 +34,8 @@ import kotlin.time.Duration.Companion.milliseconds
 @Singleton
 class AppsRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    @ApplicationScope scope: CoroutineScope
+    @ApplicationScope private val scope: CoroutineScope,
+    private val pinnedShortcutsRepository: PinnedShortcutsRepository
 ) : AppsRepository {
     private val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     private val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
@@ -55,10 +57,36 @@ class AppsRepositoryImpl @Inject constructor(
 
     private val callback = object : LauncherApps.Callback() {
         override fun onPackageAdded(packageName: String, user: UserHandle) = reloadApps()
-        override fun onPackageRemoved(packageName: String, user: UserHandle) = reloadApps()
+        override fun onPackageRemoved(packageName: String, user: UserHandle) {
+            reloadApps()
+            if (user == Process.myUserHandle()) {
+                scope.launch { pinnedShortcutsRepository.deleteAllForPackage(packageName) }
+            }
+        }
         override fun onPackageChanged(packageName: String, user: UserHandle) = reloadApps()
         override fun onPackagesAvailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) = reloadApps()
         override fun onPackagesUnavailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) = reloadApps()
+
+        override fun onShortcutsChanged(packageName: String, shortcuts: MutableList<android.content.pm.ShortcutInfo>, user: UserHandle) {
+            if (user != Process.myUserHandle()) return
+            scope.launch {
+                val stillPinned = shortcuts.filter { it.isPinned }.associateBy { it.id }
+                pinnedShortcutsRepository.getAllForPackage(packageName).forEach { pinned ->
+                    val info = stillPinned[pinned.shortcutId]
+                    if (info == null) {
+                        // No longer reported as pinned by the OS (e.g. the app removed it) - drop our record too
+                        pinnedShortcutsRepository.delete(packageName, pinned.shortcutId)
+                    } else {
+                        val freshLabel = info.longLabel?.toString()?.takeIf { it.isNotBlank() }
+                            ?: info.shortLabel?.toString()
+                            ?: pinned.label
+                        if (freshLabel != pinned.label) {
+                            pinnedShortcutsRepository.updateLabel(packageName, pinned.shortcutId, freshLabel)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     init {
@@ -160,7 +188,12 @@ class AppsRepositoryImpl @Inject constructor(
 
             launcherApps.getShortcuts(query, Process.myUserHandle())
                 ?.sortedBy { it.rank }
-                ?.map { AppShortcut(it.id, it.shortLabel?.toString() ?: "", it.rank) }
+                ?.map { info ->
+                    val label = info.longLabel?.toString()?.takeIf { it.isNotBlank() }
+                        ?: info.shortLabel?.toString()
+                        ?: ""
+                    AppShortcut(info.id, label, info.rank)
+                }
                 ?: emptyList()
         } catch (e: SecurityException) {
             Log.e("AppsRepository", "SecurityException while getting shortcuts", e)
@@ -179,6 +212,14 @@ class AppsRepositoryImpl @Inject constructor(
             launcherApps.startShortcut(packageName, shortcutId, null, null, Process.myUserHandle())
         } catch (e: Exception) {
             Log.e("AppsRepository", "Error starting shortcut", e)
+        }
+    }
+
+    override fun setPinnedShortcuts(packageName: String, shortcutIds: List<String>) {
+        try {
+            launcherApps.pinShortcuts(packageName, shortcutIds, Process.myUserHandle())
+        } catch (e: Exception) {
+            Log.e("AppsRepository", "Error pinning shortcuts", e)
         }
     }
 }

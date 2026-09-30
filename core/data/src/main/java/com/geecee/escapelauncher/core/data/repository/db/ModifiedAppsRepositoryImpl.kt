@@ -3,15 +3,21 @@ package com.geecee.escapelauncher.core.data.repository.db
 import com.geecee.escapelauncher.core.data.database.ModifiedAppsDao
 import com.geecee.escapelauncher.core.data.entity.ModifiedAppEntity
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
+import com.geecee.escapelauncher.core.domain.repository.favourites.FavouritesRepository
+import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.ModifiedApp
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private fun appItemKey(packageId: String) = "app:$packageId"
+
 @Singleton
 class ModifiedAppsRepositoryImpl @Inject constructor(
-    private val modifiedAppsDao: ModifiedAppsDao
+    private val modifiedAppsDao: ModifiedAppsDao,
+    private val favouritesRepository: FavouritesRepository
 ) : ModifiedAppsRepository {
     override fun getHiddenPackageIdsFlow(): Flow<List<String>> =
         modifiedAppsDao.getHiddenPackageIdsFlow()
@@ -20,8 +26,11 @@ class ModifiedAppsRepositoryImpl @Inject constructor(
         modifiedAppsDao.getChallengePackageIdsFlow()
 
     override fun getFavouriteAppsInOrderFlow(): Flow<List<ModifiedApp>> =
-        modifiedAppsDao.getFavouriteAppsInOrderFlow().map { entities ->
-            entities.map { it.asExternalModel() }
+        combine(
+            favouritesRepository.getFavouriteOrderFlow(),
+            modifiedAppsDao.getAllFlow()
+        ) { order, apps ->
+            mergeFavouriteApps(order.filter { it.itemType == LauncherItem.TYPE_APP }, apps)
         }
 
     override suspend fun getByPackageId(packageId: String): ModifiedApp? {
@@ -57,76 +66,51 @@ class ModifiedAppsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setFavouritePosition(packageId: String, favouritePosition: Double?) {
-        modifiedAppsDao.setFavouritePosition(packageId, favouritePosition)
+        if (favouritePosition == null) {
+            favouritesRepository.removeFavourite(appItemKey(packageId))
+        } else {
+            favouritesRepository.addFavourite(appItemKey(packageId), LauncherItem.TYPE_APP)
+        }
     }
 
     override suspend fun getFavouritePosition(packageId: String): Double? {
-        return modifiedAppsDao.getFavouritePosition(packageId)
+        return favouritesRepository.getPosition(appItemKey(packageId))
     }
 
     override suspend fun clearFavouritePosition(packageId: String) {
-        modifiedAppsDao.clearFavouritePosition(packageId)
+        favouritesRepository.removeFavourite(appItemKey(packageId))
     }
 
     override suspend fun isFavourite(packageId: String): Boolean {
-        return modifiedAppsDao.isFavourite(packageId)
+        return favouritesRepository.isFavourite(appItemKey(packageId))
     }
 
     override suspend fun addFavourite(packageId: String) {
-        val lastPos = modifiedAppsDao.getFavouriteAppsInOrder().lastOrNull()?.favouritePosition ?: -1.0
-        modifiedAppsDao.setFavouritePosition(packageId, lastPos + 1.0)
+        favouritesRepository.addFavourite(appItemKey(packageId), LauncherItem.TYPE_APP)
     }
 
     override suspend fun removeFavourite(packageId: String) {
-        modifiedAppsDao.clearFavouritePosition(packageId)
+        favouritesRepository.removeFavourite(appItemKey(packageId))
     }
 
     override suspend fun reorderFavouriteApp(packageId: String, fromIndex: Int, toIndex: Int) {
-        val favorites = modifiedAppsDao.getFavouriteAppsInOrder()
-        if (fromIndex !in favorites.indices || toIndex !in favorites.indices) return // Ensure indices are within bounds to avoid IndexOutOfBoundsException if the list changed concurrently
-        if (fromIndex == toIndex) return
-
-        val otherFavorites = favorites.filter { it.packageId != packageId }
-
-        val newPosition: Double = when {
-            toIndex == 0 -> {
-                (otherFavorites.firstOrNull()?.favouritePosition ?: 0.0) - 1.0
-            }
-            toIndex >= otherFavorites.size -> {
-                (otherFavorites.lastOrNull()?.favouritePosition ?: 0.0) + 1.0
-            }
-            else -> {
-                val prevPos = otherFavorites[toIndex - 1].favouritePosition ?: 0.0
-                val nextPos = otherFavorites[toIndex].favouritePosition ?: 0.0
-
-                val gap = nextPos - prevPos
-                if (gap < 1e-10) {
-                    // If the gap is too small, we should tidy first and then recalculate
-                    tidyFavouritePositions()
-                    val freshFavorites = modifiedAppsDao.getFavouriteAppsInOrder()
-                    val freshOther = freshFavorites.filter { it.packageId != packageId }
-                    val freshPrev = freshOther[toIndex - 1].favouritePosition ?: 0.0
-                    val freshNext = freshOther[toIndex].favouritePosition ?: 0.0
-                    (freshPrev + freshNext) / 2.0
-                } else {
-                    prevPos + (gap / 2.0)
-                }
-            }
-        }
-
-        modifiedAppsDao.setFavouritePosition(packageId, newPosition)
+        favouritesRepository.reorderFavourite(
+            itemKey = appItemKey(packageId),
+            itemType = LauncherItem.TYPE_APP,
+            fromIndex = fromIndex,
+            toIndex = toIndex,
+            scopeItemType = LauncherItem.TYPE_APP
+        )
     }
 
     override suspend fun tidyFavouritePositions() {
-        val favorites = modifiedAppsDao.getFavouriteAppsInOrder()
-        val tidied = favorites.mapIndexed { index, app ->
-            app.copy(favouritePosition = index.toDouble())
-        }
-        modifiedAppsDao.upsertAll(tidied)
+        favouritesRepository.tidyFavouritePositions()
     }
 
     override suspend fun getFavouriteAppsInOrder(): List<ModifiedApp> {
-        return modifiedAppsDao.getFavouriteAppsInOrder().map { it.asExternalModel() }
+        val order = favouritesRepository.getFavouriteOrder().filter { it.itemType == LauncherItem.TYPE_APP }
+        val apps = modifiedAppsDao.getAllFlow().first()
+        return mergeFavouriteApps(order, apps)
     }
 
     override suspend fun getHiddenPackageIds(): List<String> {
@@ -143,6 +127,24 @@ class ModifiedAppsRepositoryImpl @Inject constructor(
 
     override suspend fun deleteByPackageId(packageId: String) {
         modifiedAppsDao.deleteByPackageId(packageId)
+    }
+}
+
+private fun mergeFavouriteApps(
+    appFavouriteOrder: List<com.geecee.escapelauncher.core.model.FavouriteOrder>,
+    apps: List<ModifiedAppEntity>
+): List<ModifiedApp> {
+    val appsByPackageId = apps.associateBy { it.packageId }
+    return appFavouriteOrder.map { entry ->
+        val packageId = entry.itemKey.removePrefix("app:")
+        val entity = appsByPackageId[packageId]
+        ModifiedApp(
+            packageId = packageId,
+            displayName = entity?.displayName,
+            isHidden = entity?.isHidden ?: false,
+            isChallenge = entity?.isChallenge ?: false,
+            favouritePosition = entry.position
+        )
     }
 }
 

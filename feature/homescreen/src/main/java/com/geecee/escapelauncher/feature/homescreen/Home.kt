@@ -56,6 +56,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.common.formatScreenTime
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.Clock
@@ -109,7 +110,7 @@ fun HomeScreen(
     val widgetId by homeScreenViewModel.widgetId.collectAsState(initial = DefaultSettings.WIDGET_ID)
     val widgetHostManager = homeScreenViewModel.widgetHostManager
     val appUsageList by screenTimeViewModel.appUsageUiList.collectAsState()
-    val favoriteApps by homeScreenViewModel.favoriteApps.collectAsState()
+    val favoriteItems by homeScreenViewModel.favoriteItems.collectAsState()
     val showBottomSheet by homeScreenViewModel.showBottomSheet.collectAsState()
     val bottomSheetApp by homeScreenViewModel.bottomSheetApp.collectAsState()
     val bottomSheetActions by homeScreenViewModel.bottomSheetActions.collectAsState()
@@ -360,25 +361,28 @@ fun HomeScreen(
                         .padding(0.dp, 0.dp))
             }
 
-            //Apps
-            items(favoriteApps, key = { app -> app.packageName }) { app ->
-                val screenTime = remember(appUsageList) {
-                    screenTimeViewModel.getScreenTime(app.packageName)
+            //Apps + pinned shortcuts
+            items(favoriteItems, key = { item -> item.itemKey }) { item ->
+                val screenTime = remember(appUsageList, item) {
+                    if (item is LauncherItem.App) screenTimeViewModel.getScreenTime(item.app.packageName) else 0L
                 }
 
                 HomeScreenItem(
-                    appName = app.displayName,
+                    appName = item.displayName,
                     screenTime = formatScreenTime(screenTime),
                     onAppClick = {
-                        onAppOpened(app)
+                        when (item) {
+                            is LauncherItem.App -> onAppOpened(item.app)
+                            is LauncherItem.Shortcut -> homeScreenViewModel.openShortcut(item.shortcut)
+                        }
                         doHapticFeedBack(haptics, hapticFeedbackEnabled)
                     },
                     onAppLongClick = {
                         homeScreenViewModel.setBottomSheetVisible(true)
-                        homeScreenViewModel.setBottomSheetApp(app)
+                        homeScreenViewModel.setBottomSheetApp(item)
                         doHapticFeedBack(hapticFeedback = haptics, enabled = hapticFeedbackEnabled)
                     },
-                    showScreenTime = showScreenTimeApp,
+                    showScreenTime = showScreenTimeApp && item is LauncherItem.App,
                     modifier = Modifier,
                     alignment = homeAlignment,
                     shadow = showWallpaper,
@@ -413,7 +417,7 @@ fun HomeScreen(
         // Bottom Sheet
         if (showBottomSheet && bottomSheetApp != null) {
             HomeScreenBottomSheet(
-                app = bottomSheetApp!!,
+                subject = bottomSheetApp!!,
                 actions = bottomSheetActions,
                 onDismissRequest = { homeScreenViewModel.setBottomSheetVisible(false) },
                 shortcutActions = shortcutActions,

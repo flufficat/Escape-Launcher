@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.geecee.escapelauncher.core.data.entity.ModifiedAppEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ModifiedAppsDao {
@@ -63,12 +64,6 @@ interface ModifiedAppsDao {
     @Query("SELECT isChallenge FROM modifiedApps WHERE packageId = :packageId LIMIT 1")
     suspend fun getIsChallenge(packageId: String): Boolean?
 
-    @Query("UPDATE modifiedApps SET favouritePosition = :favouritePosition WHERE packageId = :packageId")
-    suspend fun updateFavouritePosition(packageId: String, favouritePosition: Double?)
-
-    @Query("SELECT favouritePosition FROM modifiedApps WHERE packageId = :packageId LIMIT 1")
-    suspend fun getFavouritePosition(packageId: String): Double?
-
     @Transaction
     suspend fun setIsHidden(packageId: String, isHidden: Boolean) {
         ensureRowExists(packageId)
@@ -79,17 +74,6 @@ interface ModifiedAppsDao {
     suspend fun setIsChallenge(packageId: String, isChallenge: Boolean) {
         ensureRowExists(packageId)
         updateIsChallenge(packageId, isChallenge)
-    }
-
-    @Transaction
-    suspend fun setFavouritePosition(packageId: String, favouritePosition: Double?) {
-        ensureRowExists(packageId)
-        updateFavouritePosition(packageId, favouritePosition)
-    }
-
-    @Transaction
-    suspend fun clearFavouritePosition(packageId: String) {
-        setFavouritePosition(packageId, null)
     }
 
     @Transaction
@@ -105,16 +89,8 @@ interface ModifiedAppsDao {
         )
     }
 
-    @Query(
-        """
-        SELECT *
-        FROM modifiedApps
-        WHERE favouritePosition IS NOT NULL
-        ORDER BY favouritePosition ASC,
-                 COALESCE(displayName, packageId) COLLATE NOCASE ASC
-        """
-    )
-    fun getFavouriteAppsInOrderFlow(): kotlinx.coroutines.flow.Flow<List<ModifiedAppEntity>>
+    @Query("SELECT * FROM modifiedApps")
+    fun getAllFlow(): Flow<List<ModifiedAppEntity>>
 
     @Query(
         """
@@ -135,17 +111,6 @@ interface ModifiedAppsDao {
         """
     )
     fun getChallengePackageIdsFlow(): kotlinx.coroutines.flow.Flow<List<String>>
-
-    @Query(
-        """
-        SELECT *
-        FROM modifiedApps
-        WHERE favouritePosition IS NOT NULL
-        ORDER BY favouritePosition ASC,
-                 COALESCE(displayName, packageId) COLLATE NOCASE ASC
-        """
-    )
-    suspend fun getFavouriteAppsInOrder(): List<ModifiedAppEntity>
 
     @Query(
         """
@@ -173,19 +138,19 @@ interface ModifiedAppsDao {
     @Query("SELECT EXISTS(SELECT 1 FROM modifiedApps WHERE packageId = :packageId AND isChallenge = 1)")
     suspend fun isChallenge(packageId: String): Boolean
 
-    @Query("SELECT EXISTS(SELECT 1 FROM modifiedApps WHERE packageId = :packageId AND favouritePosition IS NOT NULL)")
-    suspend fun isFavourite(packageId: String): Boolean
-
     @Query("DELETE FROM modifiedApps WHERE packageId = :packageId")
     suspend fun deleteByPackageId(packageId: String)
 
+    // favouritePosition is deliberately excluded from this check: it's a vestigial column left
+    // over from before favourites moved to the shared favouriteOrder table (see Migrations.kt)
+    // and is no longer read or written, so a stale non-null value here shouldn't block purging
+    // an otherwise-empty row.
     @Query(
         """
         DELETE FROM modifiedApps
         WHERE displayName IS NULL
           AND isHidden = 0
           AND isChallenge = 0
-          AND favouritePosition IS NULL
         """
     )
     suspend fun purgeAppsWithNoData(): Int

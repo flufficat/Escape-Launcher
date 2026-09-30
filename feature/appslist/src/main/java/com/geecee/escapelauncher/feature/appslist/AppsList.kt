@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.common.formatScreenTime
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenItem
 import com.geecee.escapelauncher.core.ui.utils.doHapticFeedBack
@@ -61,18 +62,23 @@ fun AppsList(
     val appsListAlignment by appsListViewModel.appsAlignment.collectAsState(initial = DefaultSettingsUi.APPS_ALIGNMENT)
     val hapticFeedbackEnabled by appsListViewModel.hapticFeedBackEnabled.collectAsState(initial = DefaultSettings.HAPTIC_FEEDBACK)
     val showWallpaper by appsListViewModel.showWallpaper.collectAsState(initial = false)
-    val apps by appsListViewModel.apps.collectAsState()
+    val items by appsListViewModel.items.collectAsState()
 
     // Standard app interaction logic shared across slots
-    val handleAppClick: (InstalledApp) -> Unit = { app ->
-        onAppOpened(app)
-        appsListViewModel.onSearchExpandedChanged(false)
+    val handleItemClick: (LauncherItem) -> Unit = { item ->
+        when (item) {
+            is LauncherItem.App -> {
+                onAppOpened(item.app)
+                appsListViewModel.onSearchExpandedChanged(false)
+            }
+            is LauncherItem.Shortcut -> appsListViewModel.openShortcut(item.shortcut)
+        }
         doHapticFeedBack(haptics, hapticFeedbackEnabled)
     }
 
-    val handleAppLongClick: (InstalledApp) -> Unit = { app ->
+    val handleItemLongClick: (LauncherItem) -> Unit = { item ->
         appsListViewModel.setBottomSheetVisible(true)
-        appsListViewModel.setBottomSheetApp(app)
+        appsListViewModel.setBottomSheetApp(item)
         doHapticFeedBack(haptics, hapticFeedbackEnabled)
     }
 
@@ -148,17 +154,17 @@ fun AppsList(
                 Spacer(modifier = Modifier.height(statusBarHeight + 10.dp))
             }
 
-            items(apps, key = { app -> app.packageName }) { app ->
-                val screenTime = remember(appUsageList) {
-                    screenTimeViewModel.getScreenTime(app.packageName)
+            items(items, key = { item -> item.itemKey }) { item ->
+                val screenTime = remember(appUsageList, item) {
+                    if (item is LauncherItem.App) screenTimeViewModel.getScreenTime(item.app.packageName) else 0L
                 }
 
                 HomeScreenItem(
-                    appName = app.displayName,
+                    appName = item.displayName,
                     screenTime = formatScreenTime(screenTime),
-                    onAppClick = { handleAppClick(app) },
-                    onAppLongClick = { handleAppLongClick(app) },
-                    showScreenTime = showScreenTimeApp,
+                    onAppClick = { handleItemClick(item) },
+                    onAppLongClick = { handleItemLongClick(item) },
+                    showScreenTime = showScreenTimeApp && item is LauncherItem.App,
                     modifier = Modifier,
                     alignment = appsListAlignment,
                     shadow = showWallpaper,

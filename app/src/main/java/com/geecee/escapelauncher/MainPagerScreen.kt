@@ -44,6 +44,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
 import com.geecee.escapelauncher.core.domain.managedprofiles.ManagedProfileType
 import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
@@ -141,7 +142,7 @@ fun MainPagerScreen(
                         },
                         onAppLongClick = { app ->
                             appsListViewModel.setBottomSheetVisible(true)
-                            appsListViewModel.setBottomSheetApp(app)
+                            appsListViewModel.setBottomSheetApp(LauncherItem.App(app))
                             doHapticFeedBack(haptics, hapticFeedbackEnabled)
                         })
 
@@ -167,7 +168,7 @@ fun MainPagerScreen(
                     },
                         onAppLongClick = { app ->
                         appsListViewModel.setBottomSheetVisible(true)
-                        appsListViewModel.setBottomSheetApp(app)
+                        appsListViewModel.setBottomSheetApp(LauncherItem.App(app))
                         doHapticFeedBack(haptics, hapticFeedbackEnabled)
                     })
                 })
@@ -272,7 +273,7 @@ fun MainPagerScreen(
                 val showSearchBox by appsListViewModel.showSearchBox.collectAsState(initial = DefaultSettings.SHOW_SEARCH_BOX)
                 val appsListAlignment by appsListViewModel.appsAlignment.collectAsState(initial = DefaultSettingsUi.APPS_ALIGNMENT)
                 val selectedTabIndex = remember { mutableIntStateOf(0) }
-                val apps by appsListViewModel.apps.collectAsState()
+                val items by appsListViewModel.items.collectAsState()
                 val autoOpenAppInSearch by appsListViewModel.automaticallyOpenAppsInSearch.collectAsState(initial = DefaultSettings.AUTOMATICALLY_OPEN_APPS_IN_SEARCH)
 
                 val showBottomSheet by appsListViewModel.showBottomSheet.collectAsState()
@@ -287,6 +288,13 @@ fun MainPagerScreen(
                             appsListViewModel.onSearchExpandedChanged(false)
                             doHapticFeedBack(haptics, hapticFeedbackEnabled)
                         })
+                }
+
+                val handleItemClick: (LauncherItem) -> Unit = { item ->
+                    when (item) {
+                        is LauncherItem.App -> handleAppClick(item.app)
+                        is LauncherItem.Shortcut -> appsListViewModel.openShortcut(item.shortcut)
+                    }
                 }
 
                 // When search was reached via the Up/Down home-screen gesture, the pager itself
@@ -350,14 +358,14 @@ fun MainPagerScreen(
                         },
                         onSearchTextChanged = { query: String ->
                             appsListViewModel.onSearchTextChanged(query)
-                            if (autoOpenAppInSearch && query.length >= 2 && apps.size == 1) {
-                                handleAppClick(apps.first())
+                            if (autoOpenAppInSearch && query.length >= 2 && items.size == 1) {
+                                handleItemClick(items.first())
                             }
                         },
                         onSearchDone = { _: String, keyboardController: SoftwareKeyboardController? ->
-                            if (apps.isNotEmpty()) {
+                            if (items.isNotEmpty()) {
                                 keyboardController?.hide()
-                                handleAppClick(apps.first())
+                                handleItemClick(items.first())
                             } else {
                                 doHapticFeedBack(haptics, hapticFeedbackEnabled)
                             }
@@ -367,7 +375,7 @@ fun MainPagerScreen(
                     // Bottom Sheet
                     AnimatedVisibility(showBottomSheet && bottomSheetApp != null) {
                         HomeScreenBottomSheet(
-                            app = bottomSheetApp!!,
+                            subject = bottomSheetApp!!,
                             actions = bottomSheetActions,
                             onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
                             shortcutActions = shortcutActions,

@@ -10,11 +10,14 @@ import com.geecee.escapelauncher.core.domain.apps.GetAppShortcutsUseCase
 import com.geecee.escapelauncher.core.domain.apps.OpenAppDetailsUseCase
 import com.geecee.escapelauncher.core.domain.apps.StartShortcutUseCase
 import com.geecee.escapelauncher.core.domain.apps.UninstallAppUseCase
+import com.geecee.escapelauncher.core.domain.apps.UnpinShortcutUseCase
+import com.geecee.escapelauncher.core.domain.repository.favourites.FavouritesRepository
 import com.geecee.escapelauncher.core.domain.search.SearchAppsUseCase
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
 import com.geecee.escapelauncher.core.domain.repository.settings.*
 import com.geecee.escapelauncher.core.model.AppAction
-import com.geecee.escapelauncher.core.model.InstalledApp
+import com.geecee.escapelauncher.core.model.LauncherItem
+import com.geecee.escapelauncher.core.model.PinnedShortcut
 import com.geecee.escapelauncher.core.ui.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -30,9 +33,11 @@ class AppsListViewModel @Inject constructor(
     launcherBehaviorRepository: LauncherBehaviorRepository,
     screenTimeSettingsRepository: ScreenTimeSettingsRepository,
     private val modifiedAppsRepository: ModifiedAppsRepository,
+    private val favouritesRepository: FavouritesRepository,
     private val getAppActionsUseCase: GetAppActionsUseCase,
     private val getAppShortcutsUseCase: GetAppShortcutsUseCase,
     private val startShortcutUseCase: StartShortcutUseCase,
+    private val unpinShortcutUseCase: UnpinShortcutUseCase,
     private val uninstallAppUseCase: UninstallAppUseCase,
     private val openAppDetailsUseCase: OpenAppDetailsUseCase,
     searchAppsUseCase: SearchAppsUseCase
@@ -74,48 +79,59 @@ class AppsListViewModel @Inject constructor(
         }
     }
 
-    // Apps
-    val apps: StateFlow<List<InstalledApp>> = searchAppsUseCase(_searchText, hiddenAppsInSearch)
+    // Apps + pinned shortcuts, merged
+    val items: StateFlow<List<LauncherItem>> = searchAppsUseCase(_searchText, hiddenAppsInSearch)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-    
+
+    /** Starts a pinned shortcut clicked directly in the drawer (not via the bottom sheet). */
+    fun openShortcut(shortcut: PinnedShortcut) {
+        startShortcutUseCase(shortcut.packageName, shortcut.shortcutId)
+        onSearchExpandedChanged(false)
+        viewModelScope.launch {
+            _uiEvent.emit(AppsListUiEvent.NavigateHome)
+        }
+    }
+
     // Bottom sheet
     private val _showBottomSheet = MutableStateFlow(false)
     val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
     fun setBottomSheetVisible(visibility: Boolean) {
         _showBottomSheet.value = visibility
     }
-    fun setBottomSheetApp(app: InstalledApp?) {
-        _bottomSheetApp.value = app
+    fun setBottomSheetApp(item: LauncherItem?) {
+        _bottomSheetApp.value = item
     }
-    private val _bottomSheetApp = MutableStateFlow<InstalledApp?>(null)
-    val bottomSheetApp: StateFlow<InstalledApp?> = _bottomSheetApp.asStateFlow()
+    private val _bottomSheetApp = MutableStateFlow<LauncherItem?>(null)
+    val bottomSheetApp: StateFlow<LauncherItem?> = _bottomSheetApp.asStateFlow()
 
     // Actions
-    val bottomSheetActions: StateFlow<List<AppAction>> = _bottomSheetApp.flatMapLatest { app ->
-        if (app == null) flowOf(emptyList())
-        else getAppActionsUseCase(app.packageName).map { actionTypes ->
+    val bottomSheetActions: StateFlow<List<AppAction>> = _bottomSheetApp.flatMapLatest { item ->
+        if (item == null) flowOf(emptyList())
+        else getAppActionsUseCase(item).map { actionTypes ->
             actionTypes.map { type ->
                 when (type) {
                     AppActionType.Uninstall -> AppAction(
                         labelRes = R.string.uninstall,
-                        onClick = { clickedApp ->
-                            uninstallAppUseCase(clickedApp)
+                        onClick = { clicked ->
+                            if (clicked is LauncherItem.App) {
+                                uninstallAppUseCase(clicked.app)
+                            }
                             _showBottomSheet.value = false
                         }
                     )
                     is AppActionType.ToggleFavorite -> AppAction(
                         labelRes = if (type.isFavorite) R.string.rem_from_fav else R.string.add_to_fav,
-                        isVisible = { it.isMainUserApp() },
-                        onClick = { clickedApp ->
+                        isVisible = { clicked -> clicked !is LauncherItem.App || clicked.app.isMainUserApp() },
+                        onClick = { clicked ->
                             viewModelScope.launch {
                                 if (type.isFavorite) {
-                                    modifiedAppsRepository.removeFavourite(clickedApp.packageName)
+                                    favouritesRepository.removeFavourite(clicked.itemKey)
                                 } else {
-                                    modifiedAppsRepository.addFavourite(clickedApp.packageName)
+                                    favouritesRepository.addFavourite(clicked.itemKey, clicked.itemType)
                                     _uiEvent.emit(AppsListUiEvent.NavigateHome)
                                 }
                                 _showBottomSheet.value = false
@@ -124,28 +140,47 @@ class AppsListViewModel @Inject constructor(
                     )
                     AppActionType.Hide -> AppAction(
                         labelRes = R.string.hide,
-                        isVisible = { it.isMainUserApp() },
-                        onClick = { clickedApp ->
-                            viewModelScope.launch {
-                                modifiedAppsRepository.setHidden(clickedApp.packageName, true)
-                                _showBottomSheet.value = false
+                        isVisible = { clicked -> clicked is LauncherItem.App && clicked.app.isMainUserApp() },
+                        onClick = { clicked ->
+                            if (clicked is LauncherItem.App) {
+                                viewModelScope.launch {
+                                    modifiedAppsRepository.setHidden(clicked.app.packageName, true)
+                                    _showBottomSheet.value = false
+                                }
                             }
                         }
                     )
                     AppActionType.AppInfo -> AppAction(
                         labelRes = R.string.app_info,
-                        onClick = { clickedApp ->
-                            openAppDetailsUseCase(clickedApp)
+                        isVisible = { clicked -> clicked is LauncherItem.App },
+                        onClick = { clicked ->
+                            if (clicked is LauncherItem.App) {
+                                openAppDetailsUseCase(clicked.app)
+                            }
                             _showBottomSheet.value = false
                         }
                     )
                     AppActionType.AddChallenge -> AppAction(
                         labelRes = R.string.add_open_challenge,
-                        isVisible = { it.isMainUserApp() },
-                        onClick = { clickedApp ->
-                            viewModelScope.launch {
-                                modifiedAppsRepository.setChallenge(clickedApp.packageName, true)
-                                _showBottomSheet.value = false
+                        isVisible = { clicked -> clicked is LauncherItem.App && clicked.app.isMainUserApp() },
+                        onClick = { clicked ->
+                            if (clicked is LauncherItem.App) {
+                                viewModelScope.launch {
+                                    modifiedAppsRepository.setChallenge(clicked.app.packageName, true)
+                                    _showBottomSheet.value = false
+                                }
+                            }
+                        }
+                    )
+                    AppActionType.RemoveShortcut -> AppAction(
+                        labelRes = R.string.remove,
+                        isVisible = { clicked -> clicked is LauncherItem.Shortcut },
+                        onClick = { clicked ->
+                            if (clicked is LauncherItem.Shortcut) {
+                                viewModelScope.launch {
+                                    unpinShortcutUseCase(clicked.shortcut.packageName, clicked.shortcut.shortcutId)
+                                    _showBottomSheet.value = false
+                                }
                             }
                         }
                     )
@@ -158,14 +193,16 @@ class AppsListViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    val shortcutActions: StateFlow<List<AppAction>> = _bottomSheetApp.map { app ->
-        if (app == null || !app.isMainUserApp()) return@map emptyList()
-        
-        getAppShortcutsUseCase(app.packageName).map { shortcut ->
+    val shortcutActions: StateFlow<List<AppAction>> = _bottomSheetApp.map { item ->
+        if (item !is LauncherItem.App || !item.app.isMainUserApp()) return@map emptyList()
+
+        getAppShortcutsUseCase(item.app.packageName).map { shortcut ->
             AppAction(
                 label = shortcut.label,
-                onClick = { clickedApp ->
-                    startShortcutUseCase(clickedApp.packageName, shortcut.id)
+                onClick = { clicked ->
+                    if (clicked is LauncherItem.App) {
+                        startShortcutUseCase(clicked.app.packageName, shortcut.id)
+                    }
                     _showBottomSheet.value = false
                     viewModelScope.launch {
                         _uiEvent.emit(AppsListUiEvent.NavigateHome)
