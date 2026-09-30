@@ -5,11 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -33,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.geecee.escapelauncher.core.common.DefaultSettings
@@ -56,6 +62,7 @@ import com.geecee.escapelauncher.feature.workapps.WorkApps
 import com.geecee.escapelauncher.privatespace.PrivateSpace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -247,8 +254,19 @@ fun MainPagerScreen(
             },
                 onGoHomeRequest = { globalViewModel.requestToGoHome() },
                 searchGestureDirection = searchGestureDirection,
-                onSwipeDownOpenSearch = { coroutineScope.launch { viewModel.animatedGoToSearchPage() } },
-                onSwipeUpOpenSearch = { coroutineScope.launch { viewModel.animatedGoToSearchPage() } })
+                onSwipeDownOpenSearch = {
+                    // Expand the search box (and its keyboard) immediately, in step with the page
+                    // transition starting, rather than waiting for the reactive isAppsListVisible
+                    // effect further down to catch up once the page has already mostly arrived -
+                    // that reactive path is a beat behind and makes the keyboard feel like a
+                    // separate, delayed second step instead of one fluid motion.
+                    if (autoOpenSearch) appsListViewModel.onSearchExpandedChanged(true)
+                    coroutineScope.launch { viewModel.openSearchPageFromGesture(SearchGestureDirection.DOWN) }
+                },
+                onSwipeUpOpenSearch = {
+                    if (autoOpenSearch) appsListViewModel.onSearchExpandedChanged(true)
+                    coroutineScope.launch { viewModel.openSearchPageFromGesture(SearchGestureDirection.UP) }
+                })
 
             appsListPageIndex -> {
                 val showSearchBox by appsListViewModel.showSearchBox.collectAsState(initial = DefaultSettings.SHOW_SEARCH_BOX)
@@ -271,60 +289,91 @@ fun MainPagerScreen(
                         })
                 }
 
-                TabDisplay(
-                    screens = listOf(
-                        TabbedScreen(
-                            title = "All Apps",
-                            icon = Icons.Rounded.Apps,
-                            content = { padding ->
-                                AppsList(
-                                    padding = padding,
-                                    onAppOpened = { app ->
-                                        handleAppClick(app)
-                                    },
-                                    onGoHomeRequest = {
-                                        globalViewModel.requestToGoHome()
-                                    },
-                                    appsListViewModel = appsListViewModel,
-                                    screenTimeViewModel = screenTimeViewModel
-                                )
-                            }
-                        )
-                    ) + appsListTabs.filterNotNull(),
-                    selectedTabIndex = selectedTabIndex,
-                    alignment = appsListAlignment,
-                    showSearch = showSearchBox,
-                    searchText = searchText,
-                    searchExpanded = searchExpanded,
-                    onSearchExpandedChange = {
-                        appsListViewModel.onSearchExpandedChanged(it)
-                        doHapticFeedBack(haptics, hapticFeedbackEnabled)
-                    },
-                    onSearchTextChanged = { query: String ->
-                        appsListViewModel.onSearchTextChanged(query)
-                        if (autoOpenAppInSearch && query.length >= 2 && apps.size == 1) {
-                            handleAppClick(apps.first())
-                        }
-                    },
-                    onSearchDone = { _: String, keyboardController: SoftwareKeyboardController? ->
-                        if (apps.isNotEmpty()) {
-                            keyboardController?.hide()
-                            handleAppClick(apps.first())
-                        } else {
-                            doHapticFeedBack(haptics, hapticFeedbackEnabled)
-                        }
-                    }
-                )
+                // When search was reached via the Up/Down home-screen gesture, the pager itself
+                // jumped here instantly (it only animates horizontally, which would look wrong for
+                // a vertical gesture) - this page's content plays its own vertical slide-in from
+                // that direction instead, so it still visually enters from the edge that was
+                // swiped. Reached the normal way (a horizontal pager drag, i.e. Left), this stays
+                // at zero offset and the pager's own drag handles the transition as before.
+                val searchEntryDirection by viewModel.searchEntryDirection.collectAsState()
+                val verticalOffsetPx = remember { Animatable(0f) }
 
-                // Bottom Sheet
-                AnimatedVisibility(showBottomSheet && bottomSheetApp != null) {
-                    HomeScreenBottomSheet(
-                        app = bottomSheetApp!!,
-                        actions = bottomSheetActions,
-                        onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
-                        shortcutActions = shortcutActions,
-                        sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+                LaunchedEffect(searchEntryDirection) {
+                    when (searchEntryDirection) {
+                        SearchGestureDirection.UP -> {
+                            verticalOffsetPx.snapTo(3000f)
+                            verticalOffsetPx.animateTo(0f, tween(durationMillis = 350, easing = FastOutSlowInEasing))
+                            viewModel.consumeSearchEntryDirection()
+                        }
+                        SearchGestureDirection.DOWN -> {
+                            verticalOffsetPx.snapTo(-3000f)
+                            verticalOffsetPx.animateTo(0f, tween(durationMillis = 350, easing = FastOutSlowInEasing))
+                            viewModel.consumeSearchEntryDirection()
+                        }
+                        SearchGestureDirection.LEFT, null -> Unit
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .offset { IntOffset(0, verticalOffsetPx.value.roundToInt()) }
+                ) {
+                    TabDisplay(
+                        screens = listOf(
+                            TabbedScreen(
+                                title = "All Apps",
+                                icon = Icons.Rounded.Apps,
+                                content = { padding ->
+                                    AppsList(
+                                        padding = padding,
+                                        onAppOpened = { app ->
+                                            handleAppClick(app)
+                                        },
+                                        onGoHomeRequest = {
+                                            globalViewModel.requestToGoHome()
+                                        },
+                                        appsListViewModel = appsListViewModel,
+                                        screenTimeViewModel = screenTimeViewModel
+                                    )
+                                }
+                            )
+                        ) + appsListTabs.filterNotNull(),
+                        selectedTabIndex = selectedTabIndex,
+                        alignment = appsListAlignment,
+                        showSearch = showSearchBox,
+                        searchText = searchText,
+                        searchExpanded = searchExpanded,
+                        onSearchExpandedChange = {
+                            appsListViewModel.onSearchExpandedChanged(it)
+                            doHapticFeedBack(haptics, hapticFeedbackEnabled)
+                        },
+                        onSearchTextChanged = { query: String ->
+                            appsListViewModel.onSearchTextChanged(query)
+                            if (autoOpenAppInSearch && query.length >= 2 && apps.size == 1) {
+                                handleAppClick(apps.first())
+                            }
+                        },
+                        onSearchDone = { _: String, keyboardController: SoftwareKeyboardController? ->
+                            if (apps.isNotEmpty()) {
+                                keyboardController?.hide()
+                                handleAppClick(apps.first())
+                            } else {
+                                doHapticFeedBack(haptics, hapticFeedbackEnabled)
+                            }
+                        }
                     )
+
+                    // Bottom Sheet
+                    AnimatedVisibility(showBottomSheet && bottomSheetApp != null) {
+                        HomeScreenBottomSheet(
+                            app = bottomSheetApp!!,
+                            actions = bottomSheetActions,
+                            onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
+                            shortcutActions = shortcutActions,
+                            sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+                        )
+                    }
                 }
             }
         }

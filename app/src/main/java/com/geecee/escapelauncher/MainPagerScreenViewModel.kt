@@ -76,6 +76,17 @@ class MainPagerScreenViewModel @Inject constructor(
     val doubleTapToLock = launcherBehaviorRepository.doubleTapToLock
     val hapticFeedBackEnabled = launcherBehaviorRepository.hapticFeedBackEnabled
 
+    // Which gesture direction (if any) the search page was most recently entered from, so its
+    // content can animate in from that edge (see MainPagerScreen's appsListPageIndex branch).
+    // Null means it was reached the normal way (a horizontal pager drag), which needs no extra
+    // animation since the pager's own drag already visually handles that transition.
+    private val _searchEntryDirection = MutableStateFlow<SearchGestureDirection?>(null)
+    val searchEntryDirection: StateFlow<SearchGestureDirection?> = _searchEntryDirection.asStateFlow()
+
+    fun consumeSearchEntryDirection() {
+        _searchEntryDirection.value = null
+    }
+
     val isHiddenPrivateSpace = launcherBehaviorRepository.hidePrivateSpace
 
     private val _isDefaultLauncher = MutableStateFlow(false)
@@ -122,6 +133,15 @@ class MainPagerScreenViewModel @Inject constructor(
 
     suspend fun animatedGoToSearchPage() {
         animateToPageAtElevatedPriority(getAppsListPageIndex())
+    }
+
+    // Used when search is opened via the Up/Down home-screen gesture: the pager itself jumps to
+    // the search page instantly with no animation of its own (it only ever animates horizontally,
+    // which would look wrong for a vertical gesture), and the search page's content plays its own
+    // vertical slide-in animation from the given direction instead (see MainPagerScreen).
+    suspend fun openSearchPageFromGesture(direction: SearchGestureDirection) {
+        _searchEntryDirection.value = direction
+        pagerState.scrollToPage(getAppsListPageIndex())
     }
 
     // Disposing a focused text field (e.g. the search box) as its page scrolls out of the pager's
