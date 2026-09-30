@@ -8,6 +8,8 @@ import com.geecee.escapelauncher.core.domain.apps.AppActionType
 import com.geecee.escapelauncher.core.domain.apps.GetAppActionsUseCase
 import com.geecee.escapelauncher.core.domain.apps.GetAppShortcutsUseCase
 import com.geecee.escapelauncher.core.domain.apps.OpenAppDetailsUseCase
+import com.geecee.escapelauncher.core.domain.apps.RenameAppUseCase
+import com.geecee.escapelauncher.core.domain.apps.RenameShortcutUseCase
 import com.geecee.escapelauncher.core.domain.apps.StartShortcutUseCase
 import com.geecee.escapelauncher.core.domain.apps.UninstallAppUseCase
 import com.geecee.escapelauncher.core.domain.apps.UnpinShortcutUseCase
@@ -18,6 +20,7 @@ import com.geecee.escapelauncher.core.domain.repository.settings.*
 import com.geecee.escapelauncher.core.model.AppAction
 import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.PinnedShortcut
+import com.geecee.escapelauncher.core.model.RenameTarget
 import com.geecee.escapelauncher.core.ui.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -40,6 +43,8 @@ class AppsListViewModel @Inject constructor(
     private val unpinShortcutUseCase: UnpinShortcutUseCase,
     private val uninstallAppUseCase: UninstallAppUseCase,
     private val openAppDetailsUseCase: OpenAppDetailsUseCase,
+    private val renameAppUseCase: RenameAppUseCase,
+    private val renameShortcutUseCase: RenameShortcutUseCase,
     searchAppsUseCase: SearchAppsUseCase
 ) : ViewModel() {
     // UI Events
@@ -108,6 +113,23 @@ class AppsListViewModel @Inject constructor(
     private val _bottomSheetApp = MutableStateFlow<LauncherItem?>(null)
     val bottomSheetApp: StateFlow<LauncherItem?> = _bottomSheetApp.asStateFlow()
 
+    // Rename dialog
+    private val _renameDialogTarget = MutableStateFlow<RenameTarget?>(null)
+    val renameDialogTarget: StateFlow<RenameTarget?> = _renameDialogTarget.asStateFlow()
+    fun dismissRenameDialog() {
+        _renameDialogTarget.value = null
+    }
+    fun saveRename(newName: String) {
+        val target = _renameDialogTarget.value ?: return
+        viewModelScope.launch {
+            when (target) {
+                is RenameTarget.App -> renameAppUseCase(target.packageId, newName)
+                is RenameTarget.Shortcut -> renameShortcutUseCase(target.packageName, target.shortcutId, newName)
+            }
+            _renameDialogTarget.value = null
+        }
+    }
+
     // Actions
     val bottomSheetActions: StateFlow<List<AppAction>> = _bottomSheetApp.flatMapLatest { item ->
         if (item == null) flowOf(emptyList())
@@ -170,6 +192,20 @@ class AppsListViewModel @Inject constructor(
                                     _showBottomSheet.value = false
                                 }
                             }
+                        }
+                    )
+                    AppActionType.Rename -> AppAction(
+                        labelRes = R.string.rename,
+                        onClick = { clicked ->
+                            _renameDialogTarget.value = when (clicked) {
+                                is LauncherItem.App -> RenameTarget.App(clicked.app.packageName, clicked.displayName)
+                                is LauncherItem.Shortcut -> RenameTarget.Shortcut(
+                                    clicked.shortcut.packageName,
+                                    clicked.shortcut.shortcutId,
+                                    clicked.displayName
+                                )
+                            }
+                            _showBottomSheet.value = false
                         }
                     )
                     AppActionType.RemoveShortcut -> AppAction(

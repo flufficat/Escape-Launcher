@@ -10,6 +10,7 @@ import android.os.UserManager
 import android.util.Log
 import com.geecee.escapelauncher.core.di.ApplicationScope
 import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
+import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
 import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
 import com.geecee.escapelauncher.core.model.AppShortcut
 import com.geecee.escapelauncher.core.model.InstalledApp
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -35,13 +36,33 @@ import kotlin.time.Duration.Companion.milliseconds
 class AppsRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @ApplicationScope private val scope: CoroutineScope,
-    private val pinnedShortcutsRepository: PinnedShortcutsRepository
+    private val pinnedShortcutsRepository: PinnedShortcutsRepository,
+    private val modifiedAppsRepository: ModifiedAppsRepository
 ) : AppsRepository {
     private val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     private val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
 
-    private val _installedApps = MutableStateFlow<List<InstalledApp>>(emptyList())
-    override val installedApps: StateFlow<List<InstalledApp>> = _installedApps.asStateFlow()
+    // Raw, unrenamed list straight from LauncherApps; installedApps below overlays user renames
+    // onto this so every downstream consumer (search, favourites, bottom sheet titles, ...) picks
+    // up renames for free, since they already just read InstalledApp.displayName.
+    private val _rawInstalledApps = MutableStateFlow<List<InstalledApp>>(emptyList())
+
+    override val installedApps: StateFlow<List<InstalledApp>> = combine(
+        _rawInstalledApps,
+        modifiedAppsRepository.getDisplayNameOverridesFlow()
+    ) { apps, overrides ->
+        if (overrides.isEmpty()) {
+            apps
+        } else {
+            apps.map { app -> overrides[app.packageName]?.let { app.copy(displayName = it) } ?: app }
+                .sortedBy { it.displayName.lowercase() }
+        }
+    }.stateIn(
+        scope = scope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
+
     override val mainUserApps: StateFlow<List<InstalledApp>> = installedApps
         .map { apps ->
             apps.filter { it.user == Process.myUserHandle() }
@@ -132,7 +153,7 @@ class AppsRepositoryImpl @Inject constructor(
             }
         }
 
-        _installedApps.value = allApps
+        _rawInstalledApps.value = allApps
             .distinctBy { it.packageName + it.user.toString() }
             .sortedBy { it.displayName.lowercase() }
     }
@@ -144,8 +165,8 @@ class AppsRepositoryImpl @Inject constructor(
      * @return String app name
      */
     override fun getAppNameFromPackageName(packageName: String): String {
-        // Check current installed apps first
-        _installedApps.value.find { it.packageName == packageName }?.let {
+        // Check current installed apps first (renamed, since callers expect the display name)
+        installedApps.value.find { it.packageName == packageName }?.let {
             return it.displayName
         }
         return "null"
@@ -158,8 +179,8 @@ class AppsRepositoryImpl @Inject constructor(
      * @return InstalledApp? or null if not found
      */
     override fun getInstalledAppFromPackageName(packageName: String): InstalledApp? {
-        // Check current installed apps first
-        _installedApps.value.find { it.packageName == packageName }?.let {
+        // Check current installed apps first (renamed, since callers expect the display name)
+        installedApps.value.find { it.packageName == packageName }?.let {
             return it
         }
         return null

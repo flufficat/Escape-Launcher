@@ -48,6 +48,7 @@ import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
+import com.geecee.escapelauncher.core.ui.composables.RenameDialog
 import com.geecee.escapelauncher.core.ui.composables.OpenChallenge
 import com.geecee.escapelauncher.core.ui.composables.TabDisplay
 import com.geecee.escapelauncher.core.ui.composables.TabbedScreen
@@ -280,6 +281,7 @@ fun MainPagerScreen(
                 val bottomSheetApp by appsListViewModel.bottomSheetApp.collectAsState()
                 val bottomSheetActions by appsListViewModel.bottomSheetActions.collectAsState()
                 val shortcutActions by appsListViewModel.shortcutActions.collectAsState()
+                val renameDialogTarget by appsListViewModel.renameDialogTarget.collectAsState()
 
                 val handleAppClick: (InstalledApp) -> Unit = { app ->
                     viewModel.openApp(
@@ -380,6 +382,14 @@ fun MainPagerScreen(
                             onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
                             shortcutActions = shortcutActions,
                             sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+                        )
+                    }
+
+                    renameDialogTarget?.let { target ->
+                        RenameDialog(
+                            target = target,
+                            onDismiss = { appsListViewModel.dismissRenameDialog() },
+                            onSave = { appsListViewModel.saveRename(it) }
                         )
                     }
                 }

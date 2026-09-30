@@ -14,6 +14,7 @@ import com.geecee.escapelauncher.core.domain.repository.settings.*
 import com.geecee.escapelauncher.core.model.AppAction
 import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.PinnedShortcut
+import com.geecee.escapelauncher.core.model.RenameTarget
 import com.geecee.escapelauncher.core.ui.R
 import com.geecee.escapelauncher.feature.newwidgets.WidgetHostManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +47,8 @@ class NewHomeScreenViewModel @Inject constructor(
     private val unpinShortcutUseCase: UnpinShortcutUseCase,
     private val uninstallAppUseCase: UninstallAppUseCase,
     private val openAppDetailsUseCase: OpenAppDetailsUseCase,
+    private val renameAppUseCase: RenameAppUseCase,
+    private val renameShortcutUseCase: RenameShortcutUseCase,
     private val analyticsProxy: AnalyticsProxy
 ) : ViewModel() {
     val isFoss = appConfiguration.isFoss
@@ -111,6 +114,23 @@ class NewHomeScreenViewModel @Inject constructor(
     val bottomSheetApp: StateFlow<LauncherItem?> = _bottomSheetApp.asStateFlow()
     fun setBottomSheetApp(item: LauncherItem?) {
         _bottomSheetApp.value = item
+    }
+
+    // Rename dialog
+    private val _renameDialogTarget = MutableStateFlow<RenameTarget?>(null)
+    val renameDialogTarget: StateFlow<RenameTarget?> = _renameDialogTarget.asStateFlow()
+    fun dismissRenameDialog() {
+        _renameDialogTarget.value = null
+    }
+    fun saveRename(newName: String) {
+        val target = _renameDialogTarget.value ?: return
+        viewModelScope.launch {
+            when (target) {
+                is RenameTarget.App -> renameAppUseCase(target.packageId, newName)
+                is RenameTarget.Shortcut -> renameShortcutUseCase(target.packageName, target.shortcutId, newName)
+            }
+            _renameDialogTarget.value = null
+        }
     }
 
     fun logException(e: Exception) {
@@ -179,6 +199,20 @@ class NewHomeScreenViewModel @Inject constructor(
                                     _showBottomSheet.value = false
                                 }
                             }
+                        }
+                    )
+                    AppActionType.Rename -> AppAction(
+                        labelRes = R.string.rename,
+                        onClick = { clicked ->
+                            _renameDialogTarget.value = when (clicked) {
+                                is LauncherItem.App -> RenameTarget.App(clicked.app.packageName, clicked.displayName)
+                                is LauncherItem.Shortcut -> RenameTarget.Shortcut(
+                                    clicked.shortcut.packageName,
+                                    clicked.shortcut.shortcutId,
+                                    clicked.displayName
+                                )
+                            }
+                            _showBottomSheet.value = false
                         }
                     )
                     AppActionType.RemoveShortcut -> AppAction(

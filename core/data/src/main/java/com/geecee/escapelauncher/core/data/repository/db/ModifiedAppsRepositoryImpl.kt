@@ -9,6 +9,7 @@ import com.geecee.escapelauncher.core.model.ModifiedApp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,6 +32,11 @@ class ModifiedAppsRepositoryImpl @Inject constructor(
             modifiedAppsDao.getAllFlow()
         ) { order, apps ->
             mergeFavouriteApps(order.filter { it.itemType == LauncherItem.TYPE_APP }, apps)
+        }
+
+    override fun getDisplayNameOverridesFlow(): Flow<Map<String, String>> =
+        modifiedAppsDao.getRenamedAppsFlow().map { entities ->
+            entities.mapNotNull { entity -> entity.displayName?.let { entity.packageId to it } }.toMap()
         }
 
     override suspend fun getByPackageId(packageId: String): ModifiedApp? {

@@ -92,6 +92,9 @@ interface ModifiedAppsDao {
     @Query("SELECT * FROM modifiedApps")
     fun getAllFlow(): Flow<List<ModifiedAppEntity>>
 
+    @Query("SELECT * FROM modifiedApps WHERE displayName IS NOT NULL")
+    fun getRenamedAppsFlow(): Flow<List<ModifiedAppEntity>>
+
     @Query(
         """
         SELECT packageId

@@ -7,6 +7,9 @@ interface ModifiedAppsRepository {
     fun getHiddenPackageIdsFlow(): Flow<List<String>>
     fun getChallengePackageIdsFlow(): Flow<List<String>>
     fun getFavouriteAppsInOrderFlow(): Flow<List<ModifiedApp>>
+
+    /** Maps packageId -> the user's renamed display name, for apps with a rename override set. */
+    fun getDisplayNameOverridesFlow(): Flow<Map<String, String>>
     suspend fun getByPackageId(packageId: String): ModifiedApp?
     suspend fun setDisplayName(packageId: String, displayName: String?)
     suspend fun getDisplayName(packageId: String): String?

@@ -63,6 +63,7 @@ import com.geecee.escapelauncher.core.ui.composables.Clock
 import com.geecee.escapelauncher.core.ui.composables.FirstTimeHelp
 import com.geecee.escapelauncher.core.ui.composables.GlanceWidget
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
+import com.geecee.escapelauncher.core.ui.composables.RenameDialog
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenItem
 import com.geecee.escapelauncher.core.ui.utils.doHapticFeedBack
 import com.geecee.escapelauncher.core.ui.R
@@ -115,6 +116,7 @@ fun HomeScreen(
     val bottomSheetApp by homeScreenViewModel.bottomSheetApp.collectAsState()
     val bottomSheetActions by homeScreenViewModel.bottomSheetActions.collectAsState()
     val shortcutActions by homeScreenViewModel.shortcutActions.collectAsState()
+    val renameDialogTarget by homeScreenViewModel.renameDialogTarget.collectAsState()
     val showWallpaper by homeScreenViewModel.showWallpaper.collectAsState(initial = false)
 
     val (hour, minute, _) = timeParts
@@ -422,6 +424,14 @@ fun HomeScreen(
                 onDismissRequest = { homeScreenViewModel.setBottomSheetVisible(false) },
                 shortcutActions = shortcutActions,
                 sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+            )
+        }
+
+        renameDialogTarget?.let { target ->
+            RenameDialog(
+                target = target,
+                onDismiss = { homeScreenViewModel.dismissRenameDialog() },
+                onSave = { homeScreenViewModel.saveRename(it) }
             )
         }
     }
