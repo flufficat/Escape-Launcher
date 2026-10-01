@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.geecee.escapelauncher.core.common.DefaultSettings
@@ -40,6 +41,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
+
+// How far off-screen the search page's vertical slide starts/ends from, for both the gesture
+// entry animation and its mirrored close. Not derived from actual screen height since it only
+// needs to safely exceed it.
+private const val VERTICAL_SLIDE_DISTANCE_PX = 3000f
 
 @HiltViewModel
 class MainPagerScreenViewModel @Inject constructor(
@@ -77,15 +83,20 @@ class MainPagerScreenViewModel @Inject constructor(
     val hapticFeedBackEnabled = launcherBehaviorRepository.hapticFeedBackEnabled
 
     // Which gesture direction (if any) the search page was most recently entered from, so its
-    // content can animate in from that edge (see MainPagerScreen's appsListPageIndex branch).
-    // Null means it was reached the normal way (a horizontal pager drag), which needs no extra
-    // animation since the pager's own drag already visually handles that transition.
+    // content can animate in from - and later back out to - that same edge (see
+    // openSearchPageFromGesture/animatedGoToMainPage below). Null means it was reached the
+    // normal way (a horizontal pager drag), which needs no extra animation since the pager's
+    // own drag already visually handles that transition both ways. Cleared whenever the pager
+    // actually settles on the main page, from any cause (our own animation or a manual drag),
+    // so a stale direction from a previous session can never leak into an unrelated close.
     private val _searchEntryDirection = MutableStateFlow<SearchGestureDirection?>(null)
     val searchEntryDirection: StateFlow<SearchGestureDirection?> = _searchEntryDirection.asStateFlow()
 
-    fun consumeSearchEntryDirection() {
-        _searchEntryDirection.value = null
-    }
+    // Drives the appsListPageIndex branch's vertical slide offset (see MainPagerScreen). Lives
+    // here rather than as Composable-scoped `remember` state so the same close animation can be
+    // driven from animatedGoToMainPage() regardless of which call site triggers it.
+    private val _verticalOffsetPx = MutableStateFlow(0f)
+    val verticalOffsetPx: StateFlow<Float> = _verticalOffsetPx.asStateFlow()
 
     val isHiddenPrivateSpace = launcherBehaviorRepository.hidePrivateSpace
 
@@ -127,8 +138,23 @@ class MainPagerScreenViewModel @Inject constructor(
         return if (hideScreenTimePage.value) 1 else 2
     }
 
+    // Mirrors whatever got the user onto the search page in the first place: if it was a
+    // vertical gesture, this plays the same slide back out the way it came in, rather than
+    // always closing with the pager's horizontal animation regardless of entry direction.
     suspend fun animatedGoToMainPage() {
-        animateToPageAtElevatedPriority(getMainPageIndex())
+        val entryDirection = _searchEntryDirection.value
+        if (entryDirection == SearchGestureDirection.UP || entryDirection == SearchGestureDirection.DOWN) {
+            val exitTarget = if (entryDirection == SearchGestureDirection.UP) VERTICAL_SLIDE_DISTANCE_PX else -VERTICAL_SLIDE_DISTANCE_PX
+            val anim = Animatable(_verticalOffsetPx.value)
+            anim.animateTo(exitTarget, animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)) {
+                _verticalOffsetPx.value = value
+            }
+            pagerState.scrollToPage(getMainPageIndex())
+            _verticalOffsetPx.value = 0f
+            _searchEntryDirection.value = null
+        } else {
+            animateToPageAtElevatedPriority(getMainPageIndex())
+        }
     }
 
     suspend fun animatedGoToSearchPage() {
@@ -141,7 +167,13 @@ class MainPagerScreenViewModel @Inject constructor(
     // vertical slide-in animation from the given direction instead (see MainPagerScreen).
     suspend fun openSearchPageFromGesture(direction: SearchGestureDirection) {
         _searchEntryDirection.value = direction
+        _verticalOffsetPx.value = if (direction == SearchGestureDirection.UP) VERTICAL_SLIDE_DISTANCE_PX else -VERTICAL_SLIDE_DISTANCE_PX
         pagerState.scrollToPage(getAppsListPageIndex())
+
+        val anim = Animatable(_verticalOffsetPx.value)
+        anim.animateTo(0f, animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)) {
+            _verticalOffsetPx.value = value
+        }
     }
 
     // Disposing a focused text field (e.g. the search box) as its page scrolls out of the pager's
@@ -200,6 +232,21 @@ class MainPagerScreenViewModel @Inject constructor(
             screenTimeSettingsRepository.hideScreenTimePage
                 .distinctUntilChanged()
                 .collect { hide -> pagerState.scrollToPage(if (hide) 0 else 1) }
+        }
+
+        // Self-healing: if the user leaves the search page by a plain horizontal drag instead of
+        // going through animatedGoToMainPage() (e.g. dragging back rather than pressing back),
+        // that path never clears searchEntryDirection/verticalOffsetPx on its own. Settling on
+        // the main page from any cause resets both, so a stale vertical entry direction can never
+        // leak into a later, unrelated close.
+        viewModelScope.launch {
+            snapshotFlow { pagerState.currentPage to pagerState.isScrollInProgress }
+                .collect { (page, scrolling) ->
+                    if (!scrolling && page == getMainPageIndex()) {
+                        _searchEntryDirection.value = null
+                        _verticalOffsetPx.value = 0f
+                    }
+                }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.geecee.escapelauncher.core.ui.composables
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -71,12 +72,13 @@ fun AnimatedPillSearchBar(
     }
 
     // Animation Specs
+    // Matches the gesture-driven app-list page's own slide-in duration/easing (see
+    // MainPagerScreenViewModel) so the pill's expansion and the list's entrance land at the same
+    // moment instead of settling independently on their own timelines.
     val width by animateDpAsState(
         targetValue = if (isExpanded) 280.dp else 56.dp,
         label = "widthAnimation",
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow
-        )
+        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
     )
     val interactionSource =  remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -93,10 +95,13 @@ fun AnimatedPillSearchBar(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Handle Auto-focus and Expansion changes
+    // Handle Auto-focus and Expansion changes. No artificial delay before requesting focus -
+    // the pager now keeps this page composed ahead of time (beyondViewportPageCount in
+    // MainPagerScreen), so the text field already exists in the tree by the time this fires,
+    // letting the keyboard start appearing in step with the list's own slide-in instead of
+    // visibly trailing behind it.
     LaunchedEffect(isExpanded, autoFocus) {
         if (isExpanded) {
-            delay(150.milliseconds)
             focusRequester.requestFocus()
             keyboardController?.show()
         } else {

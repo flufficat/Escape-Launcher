@@ -434,7 +434,10 @@ fun HomeScreen(
                 onDismissRequest = { homeScreenViewModel.setBottomSheetVisible(false) },
                 shortcutActions = shortcutActions,
                 relatedItemActions = relatedItemActions,
-                sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+                sheetState = rememberBottomSheetState(
+                    initialValue = SheetValue.Hidden,
+                    enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+                )
             )
         }
 

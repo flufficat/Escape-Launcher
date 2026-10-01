@@ -48,7 +48,10 @@ fun HomeScreenBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        sheetState = sheetState ?: rememberBottomSheetState(initialValue = SheetValue.Hidden)
+        sheetState = sheetState ?: rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        )
     ) {
         Column(
             modifier
@@ -106,12 +109,16 @@ fun HomeScreenBottomSheet(
 @Composable
 private fun AppActionItem(action: AppAction, subject: LauncherItem) {
     val label = action.label ?: action.labelRes?.let { stringResource(it) } ?: ""
-    Text(
-        text = label,
+    Row(
         modifier = Modifier
-            .padding(vertical = 10.dp)
-            .combinedClickable(onClick = { action.onClick(subject) }),
-        color = MaterialTheme.colorScheme.onSurface,
-        style = MaterialTheme.typography.bodyMedium
-    )
+            .combinedClickable(onClick = { action.onClick(subject) })
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(vertical = 10.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }

@@ -5,9 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -227,6 +224,10 @@ fun MainPagerScreen(
     // Home Screen Pages
     HorizontalPager(
         state = viewModel.pagerState,
+        // Keeps the search page (and its TextField) composed even while it isn't the current
+        // page, so a gesture-triggered open can request keyboard focus immediately instead of
+        // waiting for that page to mount for the first time.
+        beyondViewportPageCount = 1,
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(pagerLeftGestureConnection)
@@ -305,35 +306,19 @@ fun MainPagerScreen(
                     }
                 }
 
-                // When search was reached via the Up/Down home-screen gesture, the pager itself
-                // jumped here instantly (it only animates horizontally, which would look wrong for
-                // a vertical gesture) - this page's content plays its own vertical slide-in from
-                // that direction instead, so it still visually enters from the edge that was
-                // swiped. Reached the normal way (a horizontal pager drag, i.e. Left), this stays
-                // at zero offset and the pager's own drag handles the transition as before.
-                val searchEntryDirection by viewModel.searchEntryDirection.collectAsState()
-                val verticalOffsetPx = remember { Animatable(0f) }
-
-                LaunchedEffect(searchEntryDirection) {
-                    when (searchEntryDirection) {
-                        SearchGestureDirection.UP -> {
-                            verticalOffsetPx.snapTo(3000f)
-                            verticalOffsetPx.animateTo(0f, tween(durationMillis = 350, easing = FastOutSlowInEasing))
-                            viewModel.consumeSearchEntryDirection()
-                        }
-                        SearchGestureDirection.DOWN -> {
-                            verticalOffsetPx.snapTo(-3000f)
-                            verticalOffsetPx.animateTo(0f, tween(durationMillis = 350, easing = FastOutSlowInEasing))
-                            viewModel.consumeSearchEntryDirection()
-                        }
-                        SearchGestureDirection.LEFT, null -> Unit
-                    }
-                }
+                // When search is reached or left via the Up/Down home-screen gesture, the pager
+                // itself jumps instantly (it only animates horizontally, which would look wrong
+                // for a vertical gesture) - this page's content plays its own vertical slide
+                // from/to that direction instead, driven by the ViewModel (see
+                // openSearchPageFromGesture/animatedGoToMainPage) so the same close animation
+                // works regardless of which call site triggers it. Reached the normal way (a
+                // horizontal pager drag), this stays at zero offset throughout.
+                val verticalOffsetPx by viewModel.verticalOffsetPx.collectAsState()
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .offset { IntOffset(0, verticalOffsetPx.value.roundToInt()) }
+                        .offset { IntOffset(0, verticalOffsetPx.roundToInt()) }
                 ) {
                     TabDisplay(
                         screens = listOf(
@@ -388,7 +373,10 @@ fun MainPagerScreen(
                             onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
                             shortcutActions = shortcutActions,
                             relatedItemActions = relatedItemActions,
-                            sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+                            sheetState = rememberBottomSheetState(
+                                initialValue = SheetValue.Hidden,
+                                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+                            )
                         )
                     }
 

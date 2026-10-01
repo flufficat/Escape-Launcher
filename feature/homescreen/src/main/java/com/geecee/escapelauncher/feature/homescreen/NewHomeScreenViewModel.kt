@@ -110,7 +110,8 @@ class NewHomeScreenViewModel @Inject constructor(
         appsRepository.mainUserApps,
         pinnedShortcutsRepository.getAllFlow()
     ) { apps, shortcuts ->
-        apps.map { LauncherItem.App(it) } + shortcuts.map { LauncherItem.Shortcut(it) }
+        (apps.map { LauncherItem.App(it) } + shortcuts.map { LauncherItem.Shortcut(it) })
+            .sortedBy { it.displayName.lowercase() }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
