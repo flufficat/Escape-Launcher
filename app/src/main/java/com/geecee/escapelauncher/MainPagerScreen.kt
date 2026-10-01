@@ -102,6 +102,7 @@ fun MainPagerScreen(
     // have already consumed a "first" press (see: this used to intermittently just clear the
     // search text on what should have been the press that goes home).
     BackHandler(enabled = true) {
+        android.util.Log.d("CloseDebug", "BackHandler fired: isAppsListVisible=$isAppsListVisible searchExpanded=$searchExpanded searchText='$searchText'")
         coroutineScope.launch {
             if (isAppsListVisible && (searchExpanded || searchText.isNotEmpty())) {
                 appsListViewModel.onSearchExpandedChanged(false)

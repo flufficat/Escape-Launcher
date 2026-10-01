@@ -1,13 +1,11 @@
 package com.geecee.escapelauncher.core.ui.composables
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -37,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -95,11 +94,20 @@ fun AnimatedPillSearchBar(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // Fades the text field in/out without ever removing it from composition (see below) - kept
+    // close to the old AnimatedVisibility's 300ms fade for the same felt speed.
+    val textFieldAlpha by animateFloatAsState(
+        targetValue = if (isExpanded) 1f else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "textFieldAlpha"
+    )
+
     // Handle Auto-focus and Expansion changes. No artificial delay before requesting focus -
-    // the pager now keeps this page composed ahead of time (beyondViewportPageCount in
-    // MainPagerScreen), so the text field already exists in the tree by the time this fires,
-    // letting the keyboard start appearing in step with the list's own slide-in instead of
-    // visibly trailing behind it.
+    // the text field below is always composed (never gated behind AnimatedVisibility, which
+    // would otherwise only create it - and lay it out - starting on this very same frame),
+    // so by the time this fires it's already a real, measured node that can take focus
+    // immediately, letting the keyboard start appearing in step with the list's own slide-in
+    // instead of visibly trailing behind it.
     LaunchedEffect(isExpanded, autoFocus) {
         if (isExpanded) {
             focusRequester.requestFocus()
@@ -143,39 +151,38 @@ fun AnimatedPillSearchBar(
                     .size(24.dp)
             )
 
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn(animationSpec = tween(300)),
-                exit = fadeOut(animationSpec = tween(300))
-            ) {
-                BasicTextField(
-                    value = textFieldValue,
-                    onValueChange = {
-                        textFieldValue = it
-                        onSearchTextChanged(it.text)
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(start = 48.dp, end = 16.dp)
-                        .focusRequester(focusRequester),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        onSearchDone(textFieldValue.text.trim(), keyboardController)
-                    }),
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSecondary
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSecondary),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            contentAlignment = Alignment.CenterStart,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            innerTextField()
-                        }
-                    })
-            }
+            BasicTextField(
+                value = textFieldValue,
+                onValueChange = {
+                    textFieldValue = it
+                    onSearchTextChanged(it.text)
+                },
+                // Always composed (unlike the old AnimatedVisibility-wrapped version) so
+                // focusRequester always targets a real, already-laid-out node - only its
+                // visibility and interactivity are toggled, not its presence in the tree.
+                enabled = isExpanded,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 48.dp, end = 16.dp)
+                    .alpha(textFieldAlpha)
+                    .focusRequester(focusRequester),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    onSearchDone(textFieldValue.text.trim(), keyboardController)
+                }),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSecondary
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSecondary),
+                decorationBox = { innerTextField ->
+                    Box(
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        innerTextField()
+                    }
+                })
         }
     }
 }

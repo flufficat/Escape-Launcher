@@ -143,13 +143,19 @@ class MainPagerScreenViewModel @Inject constructor(
     // always closing with the pager's horizontal animation regardless of entry direction.
     suspend fun animatedGoToMainPage() {
         val entryDirection = _searchEntryDirection.value
+        android.util.Log.d("CloseDebug", "animatedGoToMainPage: entryDirection=$entryDirection currentPage=${pagerState.currentPage}")
         if (entryDirection == SearchGestureDirection.UP || entryDirection == SearchGestureDirection.DOWN) {
             val exitTarget = if (entryDirection == SearchGestureDirection.UP) VERTICAL_SLIDE_DISTANCE_PX else -VERTICAL_SLIDE_DISTANCE_PX
             val anim = Animatable(_verticalOffsetPx.value)
             anim.animateTo(exitTarget, animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)) {
                 _verticalOffsetPx.value = value
             }
-            pagerState.scrollToPage(getMainPageIndex())
+            // The search text field is still focused at this point, and this jump is what
+            // disposes it as the page changes - that disposal triggers the same OS-level
+            // ATTACH_NEW_INPUT-driven competing mutation described on animateToPageAtElevatedPriority
+            // below, which would otherwise hijack a plain scrollToPage() here into visibly playing
+            // the pager's own default (horizontal) snap animation instead of just landing silently.
+            jumpToPageAtElevatedPriority(getMainPageIndex())
             _verticalOffsetPx.value = 0f
             _searchEntryDirection.value = null
         } else {
@@ -166,6 +172,7 @@ class MainPagerScreenViewModel @Inject constructor(
     // which would look wrong for a vertical gesture), and the search page's content plays its own
     // vertical slide-in animation from the given direction instead (see MainPagerScreen).
     suspend fun openSearchPageFromGesture(direction: SearchGestureDirection) {
+        android.util.Log.d("CloseDebug", "openSearchPageFromGesture: direction=$direction")
         _searchEntryDirection.value = direction
         _verticalOffsetPx.value = if (direction == SearchGestureDirection.UP) VERTICAL_SLIDE_DISTANCE_PX else -VERTICAL_SLIDE_DISTANCE_PX
         pagerState.scrollToPage(getAppsListPageIndex())
@@ -190,6 +197,28 @@ class MainPagerScreenViewModel @Inject constructor(
     // separately-prioritized mutation that immediately self-conflicts - so the animation is
     // driven manually instead: an Animatable stepping through the same page-index range,
     // applying each frame's delta via the elevated-priority ScrollScope's scrollBy.
+    // Same elevated-priority protection as animateToPageAtElevatedPriority below, but for an
+    // instant jump rather than an animated scroll - used when the visual motion has already
+    // been handled some other way (the vertical slide Animatable) and this call just needs to
+    // land on the target page without being hijacked by a competing mutation.
+    private suspend fun jumpToPageAtElevatedPriority(targetPage: Int) {
+        val pageSizeWithSpacing = (pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing).toFloat()
+        android.util.Log.d("CloseDebug", "jumpToPageAtElevatedPriority: targetPage=$targetPage pageSizeWithSpacing=$pageSizeWithSpacing currentPage=${pagerState.currentPage} offsetFraction=${pagerState.currentPageOffsetFraction}")
+        if (pageSizeWithSpacing <= 0f) {
+            android.util.Log.d("CloseDebug", "jumpToPageAtElevatedPriority: FALLBACK plain scrollToPage used")
+            pagerState.scrollToPage(targetPage)
+            return
+        }
+
+        pagerState.scroll(MutatePriority.PreventUserInput) {
+            val startValue =
+                (pagerState.currentPage + pagerState.currentPageOffsetFraction) * pageSizeWithSpacing
+            val targetValue = targetPage * pageSizeWithSpacing
+            scrollBy(targetValue - startValue)
+        }
+        android.util.Log.d("CloseDebug", "jumpToPageAtElevatedPriority: AFTER currentPage=${pagerState.currentPage} offsetFraction=${pagerState.currentPageOffsetFraction}")
+    }
+
     private suspend fun animateToPageAtElevatedPriority(targetPage: Int) {
         if (pagerState.currentPage == targetPage && pagerState.currentPageOffsetFraction == 0f) {
             return
@@ -243,6 +272,9 @@ class MainPagerScreenViewModel @Inject constructor(
             snapshotFlow { pagerState.currentPage to pagerState.isScrollInProgress }
                 .collect { (page, scrolling) ->
                     if (!scrolling && page == getMainPageIndex()) {
+                        if (_searchEntryDirection.value != null) {
+                            android.util.Log.d("CloseDebug", "self-healing watcher clearing entryDirection=${_searchEntryDirection.value} page=$page")
+                        }
                         _searchEntryDirection.value = null
                         _verticalOffsetPx.value = 0f
                     }

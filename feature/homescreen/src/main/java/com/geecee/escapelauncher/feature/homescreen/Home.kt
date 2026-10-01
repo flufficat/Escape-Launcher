@@ -160,13 +160,22 @@ fun HomeScreen(
     // Both directions defer firing to onPostFling (once the drag has actually ended) rather than
     // mid-drag: starting a page-transition animation while this list's own drag mutation is still
     // active can get it interrupted by that ongoing gesture. Each direction only fires once per
-    // gesture via its own armed flag.
-    val nestedScrollConnection = remember(searchGestureDirection, onSwipeDownOpenSearch, onSwipeUpOpenSearch) {
+    // gesture via its own armed flag. Firing is tracked here as real Compose state (rather than
+    // calling the callback inline from onPostScroll) and actually triggered from the
+    // LaunchedEffects below, as soon as the threshold is crossed mid-drag rather than waiting
+    // for the finger to lift - the keyboard/list reveal gets a head start instead of only
+    // starting once the gesture has fully finished. The LaunchedEffect indirection still keeps
+    // the actual page-transition call out of onPostScroll's own call stack (it runs as a
+    // separately-dispatched coroutine), which is what matters for not getting interrupted by
+    // this list's own still-active drag mutation - the original reason firing was deferred at
+    // all, back when it was only ever deferred as far as onPostFling.
+    var downArmed by remember { mutableStateOf(false) }
+    var upArmed by remember { mutableStateOf(false) }
+
+    val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             var downDrag = 0f
-            var downArmed = false
             var upDrag = 0f
-            var upArmed = false
 
             override fun onPostScroll(
                 consumed: Offset,
@@ -201,33 +210,38 @@ fun HomeScreen(
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                if (downArmed) {
-                    downArmed = false
-                    if (searchGestureDirection == SearchGestureDirection.DOWN) {
-                        onSwipeDownOpenSearch()
-                    } else {
-                        try {
-                            @SuppressLint("WrongConstant") val service =
-                                context.getSystemService("statusbar") // Use literal string "statusbar"
-
-                            val statusBarManager = Class.forName("android.app.StatusBarManager")
-                            val expand = statusBarManager.getMethod("expandNotificationsPanel")
-                            expand.invoke(service)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
-                if (upArmed) {
-                    upArmed = false
-                    if (searchGestureDirection == SearchGestureDirection.UP) {
-                        onSwipeUpOpenSearch()
-                    }
-                }
+                // Firing already happened (if at all) as soon as armed flipped true, above -
+                // this just resets both flags for the next gesture.
+                downArmed = false
+                upArmed = false
                 downDrag = 0f
                 upDrag = 0f
                 return super.onPostFling(consumed, available)
             }
+        }
+    }
+
+    LaunchedEffect(downArmed) {
+        if (!downArmed) return@LaunchedEffect
+        if (searchGestureDirection == SearchGestureDirection.DOWN) {
+            onSwipeDownOpenSearch()
+        } else {
+            try {
+                @SuppressLint("WrongConstant") val service =
+                    context.getSystemService("statusbar") // Use literal string "statusbar"
+
+                val statusBarManager = Class.forName("android.app.StatusBarManager")
+                val expand = statusBarManager.getMethod("expandNotificationsPanel")
+                expand.invoke(service)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    LaunchedEffect(upArmed) {
+        if (upArmed && searchGestureDirection == SearchGestureDirection.UP) {
+            onSwipeUpOpenSearch()
         }
     }
 
