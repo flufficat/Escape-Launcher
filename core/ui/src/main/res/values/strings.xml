@@ -34,6 +34,8 @@
     <string name="rename">Rename</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="add_related">Add Related</string>
+    <string name="related_items_picker_title">Related Apps</string>
     <string name="search">Search</string>
     <string name="unlock_private_space">Unlock Private Space</string>
     <string name="unlock">Unlock</string>

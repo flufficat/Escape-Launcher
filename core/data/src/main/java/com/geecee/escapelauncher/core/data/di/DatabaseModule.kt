@@ -6,9 +6,11 @@ import com.geecee.escapelauncher.core.data.database.AppDatabase
 import com.geecee.escapelauncher.core.data.database.AppUsageDao
 import com.geecee.escapelauncher.core.data.database.FavouriteOrderDao
 import com.geecee.escapelauncher.core.data.database.MIGRATION_1_2
+import com.geecee.escapelauncher.core.data.database.MIGRATION_2_3
 import com.geecee.escapelauncher.core.data.database.ModifiedAppsDao
 import com.geecee.escapelauncher.core.data.database.ModifiedAppsDatabase
 import com.geecee.escapelauncher.core.data.database.PinnedShortcutsDao
+import com.geecee.escapelauncher.core.data.database.RelatedItemsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,7 +47,7 @@ object DatabaseModule {
             context = context,
             klass = ModifiedAppsDatabase::class.java,
             "modified_apps_database"
-        ).addMigrations(MIGRATION_1_2).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
     }
 
     @Provides
@@ -61,5 +63,10 @@ object DatabaseModule {
     @Provides
     fun provideFavouriteOrderDao(database: ModifiedAppsDatabase): FavouriteOrderDao {
         return database.favouriteOrderDao()
+    }
+
+    @Provides
+    fun provideRelatedItemsDao(database: ModifiedAppsDatabase): RelatedItemsDao {
+        return database.relatedItemsDao()
     }
 }

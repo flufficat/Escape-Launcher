@@ -7,13 +7,17 @@ import com.geecee.escapelauncher.core.common.isMainUserApp
 import com.geecee.escapelauncher.core.domain.apps.AppActionType
 import com.geecee.escapelauncher.core.domain.apps.GetAppActionsUseCase
 import com.geecee.escapelauncher.core.domain.apps.GetAppShortcutsUseCase
+import com.geecee.escapelauncher.core.domain.apps.GetRelatedLauncherItemsUseCase
 import com.geecee.escapelauncher.core.domain.apps.OpenAppDetailsUseCase
 import com.geecee.escapelauncher.core.domain.apps.RenameAppUseCase
 import com.geecee.escapelauncher.core.domain.apps.RenameShortcutUseCase
 import com.geecee.escapelauncher.core.domain.apps.StartShortcutUseCase
 import com.geecee.escapelauncher.core.domain.apps.UninstallAppUseCase
 import com.geecee.escapelauncher.core.domain.apps.UnpinShortcutUseCase
+import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
 import com.geecee.escapelauncher.core.domain.repository.favourites.FavouritesRepository
+import com.geecee.escapelauncher.core.domain.repository.relateditems.RelatedItemsRepository
+import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
 import com.geecee.escapelauncher.core.domain.search.SearchAppsUseCase
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
 import com.geecee.escapelauncher.core.domain.repository.settings.*
@@ -37,8 +41,12 @@ class AppsListViewModel @Inject constructor(
     screenTimeSettingsRepository: ScreenTimeSettingsRepository,
     private val modifiedAppsRepository: ModifiedAppsRepository,
     private val favouritesRepository: FavouritesRepository,
+    val relatedItemsRepository: RelatedItemsRepository,
+    appsRepository: AppsRepository,
+    pinnedShortcutsRepository: PinnedShortcutsRepository,
     private val getAppActionsUseCase: GetAppActionsUseCase,
     private val getAppShortcutsUseCase: GetAppShortcutsUseCase,
+    val getRelatedLauncherItemsUseCase: GetRelatedLauncherItemsUseCase,
     private val startShortcutUseCase: StartShortcutUseCase,
     private val unpinShortcutUseCase: UnpinShortcutUseCase,
     private val uninstallAppUseCase: UninstallAppUseCase,
@@ -92,6 +100,18 @@ class AppsListViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    /** Every app and pinned shortcut, unfiltered - candidates for the related-items picker. */
+    val allLauncherItems: StateFlow<List<LauncherItem>> = combine(
+        appsRepository.mainUserApps,
+        pinnedShortcutsRepository.getAllFlow()
+    ) { apps, shortcuts ->
+        apps.map { LauncherItem.App(it) } + shortcuts.map { LauncherItem.Shortcut(it) }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     /** Starts a pinned shortcut clicked directly in the drawer (not via the bottom sheet). */
     fun openShortcut(shortcut: PinnedShortcut) {
         startShortcutUseCase(shortcut.packageName, shortcut.shortcutId)
@@ -128,6 +148,13 @@ class AppsListViewModel @Inject constructor(
             }
             _renameDialogTarget.value = null
         }
+    }
+
+    // Related items picker
+    private val _relatedItemsPickerTarget = MutableStateFlow<LauncherItem?>(null)
+    val relatedItemsPickerTarget: StateFlow<LauncherItem?> = _relatedItemsPickerTarget.asStateFlow()
+    fun dismissRelatedItemsPicker() {
+        _relatedItemsPickerTarget.value = null
     }
 
     // Actions
@@ -208,6 +235,14 @@ class AppsListViewModel @Inject constructor(
                             _showBottomSheet.value = false
                         }
                     )
+                    AppActionType.ManageRelatedItems -> AppAction(
+                        labelRes = R.string.add_related,
+                        isVisible = { clicked -> clicked !is LauncherItem.App || clicked.app.isMainUserApp() },
+                        onClick = { clicked ->
+                            _relatedItemsPickerTarget.value = clicked
+                            _showBottomSheet.value = false
+                        }
+                    )
                     AppActionType.RemoveShortcut -> AppAction(
                         labelRes = R.string.remove,
                         isVisible = { clicked -> clicked is LauncherItem.Shortcut },
@@ -251,8 +286,30 @@ class AppsListViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    val relatedItemActions: StateFlow<List<AppAction>> = _bottomSheetApp.flatMapLatest { item ->
+        if (item == null) flowOf(emptyList())
+        else getRelatedLauncherItemsUseCase(item.itemKey).map { relatedItems ->
+            relatedItems.map { related ->
+                AppAction(
+                    label = related.displayName,
+                    onClick = {
+                        _showBottomSheet.value = false
+                        viewModelScope.launch {
+                            _uiEvent.emit(AppsListUiEvent.LaunchRelatedItem(related))
+                        }
+                    }
+                )
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 }
 
 sealed class AppsListUiEvent {
     data object NavigateHome : AppsListUiEvent()
+    data class LaunchRelatedItem(val item: LauncherItem) : AppsListUiEvent()
 }

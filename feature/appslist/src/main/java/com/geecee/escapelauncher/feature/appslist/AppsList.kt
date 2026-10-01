@@ -87,6 +87,7 @@ fun AppsList(
         appsListViewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is AppsListUiEvent.NavigateHome -> onGoHomeRequest()
+                is AppsListUiEvent.LaunchRelatedItem -> handleItemClick(event.item)
             }
         }
     }

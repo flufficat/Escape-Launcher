@@ -8,8 +8,11 @@ import com.geecee.escapelauncher.core.analytics.AnalyticsProxy
 import com.geecee.escapelauncher.core.domain.repository.AppConfiguration
 import com.geecee.escapelauncher.core.common.isMainUserApp
 import com.geecee.escapelauncher.core.domain.apps.*
+import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
 import com.geecee.escapelauncher.core.domain.repository.favourites.FavouritesRepository
+import com.geecee.escapelauncher.core.domain.repository.relateditems.RelatedItemsRepository
+import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
 import com.geecee.escapelauncher.core.domain.repository.settings.*
 import com.geecee.escapelauncher.core.model.AppAction
 import com.geecee.escapelauncher.core.model.LauncherItem
@@ -38,11 +41,15 @@ class NewHomeScreenViewModel @Inject constructor(
     widgetSettingsRepository: WidgetSettingsRepository,
     private val modifiedAppsRepository: ModifiedAppsRepository,
     private val favouritesRepository: FavouritesRepository,
+    val relatedItemsRepository: RelatedItemsRepository,
+    appsRepository: AppsRepository,
+    pinnedShortcutsRepository: PinnedShortcutsRepository,
     getFavoriteLauncherItemsUseCase: GetFavoriteLauncherItemsUseCase,
     val widgetHostManager: WidgetHostManager,
     appConfiguration: AppConfiguration,
     private val getAppActionsUseCase: GetAppActionsUseCase,
     private val getAppShortcutsUseCase: GetAppShortcutsUseCase,
+    val getRelatedLauncherItemsUseCase: GetRelatedLauncherItemsUseCase,
     private val startShortcutUseCase: StartShortcutUseCase,
     private val unpinShortcutUseCase: UnpinShortcutUseCase,
     private val uninstallAppUseCase: UninstallAppUseCase,
@@ -98,6 +105,18 @@ class NewHomeScreenViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    /** Every app and pinned shortcut, unfiltered - candidates for the related-items picker. */
+    val allLauncherItems: StateFlow<List<LauncherItem>> = combine(
+        appsRepository.mainUserApps,
+        pinnedShortcutsRepository.getAllFlow()
+    ) { apps, shortcuts ->
+        apps.map { LauncherItem.App(it) } + shortcuts.map { LauncherItem.Shortcut(it) }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     /** Starts a favourited pinned shortcut tapped directly on the home screen. */
     fun openShortcut(shortcut: PinnedShortcut) {
         startShortcutUseCase(shortcut.packageName, shortcut.shortcutId)
@@ -131,6 +150,13 @@ class NewHomeScreenViewModel @Inject constructor(
             }
             _renameDialogTarget.value = null
         }
+    }
+
+    // Related items picker
+    private val _relatedItemsPickerTarget = MutableStateFlow<LauncherItem?>(null)
+    val relatedItemsPickerTarget: StateFlow<LauncherItem?> = _relatedItemsPickerTarget.asStateFlow()
+    fun dismissRelatedItemsPicker() {
+        _relatedItemsPickerTarget.value = null
     }
 
     fun logException(e: Exception) {
@@ -227,6 +253,14 @@ class NewHomeScreenViewModel @Inject constructor(
                             }
                         }
                     )
+                    AppActionType.ManageRelatedItems -> AppAction(
+                        labelRes = R.string.add_related,
+                        isVisible = { clicked -> clicked !is LauncherItem.App || clicked.app.isMainUserApp() },
+                        onClick = { clicked ->
+                            _relatedItemsPickerTarget.value = clicked
+                            _showBottomSheet.value = false
+                        }
+                    )
                 }
             }
         }
@@ -258,8 +292,30 @@ class NewHomeScreenViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    val relatedItemActions: StateFlow<List<AppAction>> = _bottomSheetApp.flatMapLatest { item ->
+        if (item == null) flowOf(emptyList())
+        else getRelatedLauncherItemsUseCase(item.itemKey).map { relatedItems ->
+            relatedItems.map { related ->
+                AppAction(
+                    label = related.displayName,
+                    onClick = {
+                        _showBottomSheet.value = false
+                        viewModelScope.launch {
+                            _uiEvent.emit(HomeUiEvent.LaunchRelatedItem(related))
+                        }
+                    }
+                )
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 }
 
 sealed class HomeUiEvent {
     data object NavigateHome : HomeUiEvent()
+    data class LaunchRelatedItem(val item: LauncherItem) : HomeUiEvent()
 }

@@ -6,6 +6,7 @@ import com.geecee.escapelauncher.core.data.repository.android.SystemActionsRepos
 import com.geecee.escapelauncher.core.data.repository.db.ModifiedAppsRepositoryImpl
 import com.geecee.escapelauncher.core.data.repository.db.ScreenTimeRepositoryImpl
 import com.geecee.escapelauncher.core.data.repository.favourites.FavouritesRepositoryImpl
+import com.geecee.escapelauncher.core.data.repository.relateditems.RelatedItemsRepositoryImpl
 import com.geecee.escapelauncher.core.data.repository.shortcuts.PinnedShortcutsRepositoryImpl
 import com.geecee.escapelauncher.core.domain.repository.android.AppsRepository
 import com.geecee.escapelauncher.core.domain.repository.android.ManagedProfileRepository
@@ -13,6 +14,7 @@ import com.geecee.escapelauncher.core.domain.repository.android.SystemActionsRep
 import com.geecee.escapelauncher.core.domain.repository.db.ModifiedAppsRepository
 import com.geecee.escapelauncher.core.domain.repository.db.ScreenTimeRepository
 import com.geecee.escapelauncher.core.domain.repository.favourites.FavouritesRepository
+import com.geecee.escapelauncher.core.domain.repository.relateditems.RelatedItemsRepository
 import com.geecee.escapelauncher.core.domain.repository.shortcuts.PinnedShortcutsRepository
 import dagger.Binds
 import dagger.Module
@@ -65,4 +67,10 @@ abstract class RepositoryModule {
     abstract fun bindPinnedShortcutsRepository(
         pinnedShortcutsRepositoryImpl: PinnedShortcutsRepositoryImpl
     ): PinnedShortcutsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRelatedItemsRepository(
+        relatedItemsRepositoryImpl: RelatedItemsRepositoryImpl
+    ): RelatedItemsRepository
 }

@@ -41,7 +41,8 @@ fun HomeScreenBottomSheet(
     actions: List<AppAction>,
     onDismissRequest: () -> Unit,
     sheetState: SheetState? = null,
-    shortcutActions: List<AppAction> = listOf()
+    shortcutActions: List<AppAction> = listOf(),
+    relatedItemActions: List<AppAction> = listOf()
 ) {
     val screenHeight = LocalWindowInfo.current.containerDpSize.height
 
@@ -77,6 +78,14 @@ fun HomeScreenBottomSheet(
 
             // Actions
             Column(Modifier.padding(start = 47.dp, bottom = 50.dp)) {
+                if (relatedItemActions.isNotEmpty()) {
+                    relatedItemActions.filter { it.isVisible(subject) }.forEach { action ->
+                        AppActionItem(action, subject)
+                    }
+
+                    HorizontalDivider(Modifier.padding(vertical = 15.dp))
+                }
+
                 if (shortcutActions.isNotEmpty()) {
                     shortcutActions.filter { it.isVisible(subject) }.forEach { action ->
                         AppActionItem(action, subject)

@@ -38,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -47,7 +48,9 @@ import com.geecee.escapelauncher.core.model.InstalledApp
 import com.geecee.escapelauncher.core.model.LauncherItem
 import com.geecee.escapelauncher.core.model.SearchGestureDirection
 import com.geecee.escapelauncher.core.ui.DefaultSettingsUi
+import com.geecee.escapelauncher.core.ui.R
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
+import com.geecee.escapelauncher.core.ui.composables.RelatedItemsPickerDialog
 import com.geecee.escapelauncher.core.ui.composables.RenameDialog
 import com.geecee.escapelauncher.core.ui.composables.OpenChallenge
 import com.geecee.escapelauncher.core.ui.composables.TabDisplay
@@ -281,7 +284,10 @@ fun MainPagerScreen(
                 val bottomSheetApp by appsListViewModel.bottomSheetApp.collectAsState()
                 val bottomSheetActions by appsListViewModel.bottomSheetActions.collectAsState()
                 val shortcutActions by appsListViewModel.shortcutActions.collectAsState()
+                val relatedItemActions by appsListViewModel.relatedItemActions.collectAsState()
                 val renameDialogTarget by appsListViewModel.renameDialogTarget.collectAsState()
+                val relatedItemsPickerTarget by appsListViewModel.relatedItemsPickerTarget.collectAsState()
+                val allLauncherItems by appsListViewModel.allLauncherItems.collectAsState()
 
                 val handleAppClick: (InstalledApp) -> Unit = { app ->
                     viewModel.openApp(
@@ -381,6 +387,7 @@ fun MainPagerScreen(
                             actions = bottomSheetActions,
                             onDismissRequest = { appsListViewModel.setBottomSheetVisible(false) },
                             shortcutActions = shortcutActions,
+                            relatedItemActions = relatedItemActions,
                             sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
                         )
                     }
@@ -390,6 +397,39 @@ fun MainPagerScreen(
                             target = target,
                             onDismiss = { appsListViewModel.dismissRenameDialog() },
                             onSave = { appsListViewModel.saveRename(it) }
+                        )
+                    }
+
+                    relatedItemsPickerTarget?.let { owner ->
+                        val relatedItems by appsListViewModel.getRelatedLauncherItemsUseCase(owner.itemKey)
+                            .collectAsState(initial = emptyList())
+                        RelatedItemsPickerDialog(
+                            owner = owner,
+                            items = allLauncherItems,
+                            selectedItems = relatedItems,
+                            title = stringResource(R.string.related_items_picker_title),
+                            onDismiss = { appsListViewModel.dismissRelatedItemsPicker() },
+                            onItemSelected = { item, selected ->
+                                coroutineScope.launch {
+                                    if (selected) {
+                                        appsListViewModel.relatedItemsRepository.removeRelatedItem(owner.itemKey, item.itemKey)
+                                    } else {
+                                        appsListViewModel.relatedItemsRepository.addRelatedItem(owner.itemKey, item.itemKey, item.itemType)
+                                    }
+                                }
+                            },
+                            onItemMoved = { fromIndex, toIndex ->
+                                val item = relatedItems[fromIndex]
+                                coroutineScope.launch {
+                                    appsListViewModel.relatedItemsRepository.reorderRelatedItem(
+                                        ownerItemKey = owner.itemKey,
+                                        relatedItemKey = item.itemKey,
+                                        relatedItemType = item.itemType,
+                                        fromIndex = fromIndex,
+                                        toIndex = toIndex
+                                    )
+                                }
+                            }
                         )
                     }
                 }

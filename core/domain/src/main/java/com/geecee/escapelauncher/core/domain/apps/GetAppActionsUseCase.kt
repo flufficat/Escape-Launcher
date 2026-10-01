@@ -16,6 +16,7 @@ sealed class AppActionType {
     object AddChallenge : AppActionType()
     object RemoveShortcut : AppActionType()
     object Rename : AppActionType()
+    object ManageRelatedItems : AppActionType()
 }
 
 class GetAppActionsUseCase @Inject constructor(
@@ -26,7 +27,12 @@ class GetAppActionsUseCase @Inject constructor(
         return when (item) {
             is LauncherItem.Shortcut -> favouritesRepository.getFavouriteOrderFlow().map { order ->
                 val isFavorite = order.any { it.itemKey == item.itemKey }
-                listOf(AppActionType.ToggleFavorite(isFavorite), AppActionType.Rename, AppActionType.RemoveShortcut)
+                listOf(
+                    AppActionType.ToggleFavorite(isFavorite),
+                    AppActionType.Rename,
+                    AppActionType.ManageRelatedItems,
+                    AppActionType.RemoveShortcut
+                )
             }
 
             is LauncherItem.App -> {
@@ -43,6 +49,7 @@ class GetAppActionsUseCase @Inject constructor(
                         add(AppActionType.ToggleFavorite(isFavorite))
                         add(AppActionType.Hide)
                         add(AppActionType.Rename)
+                        add(AppActionType.ManageRelatedItems)
                         add(AppActionType.AppInfo)
                         if (!hasChallenge) {
                             add(AppActionType.AddChallenge)

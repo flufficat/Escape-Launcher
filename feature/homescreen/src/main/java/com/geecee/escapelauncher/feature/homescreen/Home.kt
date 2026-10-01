@@ -38,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +64,7 @@ import com.geecee.escapelauncher.core.ui.composables.Clock
 import com.geecee.escapelauncher.core.ui.composables.FirstTimeHelp
 import com.geecee.escapelauncher.core.ui.composables.GlanceWidget
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenBottomSheet
+import com.geecee.escapelauncher.core.ui.composables.RelatedItemsPickerDialog
 import com.geecee.escapelauncher.core.ui.composables.RenameDialog
 import com.geecee.escapelauncher.core.ui.composables.HomeScreenItem
 import com.geecee.escapelauncher.core.ui.utils.doHapticFeedBack
@@ -71,6 +73,7 @@ import com.geecee.escapelauncher.feature.newwidgets.WidgetRenderer
 import com.geecee.escapelauncher.feature.screentime.ScreenTimeViewModel
 import com.geecee.escapelauncher.feature.weather.WeatherViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -116,7 +119,10 @@ fun HomeScreen(
     val bottomSheetApp by homeScreenViewModel.bottomSheetApp.collectAsState()
     val bottomSheetActions by homeScreenViewModel.bottomSheetActions.collectAsState()
     val shortcutActions by homeScreenViewModel.shortcutActions.collectAsState()
+    val relatedItemActions by homeScreenViewModel.relatedItemActions.collectAsState()
     val renameDialogTarget by homeScreenViewModel.renameDialogTarget.collectAsState()
+    val relatedItemsPickerTarget by homeScreenViewModel.relatedItemsPickerTarget.collectAsState()
+    val allLauncherItems by homeScreenViewModel.allLauncherItems.collectAsState()
     val showWallpaper by homeScreenViewModel.showWallpaper.collectAsState(initial = false)
 
     val (hour, minute, _) = timeParts
@@ -126,12 +132,22 @@ fun HomeScreen(
     }
 
     val haptics = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val handleItemClick: (LauncherItem) -> Unit = { item ->
+        when (item) {
+            is LauncherItem.App -> onAppOpened(item.app)
+            is LauncherItem.Shortcut -> homeScreenViewModel.openShortcut(item.shortcut)
+        }
+        doHapticFeedBack(haptics, hapticFeedbackEnabled)
+    }
 
     // Handle UI Events from ViewModel
     LaunchedEffect(Unit) {
         homeScreenViewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.NavigateHome -> onGoHomeRequest()
+                is HomeUiEvent.LaunchRelatedItem -> handleItemClick(event.item)
             }
         }
     }
@@ -372,13 +388,7 @@ fun HomeScreen(
                 HomeScreenItem(
                     appName = item.displayName,
                     screenTime = formatScreenTime(screenTime),
-                    onAppClick = {
-                        when (item) {
-                            is LauncherItem.App -> onAppOpened(item.app)
-                            is LauncherItem.Shortcut -> homeScreenViewModel.openShortcut(item.shortcut)
-                        }
-                        doHapticFeedBack(haptics, hapticFeedbackEnabled)
-                    },
+                    onAppClick = { handleItemClick(item) },
                     onAppLongClick = {
                         homeScreenViewModel.setBottomSheetVisible(true)
                         homeScreenViewModel.setBottomSheetApp(item)
@@ -423,6 +433,7 @@ fun HomeScreen(
                 actions = bottomSheetActions,
                 onDismissRequest = { homeScreenViewModel.setBottomSheetVisible(false) },
                 shortcutActions = shortcutActions,
+                relatedItemActions = relatedItemActions,
                 sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
             )
         }
@@ -432,6 +443,38 @@ fun HomeScreen(
                 target = target,
                 onDismiss = { homeScreenViewModel.dismissRenameDialog() },
                 onSave = { homeScreenViewModel.saveRename(it) }
+            )
+        }
+
+        relatedItemsPickerTarget?.let { owner ->
+            val relatedItems by homeScreenViewModel.getRelatedLauncherItemsUseCase(owner.itemKey).collectAsState(initial = emptyList())
+            RelatedItemsPickerDialog(
+                owner = owner,
+                items = allLauncherItems,
+                selectedItems = relatedItems,
+                title = stringResource(R.string.related_items_picker_title),
+                onDismiss = { homeScreenViewModel.dismissRelatedItemsPicker() },
+                onItemSelected = { item, selected ->
+                    coroutineScope.launch {
+                        if (selected) {
+                            homeScreenViewModel.relatedItemsRepository.removeRelatedItem(owner.itemKey, item.itemKey)
+                        } else {
+                            homeScreenViewModel.relatedItemsRepository.addRelatedItem(owner.itemKey, item.itemKey, item.itemType)
+                        }
+                    }
+                },
+                onItemMoved = { fromIndex, toIndex ->
+                    val item = relatedItems[fromIndex]
+                    coroutineScope.launch {
+                        homeScreenViewModel.relatedItemsRepository.reorderRelatedItem(
+                            ownerItemKey = owner.itemKey,
+                            relatedItemKey = item.itemKey,
+                            relatedItemType = item.itemType,
+                            fromIndex = fromIndex,
+                            toIndex = toIndex
+                        )
+                    }
+                }
             )
         }
     }

@@ -43,3 +43,24 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
     }
 }
+
+/**
+ * Adds per-owner "related items" storage: a user-configurable, ordered list of other apps/
+ * shortcuts shown as quick-launch entries in a given app or shortcut's long-press popup.
+ * Wholly new concept, nothing to backfill.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `relatedItems` (
+                `ownerItemKey` TEXT NOT NULL,
+                `relatedItemKey` TEXT NOT NULL,
+                `relatedItemType` TEXT NOT NULL,
+                `position` REAL NOT NULL,
+                PRIMARY KEY(`ownerItemKey`, `relatedItemKey`)
+            )
+            """.trimIndent()
+        )
+    }
+}
